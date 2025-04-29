@@ -86,4 +86,5 @@ flutter:
   # see https://flutter.dev/to/font-from-package
   assets:
       - assets/images/LILI_logo.png
+      - assets/images/img.png
 
