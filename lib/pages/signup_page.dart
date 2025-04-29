@@ -14,6 +14,7 @@ class SignUpPage extends StatelessWidget {
           children: [
             Container(
               width: 400,
+
               height: 200,
               clipBehavior: Clip.antiAlias,
               decoration: BoxDecoration(color: const Color(0xFFF5EFE7)),
