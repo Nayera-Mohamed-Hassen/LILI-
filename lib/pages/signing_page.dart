@@ -49,9 +49,7 @@ class Signing extends StatelessWidget {
                   spacing: 8,
                   children: [
                     ElevatedButton(
-                      onPressed: () {
-                        Navigator.pushNamed(context, '/signing');
-                      },
+                      onPressed: () {},
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Color(0xFF3E5879),
 
@@ -80,9 +78,7 @@ class Signing extends StatelessWidget {
                   spacing: 8,
                   children: [
                     ElevatedButton(
-                      onPressed: () {
-                        Navigator.pushNamed(context, '/signing');
-                      },
+                      onPressed: () {},
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Color(0xFF3E5879),
 

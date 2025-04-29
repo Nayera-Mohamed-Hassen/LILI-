@@ -21,11 +21,11 @@ class LiliApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         scaffoldBackgroundColor: Color(0xFFF5F0E8), // beige background
       ),
-      initialRoute: '/',
+      initialRoute: '/login',
       routes: {
         '/': (context) => BroadcastPage(),
         '/signing': (context) => SigningPage(),
-        //   '/login': (context) => LoginPage(),
+        '/login': (context) => LoginPage(),
         //   '/signup': (context) => SignUpPage(),
         //   '/hosting': (context) => HostingPage(),
         //   '/joining': (context) => JoiningPage(),
