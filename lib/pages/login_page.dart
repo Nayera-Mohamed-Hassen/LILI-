@@ -56,7 +56,9 @@ class LoginPage extends StatelessWidget {
             ),
             const SizedBox(height: 30),
             ElevatedButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.pushNamed(context, '/hosting');
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Color(0xFF3E5879),
 
@@ -74,10 +76,17 @@ class LoginPage extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             TextButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.pushNamed(context, '/login with face id ');
+              },
               child: const Text('Log in using FaceID'),
             ),
-            TextButton(onPressed: () {}, child: const Text('Forget password?')),
+            TextButton(
+              onPressed: () {
+                Navigator.pushNamed(context, '/forget password email');
+              },
+              child: const Text('Forget password?'),
+            ),
           ],
         ),
       ),

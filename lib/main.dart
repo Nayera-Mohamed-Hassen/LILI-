@@ -27,7 +27,7 @@ class LiliApp extends StatelessWidget {
         scaffoldBackgroundColor: Color(0xFFF5EFE7),
         // beige background
       ),
-      initialRoute: '/task home',
+      initialRoute: '/',
       routes: {
         '/': (context) => BroadcastPage(),
         '/signing': (context) => SigningPage(),

@@ -51,7 +51,9 @@ class InitSetupPage extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.pushNamed(context, '/add user');
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Color(0xFF3E5879),
 
@@ -69,7 +71,9 @@ class InitSetupPage extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             ElevatedButton(
-              onPressed: () {},
+              onPressed: () {
+                //home page
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Color(0xFF3E5879),
 

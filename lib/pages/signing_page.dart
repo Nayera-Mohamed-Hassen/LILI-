@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
+// import 'pages/signing_page.dart';
 
 class SigningPage extends StatelessWidget {
   const SigningPage({super.key});
+
+  @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData.dark().copyWith(
-        scaffoldBackgroundColor: const Color.fromARGB(255, 18, 32, 47),
-      ),
-      home: Scaffold(body: ListView(children: [Signing()])),
-    );
+    return Scaffold(body: ListView(children: [Signing()]));
   }
 }
 
@@ -50,7 +47,9 @@ class Signing extends StatelessWidget {
                   spacing: 8,
                   children: [
                     ElevatedButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.pushNamed(context, '/signup');
+                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Color(0xFF3E5879),
 
@@ -79,7 +78,9 @@ class Signing extends StatelessWidget {
                   spacing: 8,
                   children: [
                     ElevatedButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.pushNamed(context, '/login');
+                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Color(0xFF3E5879),
 

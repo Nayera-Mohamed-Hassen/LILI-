@@ -12,7 +12,9 @@ class HostingPage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             ElevatedButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.pushNamed(context, '/init setup');
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Color(0xFF3E5879),
 
@@ -30,7 +32,9 @@ class HostingPage extends StatelessWidget {
             ),
             const SizedBox(height: 30),
             ElevatedButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.pushNamed(context, '/joining');
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Color(0xFF3E5879),
 
