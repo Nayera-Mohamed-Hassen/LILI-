@@ -47,7 +47,7 @@ class JoiningPage extends StatelessWidget {
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
-                //home page
+                Navigator.pushNamed(context, '/homepage');
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Color(0xFF3E5879),

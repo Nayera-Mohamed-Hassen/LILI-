@@ -41,7 +41,7 @@ class AddUserPage extends StatelessWidget {
             const SizedBox(height: 10),
             ElevatedButton(
               onPressed: () {
-                //home page
+                Navigator.pushNamed(context, '/homepage');
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Color(0xFF3E5879),

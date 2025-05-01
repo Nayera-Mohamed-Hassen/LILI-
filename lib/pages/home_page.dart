@@ -2,8 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
-import 'bottom_nav_bar.dart';
-import 'main_menu.dart'; // ✅ Required for navigation
+import 'navbar.dart'; // Import your Navbar
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -21,21 +20,29 @@ class _HomePageState extends State<HomePage> {
   bool _checkbox2 = false;
   bool _checkbox3 = false;
 
-  void _onTabTapped(int index) {
-    setState(() {
-      _currentIndex = index;
-    });
-
-    if (index == 1) {
-      Navigator.pushNamed(context, '/mainmenu'); // Navigate to MainMenu
-    }
-  }
-
   @override
   void initState() {
     super.initState();
     _calendarFormat = CalendarFormat.month;
     _focusedDay = DateTime.now();
+  }
+
+  // This function will be used for navigation when the navbar items are tapped
+  void _onTabTapped(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+
+    // Perform navigation based on the selected index
+    if (index == 1) {
+      Navigator.pushNamed(context, '/mainmenu'); // Navigate to MainMenu
+    }
+    if (index == 2) {
+      Navigator.pushNamed(context, '/emergency'); // Navigate to EmergencyPage
+    }
+    if (index == 3) {
+      Navigator.pushNamed(context, '/profile'); // Navigate to ProfilePage
+    }
   }
 
   @override
@@ -55,7 +62,7 @@ class _HomePageState extends State<HomePage> {
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF3E5879), // Blue
+                    color: Color(0xFF3E5879),
                   ),
                 ),
                 Icon(
@@ -144,25 +151,26 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
       ),
-      // bottomNavigationBar: BottomNavBar(
-      //   currentIndex: _currentIndex,
-      //   onTabTapped: _onTabTapped,
-      // ),
+      // Use Navbar as the bottom navigation bar
+      bottomNavigationBar: Navbar(
+        page: _currentIndex, // Pass the current index to the Navbar
+        onTap: _onTabTapped, // Handle tab selection in Navbar
+      ),
     );
   }
-}
 
-Widget _buildTaskItem(String label, bool value, Function(bool?) onChanged) {
-  return Padding(
-    padding: const EdgeInsets.symmetric(vertical: 4.0), // 🔽 Reduced vertical spacing
-    child: CheckboxListTile(
-      title: Text(label),
-      value: value,
-      onChanged: onChanged,
-      controlAffinity: ListTileControlAffinity.leading,
-      contentPadding: EdgeInsets.zero,
-      dense: true, // 🔽 Makes the ListTile more compact
-      visualDensity: VisualDensity.compact, // 🔽 Reduces internal spacing
-    ),
-  );
+  Widget _buildTaskItem(String label, bool value, Function(bool?) onChanged) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: CheckboxListTile(
+        title: Text(label),
+        value: value,
+        onChanged: onChanged,
+        controlAffinity: ListTileControlAffinity.leading,
+        contentPadding: EdgeInsets.zero,
+        dense: true,
+        visualDensity: VisualDensity.compact,
+      ),
+    );
+  }
 }
