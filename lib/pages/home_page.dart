@@ -132,7 +132,7 @@ class _HomePageState extends State<HomePage> {
                 ),
                 calendarStyle: CalendarStyle(
                   todayDecoration: BoxDecoration(
-                    color: Color(0xFF3E5879).withOpacity(0.3),
+                    color: Color(0xFF3E5879),
                     shape: BoxShape.circle,
                   ),
                   selectedDecoration: BoxDecoration(
@@ -150,11 +150,6 @@ class _HomePageState extends State<HomePage> {
             ),
           ],
         ),
-      ),
-      // Use Navbar as the bottom navigation bar
-      bottomNavigationBar: Navbar(
-        page: _currentIndex, // Pass the current index to the Navbar
-        onTap: _onTabTapped, // Handle tab selection in Navbar
       ),
     );
   }

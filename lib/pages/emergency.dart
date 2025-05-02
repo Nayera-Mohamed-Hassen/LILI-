@@ -42,10 +42,7 @@ class _EmergencyPageState extends State<EmergencyPage> {
           style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
         ),
       ),
-      bottomNavigationBar: Navbar(
-        page: _currentIndex, // Pass the current index to the Navbar
-        onTap: _onTabTapped, // Handle tab selection in Navbar
-      ),
+
     );
   }
 }

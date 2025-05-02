@@ -41,10 +41,6 @@ class _MainMenuPageState extends State<MainMenuPage> {
 
       body: _pages[_currentIndex], // Show corresponding content based on selected tab
 
-      bottomNavigationBar: Navbar(
-        page: _currentIndex, // Pass the current index to the Navbar
-        onTap: _onTabTapped, // Handle tab selection in Navbar
-      ),
     );
   }
 }

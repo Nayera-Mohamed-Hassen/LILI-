@@ -34,7 +34,7 @@ class LiliApp extends StatelessWidget {
       initialRoute: '/',
       routes: {
         '/': (context) => BroadcastPage(),
-        '/homepage': (context) => HomePage(),
+        '/homepage': (context) => Navbar(),
         '/mainmenu': (context) => MainMenuPage(),
         '/emergency' :(context) => EmergencyPage(),
         '/profile' :(context) => ProfilePage(),
