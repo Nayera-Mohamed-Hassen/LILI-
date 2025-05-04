@@ -6,6 +6,7 @@ class TasksHomePage extends StatefulWidget {
   _TasksHomePageState createState() => _TasksHomePageState();
 }
 
+// const Color(0xFF213555)
 class _TasksHomePageState extends State<TasksHomePage> {
   String selectedFilter = 'All';
 
@@ -49,6 +50,36 @@ class _TasksHomePageState extends State<TasksHomePage> {
       'description': 'Graduation party',
       'progress': 100,
       'dueDate': 'Mon, 15 oct 2025',
+    },
+    {
+      'title': 'Finish front end ',
+      'description': 'finsh all the front end of lili',
+      'progress': 100,
+      'dueDate': 'Mon, 5 may 2025',
+    },
+    {
+      'title': 'Finish front end ',
+      'description': 'finsh all the front end of lili',
+      'progress': 100,
+      'dueDate': 'Mon, 5 may 2025',
+    },
+    {
+      'title': 'Finish front end ',
+      'description': 'finsh all the front end of lili',
+      'progress': 100,
+      'dueDate': 'Mon, 5 may 2025',
+    },
+    {
+      'title': 'Finish front end ',
+      'description': 'finsh all the front end of lili',
+      'progress': 100,
+      'dueDate': 'Mon, 5 may 2025',
+    },
+    {
+      'title': 'Finish front end ',
+      'description': 'finsh all the front end of lili',
+      'progress': 100,
+      'dueDate': 'Mon, 5 may 2025',
     },
   ];
   final List<Map<String, dynamic>> in_progress_tasks = [
@@ -100,17 +131,17 @@ class _TasksHomePageState extends State<TasksHomePage> {
   int _selectedIndex = 0;
 
   final items = [
-    Icon(Icons.home, size: 30, color: Color(0xFFF5EFE7)),
     Icon(Icons.category_rounded, size: 30, color: Color(0xFFF5EFE7)),
+    // Icon(Icons.category_rounded, size: 30, color: Color(0xFFF5EFE7)),
     Icon(Icons.calendar_month_outlined, size: 30, color: Color(0xFFF5EFE7)),
-    Icon(Icons.person, size: 30, color: Color(0xFFF5EFE7)),
+    // Icon(Icons.person, size: 30, color: Color(0xFFF5EFE7)),
   ];
 
   final List<Widget> _pages = [
     Center(child: Text('Home')),
-    Center(child: Text('Categories')),
+    // Center(child: Text('Categories')),
     Center(child: Text('Calender')),
-    Center(child: Text('Settings')),
+    // Center(child: Text('Settings')),
   ];
 
   void _onItemTapped(int index) {
@@ -132,7 +163,7 @@ class _TasksHomePageState extends State<TasksHomePage> {
       //   title: Text('Manage your Daily tasks'),
       //   actions: [
       //     CircleAvatar(
-      //       backgroundImage: AssetImage('assets/images/nayera.face.jpg'),
+      //       backgroundImage: AssetImage('assets/images/nayera.jpg'),
       //     ),
       //     SizedBox(width: 16),
       //   ],
@@ -148,7 +179,7 @@ class _TasksHomePageState extends State<TasksHomePage> {
               children: [
                 BackButton(),
                 CircleAvatar(
-                  backgroundImage: AssetImage('assets/images/nayera.face.jpg'),
+                  // backgroundImage: AssetImage('assets/images/nayera.jgp'),
                   radius: 40,
                 ),
                 SizedBox(width: 10),
@@ -208,11 +239,12 @@ class _TasksHomePageState extends State<TasksHomePage> {
                       ],
                     );
                   },
+                  // const Color(0xFF1D2345)
                   child: Container(
                     padding: EdgeInsets.all(8),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Color(0xFF3E5879),
+                      color: Color(0xFF1D2345),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black12,
@@ -253,7 +285,7 @@ class _TasksHomePageState extends State<TasksHomePage> {
                       fontWeight: FontWeight.bold,
                       color: Color(0xFFF5EFE7),
                     ),
-                    backgroundColor: Color(0xFF3E5879),
+                    backgroundColor: Color((0xFF1D2345)),
                     onPressed: () {
                       setState(() {
                         selectedFilter = 'All';
@@ -267,7 +299,7 @@ class _TasksHomePageState extends State<TasksHomePage> {
                       fontWeight: FontWeight.bold,
                       color: Color(0xFFF5EFE7),
                     ),
-                    backgroundColor: Color(0xFF3E5879),
+                    backgroundColor: Color((0xFF1D2345)),
                     onPressed: () {
                       setState(() {
                         selectedFilter = 'Done';
@@ -281,7 +313,7 @@ class _TasksHomePageState extends State<TasksHomePage> {
                       fontWeight: FontWeight.bold,
                       color: Color(0xFFF5EFE7),
                     ),
-                    backgroundColor: Color(0xFF3E5879),
+                    backgroundColor: Color((0xFF1D2345)),
                     onPressed: () {
                       setState(() {
                         selectedFilter = 'In progress';
@@ -295,7 +327,7 @@ class _TasksHomePageState extends State<TasksHomePage> {
                       fontWeight: FontWeight.bold,
                       color: Color(0xFFF5EFE7),
                     ),
-                    backgroundColor: Color(0xFF3E5879),
+                    backgroundColor: Color((0xFF1D2345)),
                     onPressed: () {
                       setState(() {
                         selectedFilter = 'Scheduled';
@@ -310,7 +342,7 @@ class _TasksHomePageState extends State<TasksHomePage> {
                       fontWeight: FontWeight.bold,
                       color: Color(0xFFF5EFE7),
                     ),
-                    backgroundColor: Color(0xFF3E5879),
+                    backgroundColor: Color((0xFF1D2345)),
                     onPressed: () {
                       setState(() {
                         selectedFilter = 'Categories';
@@ -331,7 +363,7 @@ class _TasksHomePageState extends State<TasksHomePage> {
                 color: Color(0xFF213555),
               ),
             ),
-            SizedBox(height: 20),
+            SizedBox(height: 2),
 
             Expanded(
               child:
@@ -341,7 +373,7 @@ class _TasksHomePageState extends State<TasksHomePage> {
                         itemBuilder: (context, index) {
                           final category = categories[index];
                           return Card(
-                            color: Color(0xFF3E5879),
+                            color: Color((0xFF1D2345)),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(15),
                             ),
@@ -377,7 +409,7 @@ class _TasksHomePageState extends State<TasksHomePage> {
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(15),
                             ),
-                            color: Color(0xFF3E5879),
+                            color: Color((0xFF1D2345)),
                             child: ListTile(
                               title: Text(
                                 task['title'],
@@ -409,13 +441,63 @@ class _TasksHomePageState extends State<TasksHomePage> {
         ),
       ),
 
+      floatingActionButton: PopupMenuButton<String>(
+        onSelected: (value) {
+          if (value == 'task') {
+            Navigator.pushNamed(context, '/create new task');
+            // Open New Task form
+          } else if (value == 'category') {
+            Navigator.pushNamed(context, '/create new category');
+            // Open New Category form
+          }
+        },
+        offset: Offset(0, -100),
+        color: Color(0xFFF5EFE7),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        icon: FloatingActionButton(
+          backgroundColor: Color((0xFF1D2345)),
+          child: Icon(Icons.add, size: 30, color: Color(0xFFF5EFE7)),
+          onPressed: null, // Leave null to use PopupMenuButton's onSelected
+        ),
+        itemBuilder:
+            (context) => [
+              PopupMenuItem(
+                value: 'task',
+                child: Row(
+                  children: [
+                    Icon(Icons.task, color: Color((0xFF1D2345))),
+                    SizedBox(width: 10),
+                    Text(
+                      "New Task",
+                      style: TextStyle(color: Color((0xFF1D2345))),
+                    ),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 'category',
+                child: Row(
+                  children: [
+                    Icon(Icons.category, color: Color((0xFF1D2345))),
+                    SizedBox(width: 10),
+                    Text(
+                      "New Category",
+                      style: TextStyle(color: Color((0xFF1D2345))),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+
       bottomNavigationBar: CurvedNavigationBar(
         items: items,
         index: _selectedIndex,
         height: 60,
         backgroundColor: Colors.transparent,
-        color: Color(0xFF3E5879),
-        buttonBackgroundColor: Color(0xFF3E5879),
+        color: Color((0xFF1D2345)),
+        buttonBackgroundColor: Color((0xFF1D2345)),
         animationDuration: Duration(milliseconds: 300),
         onTap: (index) {
           setState(() {

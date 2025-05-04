@@ -16,6 +16,8 @@ import 'pages/login_with_face_id_page.dart';
 import 'pages/add_user_page.dart';
 import 'pages/tasks_home_page.dart';
 import 'pages/navbar.dart'; // Import the navbar
+import 'pages/create_new_task_page.dart';
+import 'pages/create_new_category_page.dart';
 
 void main() {
   runApp(LiliApp());
@@ -31,13 +33,13 @@ class LiliApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         scaffoldBackgroundColor: Color(0xFFF5EFE7), // beige background
       ),
-      initialRoute: '/',
+      initialRoute: '/task home',
       routes: {
         '/': (context) => BroadcastPage(),
         '/homepage': (context) => Navbar(),
         '/mainmenu': (context) => MainMenuPage(),
-        '/emergency' :(context) => EmergencyPage(),
-        '/profile' :(context) => ProfilePage(),
+        '/emergency': (context) => EmergencyPage(),
+        '/profile': (context) => ProfilePage(),
         '/signing': (context) => SigningPage(),
         '/login': (context) => LoginPage(),
         '/signup': (context) => SignUpPage(),
@@ -49,6 +51,8 @@ class LiliApp extends StatelessWidget {
         '/login with face id ': (context) => LoginWithFaceIDPage(),
         '/add user': (context) => AddUserPage(),
         '/task home': (context) => TasksHomePage(),
+        '/create new task': (context) => CreateNewTaskPage(),
+        '/create new category': (context) => CreateNewCategoryPage(),
       },
     );
   }

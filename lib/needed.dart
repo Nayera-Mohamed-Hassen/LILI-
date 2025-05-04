@@ -309,3 +309,46 @@
 //           ),
 // ),
 // Navigator.pushNamed(context, '/signup');
+// floatingActionButton: FloatingActionButton(
+//   backgroundColor: Color(0xFF3E5879), // Your purple shade
+//   child: Icon(Icons.add, size: 30, color: Color(0xFFF5EFE7)),
+//   onPressed: () {
+//     // Navigator.pushNamed(context, '/create new task');
+//     //option 1
+//     // showModalBottomSheet(
+//     //   context: context,
+//     //   shape: RoundedRectangleBorder(
+//     //     borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+//     //   ),
+//     //   backgroundColor: Colors.white,
+//     //   builder: (context) {
+//     //     return Padding(
+//     //       padding: const EdgeInsets.symmetric(vertical: 20),
+//     //       child: Column(
+//     //         mainAxisSize: MainAxisSize.min,
+//     //         children: [
+//     //           ListTile(
+//     //             leading: Icon(Icons.task, color: Colors.purple[300]),
+//     //             title: Text("New Task"),
+//     //             onTap: () {
+//     //               Navigator.pop(context);
+//     //               // Navigate to or show New Task form
+//     //             },
+//     //           ),
+//     //           ListTile(
+//     //             leading: Icon(Icons.category, color: Colors.purple[300]),
+//     //             title: Text("New Category"),
+//     //             onTap: () {
+//     //               Navigator.pop(context);
+//     //               // Navigate to or show New Category form
+//     //             },
+//     //           ),
+//     //         ],
+//     //       ),
+//     //     );
+//     //   },
+//     // );
+//
+//     // Add new task
+//   },
+// ),
