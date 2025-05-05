@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:untitled4/pages/emergency.dart';
 import 'package:untitled4/pages/home_page.dart';
+import 'package:untitled4/pages/loadingRecipe.dart';
 import 'package:untitled4/pages/main_menu.dart';
 import 'package:untitled4/pages/profile.dart';
 import 'pages/signing_page.dart';
@@ -18,6 +19,7 @@ import 'pages/tasks_home_page.dart';
 import 'pages/navbar.dart'; // Import the navbar
 import 'pages/create_new_task_page.dart';
 import 'pages/create_new_category_page.dart';
+import 'pages/loadingRecipe.dart';
 
 void main() {
   runApp(LiliApp());
@@ -33,9 +35,10 @@ class LiliApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         scaffoldBackgroundColor: Color(0xFFF5EFE7), // beige background
       ),
-      initialRoute: '/task home',
+      initialRoute: '/loadingRecipe',
       routes: {
         '/': (context) => BroadcastPage(),
+        '/loadingRecipe': (context) => RecipeLoading(),
         '/homepage': (context) => Navbar(),
         '/mainmenu': (context) => MainMenuPage(),
         '/emergency': (context) => EmergencyPage(),
