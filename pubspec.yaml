@@ -35,7 +35,7 @@ dependencies:
   table_calendar: ^3.0.0
   gif_view: ^1.0.2
   gif: ^2.3.0
-
+  image_picker: ^0.8.5+3
 
 dev_dependencies:
   flutter_test:
