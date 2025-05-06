@@ -1,55 +1,34 @@
 import 'package:flutter/material.dart';
 import 'navbar.dart'; // Import the Navbar
-import'package:untitled4/models/user.dart';
+import 'package:untitled4/models/user.dart';
 import 'package:untitled4/pages/more_info_page.dart';
 import 'package:untitled4/pages/edit_profile_page.dart';
 import 'package:untitled4/pages/wave.dart';
-class ProfilePage extends StatefulWidget {
 
+class ProfilePage extends StatefulWidget {
   @override
   _ProfilePageState createState() => _ProfilePageState();
-
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+  int _currentIndex = 3;
 
-  int _currentIndex = 3; // Default to ProfilePage when selected
-
-  // Pages to display based on navigation bar selection
   final List<Widget> _pages = [
     Center(child: Text('Home Page Content')),
     Center(child: Text('Main Menu Content')),
     Center(child: Text('Emergency Content')),
-    Center(child: Text('Profile Content')), // Profile page content
+    Center(child: Text('Profile Content')),
   ];
-
-  // Function to handle tab navigation
-  void _onTabTapped(int index) {
-    setState(() {
-      _currentIndex = index; // Update the current index based on tab selection
-    });
-
-    // Navigation based on index
-    if (index == 0) {
-      Navigator.pushNamed(context, '/homepage'); // Navigate to HomePage
-    } else if (index == 1) {
-      Navigator.pushNamed(context, '/mainmenu'); // Navigate to MainMenuPage
-    } else if (index == 2) {
-      Navigator.pushNamed(context, '/emergency'); // Navigate to EmergencyPage
-    } else if (index == 3) {
-      Navigator.pushNamed(context, '/profile'); // Navigate to ProfilePage
-    }
-  }
 
   User user = User(
     name: "Farah",
     email: "farah@home.com",
     dob: "Mar 25, 2006",
     phone: "+91 956232134",
-    address: "99, Haji Abduakar Chawl, Dharavi Cross Rd, Kutti Wadi, Dharavi, Maharashtra",
+    address:
+    "99, Haji Abduakar Chawl, Dharavi Cross Rd, Kutti Wadi, Dharavi, Maharashtra",
     allergies: ["shrimp", "strawberries"],
   );
-
 
   void updateUser(User updatedUser) {
     setState(() {
@@ -78,10 +57,38 @@ class _ProfilePageState extends State<ProfilePage> {
       updateUser(updatedUser);
     }
   }
+
+  void _showLogoutDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Confirm Logout"),
+          content: Text("Are you sure you want to log out?"),
+          actions: [
+            TextButton(
+              child: Text("Cancel"),
+              onPressed: () {
+                Navigator.of(context).pop(); // Close dialog
+              },
+            ),
+            TextButton(
+              child: Text("Logout"),
+              onPressed: () {
+                Navigator.of(context).pop(); // Close dialog
+                // TODO: Add real logout logic here
+                print("User logged out");
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-
       appBar: AppBar(
         backgroundColor: Color(0xFF213555),
         elevation: 0,
@@ -105,7 +112,7 @@ class _ProfilePageState extends State<ProfilePage> {
         child: Column(
           children: [
             ClipPath(
-              clipper: CustomClipPath(), // Changed clipper here
+              clipper: CustomClipPath(),
               child: Container(
                 height: 150,
                 color: Color(0xFF213555),
@@ -135,10 +142,9 @@ class _ProfilePageState extends State<ProfilePage> {
             SizedBox(height: 20),
             Text(user.email, style: TextStyle(fontSize: 18, color: Color(0xFF213555))),
             Text(user.phone, style: TextStyle(fontSize: 18, color: Color(0xFF213555))),
-            SizedBox(height: 30),
-
+            SizedBox(height: 10),
             GestureDetector(
-              //onTap: onMoreInfoPressed,
+              onTap: _navigateToMoreInfo,
               child: Container(
                 padding: EdgeInsets.all(20),
                 decoration: BoxDecoration(
@@ -159,23 +165,9 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
               ),
             ),
-
-            SizedBox(height: 10),
-
+            SizedBox(height: 5),
             ElevatedButton.icon(
-              onPressed: () async {
-                final updatedUser = await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => Scaffold(
-                      body: EditProfilePage(user: user),
-                    ),
-                  ),
-                );
-                if (updatedUser != null && updatedUser is User) {
-                  //onEdit(updatedUser);
-                }
-              },
+              onPressed: _navigateToEditProfile,
               icon: Icon(Icons.edit),
               label: Text("Edit Profile"),
               style: ElevatedButton.styleFrom(
@@ -185,11 +177,8 @@ class _ProfilePageState extends State<ProfilePage> {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
               ),
             ),
-
             ElevatedButton.icon(
-              onPressed: () {
-                // Implement logout logic here
-              },
+              onPressed: _showLogoutDialog,
               icon: Icon(Icons.logout),
               label: Text("Log Out"),
               style: ElevatedButton.styleFrom(

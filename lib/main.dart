@@ -21,8 +21,6 @@ import 'pages/create_new_task_page.dart';
 import 'pages/create_new_category_page.dart';
 import 'pages/loadingRecipe.dart';
 
-
-
 void main() {
   runApp(LiliApp());
 }
@@ -37,7 +35,7 @@ class LiliApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         scaffoldBackgroundColor: Color(0xFFF5EFE7), // beige background
       ),
-      initialRoute: '/profile',
+      initialRoute: '/homepage',
       routes: {
         '/': (context) => BroadcastPage(),
         '/loadingRecipe': (context) => RecipeLoading(),
