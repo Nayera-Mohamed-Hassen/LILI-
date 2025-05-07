@@ -59,7 +59,7 @@ class _MainMenuPageState extends State<MainMenuPage> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  buildButton("Show Inventory", '/'),
+                  buildButton("Show Inventory", '/inventory'),
                   buildButton("Show Expenses", '/'),
                 ],
               ),

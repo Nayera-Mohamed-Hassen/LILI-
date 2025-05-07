@@ -20,7 +20,9 @@ import 'pages/navbar.dart'; // Import the navbar
 import 'pages/create_new_task_page.dart';
 import 'pages/create_new_category_page.dart';
 import 'pages/loadingRecipe.dart';
-
+import 'pages/inventory_page.dart';
+import 'pages/add_new_itemInventory_page.dart';
+import 'pages/create_new_categoryInventory_page.dart';
 void main() {
   runApp(LiliApp());
 }
@@ -56,6 +58,9 @@ class LiliApp extends StatelessWidget {
         '/task home': (context) => TasksHomePage(),
         '/create new task': (context) => CreateNewTaskPage(),
         '/create new category': (context) => CreateNewCategoryPage(),
+        '/inventory': (context) => InventoryPage(),
+        '/new item inventory': (context) => CreateNewItemPage(),
+        '/new category inventory': (context) => CreateNewCategoryInventoryPage(),
       },
     );
   }
