@@ -2,22 +2,25 @@ import 'package:flutter/material.dart';
 
 class CreateNewCategoryInventoryPage extends StatefulWidget {
   @override
-  _CreateNewCategoryInventoryPageState createState() => _CreateNewCategoryInventoryPageState();
+  _CreateNewCategoryInventoryPageState createState() =>
+      _CreateNewCategoryInventoryPageState();
 }
 
 // const Color(0xFF213555)
-class _CreateNewCategoryInventoryPageState extends State<CreateNewCategoryInventoryPage> {
+class _CreateNewCategoryInventoryPageState
+    extends State<CreateNewCategoryInventoryPage> {
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
   bool isPrivate = true;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF5EFE7),
       appBar: AppBar(
-        backgroundColor: Color(0xFF1D2345),
+        backgroundColor: Color(0xFF1F3354),
         title: const Text(
           'Add New Inventory Category ',
           style: TextStyle(color: Color(0xFFF5EFE7)),
@@ -44,18 +47,18 @@ class _CreateNewCategoryInventoryPageState extends State<CreateNewCategoryInvent
                       context: context,
                       builder:
                           (ctx) => AlertDialog(
-                        title: Text('Success'),
-                        content: Text('Category saved successfully!'),
-                        actions: [
-                          TextButton(
-                            onPressed: () {
-                              // Navigator.of(ctx).pop(); // Close dialog
-                              Navigator.pushNamed(context, '/inventory');
-                            },
-                            child: Text('OK'),
+                            title: Text('Success'),
+                            content: Text('Category saved successfully!'),
+                            actions: [
+                              TextButton(
+                                onPressed: () {
+                                  // Navigator.of(ctx).pop(); // Close dialog
+                                  Navigator.pushNamed(context, '/inventory');
+                                },
+                                child: Text('OK'),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
                     );
                   },
                 ),
@@ -72,10 +75,10 @@ class _CreateNewCategoryInventoryPageState extends State<CreateNewCategoryInvent
   }
 
   Widget _buildTextField(
-      TextEditingController controller,
-      String label, {
-        int maxLines = 1,
-      }) {
+    TextEditingController controller,
+    String label, {
+    int maxLines = 1,
+  }) {
     return TextField(
       controller: controller,
       maxLines: maxLines,
@@ -97,19 +100,18 @@ class _CreateNewCategoryInventoryPageState extends State<CreateNewCategoryInvent
         fillColor: Colors.white,
       ),
       items:
-      ['Option 1', 'Option 2', 'Option 3']
-          .map((item) => DropdownMenuItem(value: item, child: Text(item)))
-          .toList(),
+          ['Option 1', 'Option 2', 'Option 3']
+              .map((item) => DropdownMenuItem(value: item, child: Text(item)))
+              .toList(),
       onChanged: (value) {},
     );
   }
-
 
   Widget _buildButton(String text, {required VoidCallback onPressed}) {
     return ElevatedButton(
       onPressed: onPressed,
       style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFF1D2345),
+        backgroundColor: const Color(0xFF1F3354),
         minimumSize: const Size(140, 50),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),

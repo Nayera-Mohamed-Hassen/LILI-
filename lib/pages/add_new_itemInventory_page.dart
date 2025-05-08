@@ -17,7 +17,7 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
     return Scaffold(
       backgroundColor: const Color(0xFFF5EFE7),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1D2345),
+        backgroundColor: const Color(0xFF1F3354),
         title: const Text(
           'Add New Item To Inventory',
           style: TextStyle(color: Color(0xFFF5EFE7)),
@@ -40,20 +40,25 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
             Align(
               alignment: Alignment.bottomRight,
               child: IconButton(
-                icon: Icon(Icons.camera_alt, size: 30, color: Color(0xFF1D2345)),
+                icon: Icon(
+                  Icons.camera_alt,
+                  size: 30,
+                  color: Color(0xFF1D2345),
+                ),
                 onPressed: () {
                   showDialog(
                     context: context,
-                    builder: (ctx) => AlertDialog(
-                      title: Text('Scanning'),
-                      content: Text('Scanning the receipt...'),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.of(ctx).pop(),
-                          child: Text('OK'),
+                    builder:
+                        (ctx) => AlertDialog(
+                          title: Text('Scanning'),
+                          content: Text('Scanning the receipt...'),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(ctx).pop(),
+                              child: Text('OK'),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
                   );
                 },
               ),
@@ -67,18 +72,19 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
                   onPressed: () {
                     showDialog(
                       context: context,
-                      builder: (ctx) => AlertDialog(
-                        title: Text('Success'),
-                        content: Text('Item Added successfully!'),
-                        actions: [
-                          TextButton(
-                            onPressed: () {
-                              Navigator.pushNamed(context, '/inventory');
-                            },
-                            child: Text('OK'),
+                      builder:
+                          (ctx) => AlertDialog(
+                            title: Text('Success'),
+                            content: Text('Item Added successfully!'),
+                            actions: [
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.pushNamed(context, '/inventory');
+                                },
+                                child: Text('OK'),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
                     );
                   },
                 ),
@@ -88,8 +94,6 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
                 ),
               ],
             ),
-
-
           ],
         ),
       ),
@@ -97,11 +101,11 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
   }
 
   Widget _buildTextField(
-      TextEditingController controller,
-      String label, {
-        int maxLines = 1,
-        bool isNumber = false,
-      }) {
+    TextEditingController controller,
+    String label, {
+    int maxLines = 1,
+    bool isNumber = false,
+  }) {
     return TextField(
       controller: controller,
       keyboardType: isNumber ? TextInputType.number : TextInputType.text,
@@ -123,13 +127,16 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
         filled: true,
         fillColor: Colors.white,
       ),
-      items: [
-        'All',
-        'Food',
-        'Cleaning Supplies',
-        'Toiletries & Personal Care',
-        'Medications & First Aid',
-      ].map((item) => DropdownMenuItem(value: item, child: Text(item))).toList(),
+      items:
+          [
+                'All',
+                'Food',
+                'Cleaning Supplies',
+                'Toiletries & Personal Care',
+                'Medications & First Aid',
+              ]
+              .map((item) => DropdownMenuItem(value: item, child: Text(item)))
+              .toList(),
       onChanged: (value) {
         setState(() {
           _selectedCategory = value;
@@ -157,9 +164,10 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
         child: TextField(
           decoration: InputDecoration(
             labelText: 'Expiry Date',
-            hintText: _selectedDate != null
-                ? DateFormat('yyyy-MM-dd').format(_selectedDate!)
-                : 'Select date',
+            hintText:
+                _selectedDate != null
+                    ? DateFormat('yyyy-MM-dd').format(_selectedDate!)
+                    : 'Select date',
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
             filled: true,
             fillColor: Colors.white,
@@ -173,7 +181,7 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
     return ElevatedButton(
       onPressed: onPressed,
       style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFF1D2345),
+        backgroundColor: const Color(0xFF1F3354),
         minimumSize: const Size(140, 50),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),

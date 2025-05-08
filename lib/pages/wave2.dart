@@ -59,7 +59,7 @@ class RecipePage extends StatelessWidget {
             clipper: WaveClipper(),
             child: Container(
               height: 250, // Adjust this height to your needs
-              color: Color(0xFF213555), // Wave color (dark blue)
+              color: Color(0xFF1F3354), // Wave color (dark blue)
             ),
           ),
           Flex(

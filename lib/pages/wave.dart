@@ -19,6 +19,7 @@ class CustomClipPath extends CustomClipper<Path> {
   @override
   bool shouldReclip(CustomClipper<Path> oldClipper) => false;
 }
+
 class CoverWithImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -43,7 +44,7 @@ class CoverWithImage extends StatelessWidget {
                     shape: OvalBorder(
                       side: BorderSide(
                         width: 5,
-                        color: const Color(0xFF213555),
+                        color: const Color(0xFF1F3354),
                       ),
                     ),
                   ),
