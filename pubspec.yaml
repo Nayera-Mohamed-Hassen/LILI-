@@ -37,6 +37,7 @@ dependencies:
   gif: ^2.3.0
   image_picker: ^0.8.5+3
 
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -102,4 +103,5 @@ flutter:
       - assets/recipes/Falafel.jpg
       - assets/recipes/Fish Tacos.jpg
       - assets/recipes/Chicken Tikka Masala.jpg
+      - assets/images/g5.jpg
 

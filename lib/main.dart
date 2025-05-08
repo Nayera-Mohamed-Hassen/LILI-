@@ -24,6 +24,9 @@ import 'pages/inventory_page.dart';
 import 'pages/add_new_itemInventory_page.dart';
 import 'pages/create_new_categoryInventory_page.dart';
 import 'pages/wave2.dart';
+import 'pages/budget_page_navbar.dart';
+import 'pages/my_card_page.dart';
+import 'pages/budget_home_page.dart';
 
 void main() {
   runApp(LiliApp());
@@ -39,7 +42,7 @@ class LiliApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         scaffoldBackgroundColor: Color(0xFFF5EFE7), // beige background
       ),
-      initialRoute: '/task home',
+      initialRoute: '/budget',
       routes: {
         '/': (context) => BroadcastPage(),
         '/WaveClipper': (context) => RecipePage(),
@@ -66,6 +69,9 @@ class LiliApp extends StatelessWidget {
         '/new item inventory': (context) => CreateNewItemPage(),
         '/new category inventory':
             (context) => CreateNewCategoryInventoryPage(),
+        '/budget': (context) => BudgetPageNavbar(),
+        '/budget home': (context) => BudgetPage(),
+        '/my card': (context) => MyCardPage(),
       },
     );
   }

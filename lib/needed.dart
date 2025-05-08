@@ -576,3 +576,33 @@
 //     );
 //   }
 // }
+// bottomNavigationBar: BottomNavigationBar(
+//   currentIndex: _selectedIndex,
+//   selectedItemColor: Colors.green[800],
+//   unselectedItemColor: Colors.grey,
+//   onTap: _onItemTapped,
+//   items: const [
+//     BottomNavigationBarItem(
+//       icon: Icon(Icons.home),
+//       label: 'Home',
+//     ),
+//     BottomNavigationBarItem(
+//       icon: Icon(Icons.credit_card),
+//       label: 'My Cards',
+//     ),
+//     BottomNavigationBarItem(
+//       icon: Icon(Icons.analytics),
+//       label: 'Analytics',
+//       ),
+//     ],
+//   ),
+// );
+// bottomNavigationBar: CurvedNavigationBar(
+//   items: items,
+//   index: _selectedIndex,
+//   height: 60,
+//   backgroundColor: Colors.transparent,
+//   color: Color(0xFF1D2345),
+//   buttonBackgroundColor: Color(0xFF1D2345),
+//   onTap: _onItemTapped,
+// ),
