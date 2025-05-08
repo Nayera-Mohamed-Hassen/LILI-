@@ -1,140 +1,155 @@
 import 'package:flutter/material.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
+import 'package:untitled4/models/task.dart';
+import 'package:untitled4/models/category_task.dart';
+// TaskModel with copyWith
 
 class TasksHomePage extends StatefulWidget {
   @override
   _TasksHomePageState createState() => _TasksHomePageState();
 }
 
-// const Color(0xFF213555)
 class _TasksHomePageState extends State<TasksHomePage> {
   String selectedFilter = 'All';
+  List<TaskModel> allTasks = [
+    TaskModel(
+      id: 1,
+      title: 'Project UI',
+      description: 'Create UI Design',
+      dueDate: DateTime.parse('2022-01-17'),
+      priority: 'High',
+      progress: 0.3,
+      assignedTo: 'Nayera',
+      category: 'Design',
+    ),
+    TaskModel(
+      id: 2,
+      title: '3D Assets',
+      description: 'Model 3D assets',
+      dueDate: DateTime.parse('2022-01-18'),
+      priority: 'Medium',
+      progress: 0.4,
+      assignedTo: 'Nayera',
+      category: 'Design',
+    ),
+    TaskModel(
+      id: 3,
+      title: 'Kitchen Cleaning',
+      description: 'Deep clean kitchen',
+      dueDate: DateTime.parse('2022-01-19'),
+      priority: 'Low',
+      progress: 1.0,
+      isCompleted: true,
+      assignedTo: 'Ali',
+      category: 'Chores',
+    ),
+    TaskModel(
+      id: 4,
+      title: 'Grocery Shopping',
+      description: 'Buy weekly groceries',
+      dueDate: DateTime.parse('2022-01-20'),
+      priority: 'Medium',
+      progress: 0.0,
+      assignedTo: 'Sara',
+      category: 'Shopping',
+    ),
+  ];
 
-  final List<Map<String, dynamic>> all_tasks = [
-    {
-      'title': 'Project UI',
-      'description': 'Create UI Design with Prototype',
-      'progress': 0.3,
-      'dueDate': 'Mon, 17 Jan 2022',
-    },
-    {
-      'title': '3D Project',
-      'description': 'Create UI Design with 3D Assets',
-      'progress': 0.4,
-      'dueDate': 'Mon, 17 Jan 2022',
-    },
+  List<TaskModel> doneTasks = [
+    TaskModel(
+      id: 3,
+      title: 'Kitchen deep cleaning',
+      description: 'Clean the kitchen',
+      dueDate: DateTime.parse('2022-01-17'),
+      priority: 'Low',
+      progress: 1.0,
+      category: 'Design',
+      isCompleted: true,
+      assignedTo: 'Ali',
+    ),
+    TaskModel(
+      id: 4,
+      title: 'Balcony decoration',
+      description: 'Decorate balcony',
+      dueDate: DateTime.parse('2022-01-17'),
+      priority: 'Low',
+      progress: 1.0,
+      category: 'Design',
+      isCompleted: true,
+      assignedTo: 'Sara',
+    ),
   ];
-  final List<Map<String, dynamic>> done_tasks = [
-    {
-      'title': 'Kitchen deep cleaning ',
-      'description': 'clean all the kithchen',
-      'progress': 100,
-      'dueDate': 'Mon, 17 Jan 2022',
-    },
-    {
-      'title': 'Balcony decoration ',
-      'description': 'Create UI Design with 3D Assets',
-      'progress': 100,
-      'dueDate': 'Mon, 17 Jan 2022',
-    },
+
+  List<TaskModel> scheduledTasks = [
+    TaskModel(
+      id: 5,
+      title: 'Finish front end',
+      description: 'Finish front end of LILI',
+      dueDate: DateTime.parse('2025-05-05'),
+      priority: 'High',
+      progress: 0.0,
+      category: 'Chores',
+      assignedTo: 'Nayera',
+    ),
+    TaskModel(
+      id: 6,
+      title: 'Graduate',
+      description: 'Graduation party',
+      dueDate: DateTime.parse('2025-10-15'),
+      priority: 'Medium',
+      progress: 0.0,
+      category: 'Chores',
+      assignedTo: 'Nayera',
+    ),
   ];
-  final List<Map<String, dynamic>> schedueld_tasks = [
-    {
-      'title': 'Finish front end ',
-      'description': 'finsh all the front end of lili',
-      'progress': 100,
-      'dueDate': 'Mon, 5 may 2025',
-    },
-    {
-      'title': 'Graduate ',
-      'description': 'Graduation party',
-      'progress': 100,
-      'dueDate': 'Mon, 15 oct 2025',
-    },
-    {
-      'title': 'Finish front end ',
-      'description': 'finsh all the front end of lili',
-      'progress': 100,
-      'dueDate': 'Mon, 5 may 2025',
-    },
-    {
-      'title': 'Finish front end ',
-      'description': 'finsh all the front end of lili',
-      'progress': 100,
-      'dueDate': 'Mon, 5 may 2025',
-    },
-    {
-      'title': 'Finish front end ',
-      'description': 'finsh all the front end of lili',
-      'progress': 100,
-      'dueDate': 'Mon, 5 may 2025',
-    },
-    {
-      'title': 'Finish front end ',
-      'description': 'finsh all the front end of lili',
-      'progress': 100,
-      'dueDate': 'Mon, 5 may 2025',
-    },
-    {
-      'title': 'Finish front end ',
-      'description': 'finsh all the front end of lili',
-      'progress': 100,
-      'dueDate': 'Mon, 5 may 2025',
-    },
+
+  List<TaskModel> inProgressTasks = [
+    TaskModel(
+      id: 7,
+      title: 'Year four of college',
+      description: 'Semester 8',
+      dueDate: DateTime.parse('2025-05-05'),
+      priority: 'High',
+      progress: 0.5,
+      category: 'Shopping',
+      assignedTo: 'Nayera',
+    ),
+    TaskModel(
+      id: 8,
+      title: 'Inazuma Eleven',
+      description: 'Currently watched series',
+      dueDate: DateTime.parse('2025-10-15'),
+      priority: 'Low',
+      progress: 0.2,
+      category: 'Design',
+      assignedTo: 'Nayera',
+    ),
   ];
-  final List<Map<String, dynamic>> in_progress_tasks = [
-    {
-      'title': 'Year four of college',
-      'description': 'semester 8',
-      'progress': 100,
-      'dueDate': 'Mon, 5 may 2025',
-    },
-    {
-      'title': 'Inazuma eleven ',
-      'description': 'currently watched series',
-      'progress': 100,
-      'dueDate': 'Mon, 15 oct 2025',
-    },
+
+  List<CategoryModel> categories = [
+    CategoryModel(name: 'Design', description: 'UI/UX and graphic work'),
+    CategoryModel(name: 'Chores', description: 'Household tasks'),
+    CategoryModel(name: 'Shopping', description: 'Shopping and errands'),
   ];
-  final List<Map<String, String>> categories = [
-    {
-      'name': 'Cleaning',
-      'description': 'Chores related to cleaning tasks.',
-      'route': '/cleaning',
-    },
-    {
-      'name': 'Cooking',
-      'description': 'Cooking-related activities.',
-      'route': '/cooking',
-    },
-    {
-      'name': 'Shopping',
-      'description': 'Shopping tasks and groceries.',
-      'route': '/shopping',
-    },
-  ];
-  List<Map<String, dynamic>> getFilteredTasks() {
+
+  List<TaskModel> getFilteredTasks() {
     switch (selectedFilter) {
-      case 'All':
-        return all_tasks;
       case 'Done':
-        return done_tasks;
+        return doneTasks;
       case 'Scheduled':
-        return schedueld_tasks;
+        return scheduledTasks;
       case 'In progress':
-        return in_progress_tasks;
+        return inProgressTasks;
+      case 'All':
       default:
-        return []; // You can add more filters here
+        return allTasks;
     }
   }
 
   int _selectedIndex = 0;
-
   final items = [
-    Icon(Icons.category_rounded, size: 30, color: Color(0xFFF5EFE7)),
-    // Icon(Icons.category_rounded, size: 30, color: Color(0xFFF5EFE7)),
-    Icon(Icons.calendar_month_outlined, size: 30, color: Color(0xFFF5EFE7)),
-    // Icon(Icons.person, size: 30, color: Color(0xFFF5EFE7)),
+    Icon(Icons.task, size: 30, color: Color(0xFFF5EFE7)),
+    Icon(Icons.calendar_today, size: 30, color: Color(0xFFF5EFE7)),
   ];
 
   final List<Widget> _pages = [
@@ -152,28 +167,14 @@ class _TasksHomePageState extends State<TasksHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    List<Map<String, dynamic>> filteredTasks = getFilteredTasks();
+    List<TaskModel> tasks = getFilteredTasks();
+
     return Scaffold(
-      // routes: {
-      //   '/cleaning': (context) => CleaningPage(),
-      //   '/cooking': (context) => CookingPage(),
-      //   '/shopping': (context) => ShoppingPage(),
-      // },
-      // appBar: AppBar(
-      //   title: Text('Manage your Daily tasks'),
-      //   actions: [
-      //     CircleAvatar(
-      //       backgroundImage: AssetImage('assets/images/nayera.jpg'),
-      //     ),
-      //     SizedBox(width: 16),
-      //   ],
-      // ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(height: 20),
+            SizedBox(height: 16),
             Row(
               // crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -258,112 +259,54 @@ class _TasksHomePageState extends State<TasksHomePage> {
                 ),
                 // IconButton(onPressed: (){}, icon: )
               ],
+              //
             ),
-
-            SizedBox(height: 20),
-            TextField(
-              decoration: InputDecoration(
-                hintText: 'Search tasks...',
-                prefixIcon: Icon(Icons.search),
-                suffixIcon: Icon(Icons.filter_list),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              child: TextField(
+                decoration: InputDecoration(
+                  hintText: 'Search features...',
+                  prefixIcon: Icon(Icons.search),
+                  suffixIcon: Icon(Icons.filter_list),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(28),
+                  ),
                 ),
               ),
             ),
-            SizedBox(height: 20),
-
             SizedBox(
               height: 40,
-              child: ListView(
+              child: ListView.separated(
                 scrollDirection: Axis.horizontal,
-                children: [
-                  SizedBox(width: 8),
-                  ActionChip(
-                    label: Text("All"),
-                    labelStyle: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFFF5EFE7),
-                    ),
-                    backgroundColor: Color((0xFF1D2345)),
-                    onPressed: () {
-                      setState(() {
-                        selectedFilter = 'All';
-                      });
-                    },
-                  ),
-                  SizedBox(width: 8),
-                  ActionChip(
-                    label: Text("Done"),
-                    labelStyle: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFFF5EFE7),
-                    ),
-                    backgroundColor: Color((0xFF1D2345)),
-                    onPressed: () {
-                      setState(() {
-                        selectedFilter = 'Done';
-                      });
-                    },
-                  ),
-                  SizedBox(width: 8),
-                  ActionChip(
-                    label: Text("In progress"),
-                    labelStyle: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFFF5EFE7),
-                    ),
-                    backgroundColor: Color((0xFF1D2345)),
-                    onPressed: () {
-                      setState(() {
-                        selectedFilter = 'In progress';
-                      });
-                    },
-                  ),
-                  SizedBox(width: 8),
-                  ActionChip(
-                    label: Text("Scheduled"),
-                    labelStyle: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFFF5EFE7),
-                    ),
-                    backgroundColor: Color((0xFF1D2345)),
-                    onPressed: () {
-                      setState(() {
-                        selectedFilter = 'Scheduled';
-                      });
-                    },
-                  ),
-
-                  SizedBox(width: 8),
-                  ActionChip(
-                    label: Text("Categories"),
-                    labelStyle: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFFF5EFE7),
-                    ),
-                    backgroundColor: Color((0xFF1D2345)),
-                    onPressed: () {
-                      setState(() {
-                        selectedFilter = 'Categories';
-                      });
-                    },
-                  ),
-                  // Add more filters if needed
-                ],
+                itemCount:
+                    [
+                      'All',
+                      'Done',
+                      'In progress',
+                      'Scheduled',
+                      'Categories',
+                    ].length,
+                separatorBuilder: (_, __) => SizedBox(width: 8),
+                itemBuilder: (context, i) {
+                  final f =
+                      [
+                        'All',
+                        'Done',
+                        'In progress',
+                        'Scheduled',
+                        'Categories',
+                      ][i];
+                  return ActionChip(
+                    label: Text(f, style: TextStyle(color: Color(0xFFF5EFE7))),
+                    backgroundColor:
+                        selectedFilter == f
+                            ? Color(0xFF3E5879)
+                            : Color(0xFF1D2345),
+                    onPressed: () => setState(() => selectedFilter = f),
+                  );
+                },
               ),
             ),
-            SizedBox(height: 20),
-            Text(
-              '$selectedFilter Tasks',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 25,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF213555),
-              ),
-            ),
-            SizedBox(height: 2),
 
             Expanded(
               child:
@@ -371,22 +314,23 @@ class _TasksHomePageState extends State<TasksHomePage> {
                       ? ListView.builder(
                         itemCount: categories.length,
                         itemBuilder: (context, index) {
-                          final category = categories[index];
+                          final cat = categories[index];
                           return Card(
-                            color: Color((0xFF1D2345)),
+                            color: Color(0xFF1D2345),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(15),
+                              borderRadius: BorderRadius.circular(12),
                             ),
+                            margin: EdgeInsets.symmetric(vertical: 8),
                             child: ListTile(
                               title: Text(
-                                category['name']!,
+                                cat.name,
                                 style: TextStyle(
                                   color: Color(0xFFF5EFE7),
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
                               subtitle: Text(
-                                category['description']!,
+                                cat.description,
                                 style: TextStyle(color: Color(0xFFF5EFE7)),
                               ),
                               trailing: Icon(
@@ -394,41 +338,71 @@ class _TasksHomePageState extends State<TasksHomePage> {
                                 color: Color(0xFFF5EFE7),
                               ),
                               onTap: () {
-                                // If you want to do something on category tap (e.g., navigate to details)
-                                // you can implement it here, but the list itself won't be a pop-up.
+                                // Navigator.push(
+                                //   context,
+                                //   MaterialPageRoute(
+                                //     builder: (_) => CategoryDetailPage(
+                                //       category: cat,
+                                //       tasks: allTasks.where((t) => t.category == cat.name).toList(),
+                                //     ),
+                                //   ),
+                                // );
                               },
                             ),
                           );
                         },
                       )
                       : ListView.builder(
-                        itemCount: filteredTasks.length,
+                        itemCount: tasks.length,
                         itemBuilder: (context, index) {
-                          final task = filteredTasks[index];
+                          final task = tasks[index];
                           return Card(
+                            color: Color(0xFF1D2345),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(15),
+                              borderRadius: BorderRadius.circular(12),
                             ),
-                            color: Color((0xFF1D2345)),
+                            margin: EdgeInsets.symmetric(vertical: 8),
                             child: ListTile(
+                              leading: Checkbox(
+                                value: task.isCompleted,
+                                onChanged: (val) {
+                                  setState(() {
+                                    allTasks =
+                                        allTasks
+                                            .map(
+                                              (t) =>
+                                                  t.id == task.id
+                                                      ? t.copyWith(
+                                                        isCompleted: val,
+                                                      )
+                                                      : t,
+                                            )
+                                            .toList();
+                                  });
+                                },
+                                activeColor: Color(0xFF3E5879),
+                              ),
                               title: Text(
-                                task['title'],
+                                task.title,
                                 style: TextStyle(color: Color(0xFFF5EFE7)),
                               ),
                               subtitle: Text(
-                                task['description'],
+                                task.description,
                                 style: TextStyle(color: Color(0xFFF5EFE7)),
                               ),
                               trailing: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Text(
-                                    '${(task['progress'] * 100).toInt()}%',
+                                    '${(task.progress * 100).toInt()}%',
                                     style: TextStyle(color: Color(0xFFF5EFE7)),
                                   ),
                                   Text(
-                                    task['dueDate'],
-                                    style: TextStyle(color: Color(0xFFF5EFE7)),
+                                    '${task.dueDate.day}/${task.dueDate.month}/${task.dueDate.year}',
+                                    style: TextStyle(
+                                      color: Color(0xFFF5EFE7),
+                                      fontSize: 12,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -437,73 +411,141 @@ class _TasksHomePageState extends State<TasksHomePage> {
                         },
                       ),
             ),
+
+            // Expanded(
+            //   child:
+            //       selectedFilter == 'Categories'
+            //           ? SizedBox(
+            //             // show only categories
+            //             child: ListView.builder(
+            //               itemCount: categories.length,
+            //               itemBuilder: (context, index) {
+            //                 final cat = categories[index];
+            //                 return Card(
+            //                   color: Color(0xFF1D2345),
+            //                   shape: RoundedRectangleBorder(
+            //                     borderRadius: BorderRadius.circular(12),
+            //                   ),
+            //                   margin: EdgeInsets.symmetric(vertical: 8),
+            //                   child: ListTile(
+            //                     title: Text(
+            //                       cat.name,
+            //                       style: TextStyle(
+            //                         color: Color(0xFFF5EFE7),
+            //                         fontWeight: FontWeight.bold,
+            //                       ),
+            //                     ),
+            //                     subtitle: Text(
+            //                       cat.description,
+            //                       style: TextStyle(color: Color(0xFFF5EFE7)),
+            //                     ),
+            //                     trailing: Icon(
+            //                       Icons.arrow_forward,
+            //                       color: Color(0xFFF5EFE7),
+            //                     ),
+            //                     onTap: () {
+            //                       // Navigator.push(
+            //                       //   context,
+            //                       //   MaterialPageRoute(
+            //                       //     builder:
+            //                       //         (_) => CategoryDetailPage(
+            //                       //           category: cat,
+            //                       //           tasks:
+            //                       //               allTasks
+            //                       //                   .where(
+            //                       //                     (t) =>
+            //                       //                         t.category ==
+            //                       //                         cat.name,
+            //                       //                   )
+            //                       //                   .toList(),
+            //                       //         ),
+            //                       //   ),
+            //                       // );
+            //                     },
+            //                   ),
+            //                 );
+            //               },
+            //             ),
+            //           )
+            //           : ListView.builder(
+            //             // otherwise show tasks
+            //             itemCount: tasks.length,
+            //             itemBuilder: (context, index) {
+            //               final task = tasks[index];
+            //               return Card(
+            //                 color: Color(0xFF1D2345),
+            //                 shape: RoundedRectangleBorder(
+            //                   borderRadius: BorderRadius.circular(12),
+            //                 ),
+            //                 margin: EdgeInsets.symmetric(vertical: 8),
+            //                 child: ListTile(
+            //                   leading: Checkbox(
+            //                     value: task.isCompleted,
+            //                     onChanged: (val) {
+            //                       setState(() {
+            //                         allTasks =
+            //                             allTasks
+            //                                 .map(
+            //                                   (t) =>
+            //                                       t.id == task.id
+            //                                           ? t.copyWith(
+            //                                             isCompleted: val,
+            //                                           )
+            //                                           : t,
+            //                                 )
+            //                                 .toList();
+            //                       });
+            //                     },
+            //                     activeColor: Color(0xFF3E5879),
+            //                   ),
+            //                   title: Text(
+            //                     task.title,
+            //                     style: TextStyle(color: Color(0xFFF5EFE7)),
+            //                   ),
+            //                   subtitle: Text(
+            //                     task.description,
+            //                     style: TextStyle(color: Color(0xFFF5EFE7)),
+            //                   ),
+            //                   trailing: Column(
+            //                     mainAxisAlignment: MainAxisAlignment.center,
+            //                     children: [
+            //                       Text(
+            //                         '${(task.progress * 100).toInt()}%',
+            //                         style: TextStyle(color: Color(0xFFF5EFE7)),
+            //                       ),
+            //                       Text(
+            //                         '${task.dueDate.day}/${task.dueDate.month}/${task.dueDate.year}',
+            //                         style: TextStyle(
+            //                           color: Color(0xFFF5EFE7),
+            //                           fontSize: 12,
+            //                         ),
+            //                       ),
+            //                     ],
+            //                   ),
+            //                 ),
+            //               );
+            //             },
+            //           ),
+            // ),
+            SizedBox(height: 16),
+            //Expanded(child: _buildTaskList(tasks)),
           ],
         ),
       ),
 
-      floatingActionButton: PopupMenuButton<String>(
-        onSelected: (value) {
-          if (value == 'task') {
-            Navigator.pushNamed(context, '/create new task');
-            // Open New Task form
-          } else if (value == 'category') {
-            Navigator.pushNamed(context, '/create new category');
-            // Open New Category form
-          }
-        },
-        offset: Offset(0, -100),
-        color: Color(0xFFF5EFE7),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-        icon: FloatingActionButton(
-          backgroundColor: Color((0xFF1D2345)),
-          child: Icon(Icons.add, size: 30, color: Color(0xFFF5EFE7)),
-          onPressed: null, // Leave null to use PopupMenuButton's onSelected
-        ),
-        itemBuilder:
-            (context) => [
-              PopupMenuItem(
-                value: 'task',
-                child: Row(
-                  children: [
-                    Icon(Icons.task, color: Color((0xFF1D2345))),
-                    SizedBox(width: 10),
-                    Text(
-                      "New Task",
-                      style: TextStyle(color: Color((0xFF1D2345))),
-                    ),
-                  ],
-                ),
-              ),
-              PopupMenuItem(
-                value: 'category',
-                child: Row(
-                  children: [
-                    Icon(Icons.category, color: Color((0xFF1D2345))),
-                    SizedBox(width: 10),
-                    Text(
-                      "New Category",
-                      style: TextStyle(color: Color((0xFF1D2345))),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: Color(0xFF1D2345),
+        child: Icon(Icons.add, color: Color(0xFFF5EFE7)),
+        onPressed: () {},
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-
       bottomNavigationBar: CurvedNavigationBar(
         items: items,
         index: _selectedIndex,
         height: 60,
         backgroundColor: Colors.transparent,
-        color: Color((0xFF1D2345)),
-        buttonBackgroundColor: Color((0xFF1D2345)),
-        animationDuration: Duration(milliseconds: 300),
-        onTap: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
+        color: Color(0xFF1D2345),
+        buttonBackgroundColor: Color(0xFF1D2345),
+        onTap: _onItemTapped,
       ),
     );
   }
