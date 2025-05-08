@@ -28,18 +28,21 @@ class _BudgetPageNavbarState extends State<BudgetPageNavbar> {
       color: Color(0xFFF5EFE7),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       items: [
-        PopupMenuItem<String>(value: 'Item', child: Text('Add new card')),
         PopupMenuItem<String>(
           value: 'category',
+          child: Text('Add new category'),
+        ),
+        PopupMenuItem<String>(
+          value: 'expenses',
           child: Text('Add new expenses'),
         ),
       ],
     );
 
-    if (selected == 'Item') {
-      Navigator.pushNamed(context, '/new item inventory');
-    } else if (selected == 'category') {
-      Navigator.pushNamed(context, '/new category inventory');
+    if (selected == 'category') {
+      Navigator.pushNamed(context, '/create new category budget');
+    } else if (selected == 'expenses') {
+      Navigator.pushNamed(context, '/add new expenses');
     }
   }
 
