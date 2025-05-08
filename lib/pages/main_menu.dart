@@ -52,7 +52,7 @@ class _MainMenuPageState extends State<MainMenuPage> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 buildButton("View Tasks", '/task home'),
-                buildButton("Recommend Recipe", '/recommendRecipe'),
+                buildButton("Recommend Recipe", '/Recipe'),
               ],
             ),
               SizedBox(height: 20),

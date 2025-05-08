@@ -93,3 +93,14 @@ flutter:
       - assets/images/cooking.gif
       - assets/images/fire.gif
 
+      - assets/recipes/Spaghetti Carbonara.jpg
+      - assets/recipes/Sushi Rolls.jpg
+      - assets/recipes/tacos.jpg
+      - assets/recipes/Vegan Buddha Bowl.jpg
+      - assets/recipes/Chicken Alfredo.jpg
+      - assets/recipes/Pad Thai.jpg
+      - assets/recipes/Beef Wellington.jpg
+      - assets/recipes/Falafel.jpg
+      - assets/recipes/Fish Tacos.jpg
+      - assets/recipes/Chicken Tikka Masala.jpg
+

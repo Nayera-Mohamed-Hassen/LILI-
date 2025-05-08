@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:untitled4/pages/emergency.dart';
-import 'package:untitled4/pages/home_page.dart';
 import 'package:untitled4/pages/loadingRecipe.dart';
 import 'package:untitled4/pages/main_menu.dart';
 import 'package:untitled4/pages/profile.dart';
+import 'package:untitled4/pages/recipes.dart';
 import 'pages/signing_page.dart';
 import 'pages/login_page.dart';
 import 'pages/broadcast_page.dart';
@@ -16,7 +16,7 @@ import 'pages/forget_password_reset_page.dart';
 import 'pages/login_with_face_id_page.dart';
 import 'pages/add_user_page.dart';
 import 'pages/tasks_home_page.dart';
-import 'pages/navbar.dart'; // Import the navbar
+import 'pages/navbar.dart';
 import 'pages/create_new_task_page.dart';
 import 'pages/create_new_category_page.dart';
 import 'pages/loadingRecipe.dart';
@@ -40,6 +40,7 @@ class LiliApp extends StatelessWidget {
       initialRoute: '/homepage',
       routes: {
         '/': (context) => BroadcastPage(),
+        '/Recipe': (context) => Recipe(),
         '/loadingRecipe': (context) => RecipeLoading(),
         '/homepage': (context) => Navbar(),
         '/mainmenu': (context) => MainMenuPage(),
