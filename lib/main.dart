@@ -44,7 +44,7 @@ class LiliApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         scaffoldBackgroundColor: Color(0xFFF5EFE7), // beige background
       ),
-      initialRoute: '/budget',
+      initialRoute: '/WaveClipper',
       routes: {
         '/': (context) => BroadcastPage(),
         '/WaveClipper': (context) => RecipePage(),

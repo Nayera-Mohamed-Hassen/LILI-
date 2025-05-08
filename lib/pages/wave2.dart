@@ -52,7 +52,11 @@ class RecipePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Recipe Page')),
+      appBar: AppBar(
+        iconTheme: const IconThemeData(color: Colors.white),
+        backgroundColor: Color(0xFF1F3354),
+        title: Text(style: TextStyle(color: Colors.white), 'Recipe Page'),
+      ),
       body: Stack(
         children: [
           ClipPath(
