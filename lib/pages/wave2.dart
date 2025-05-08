@@ -4,27 +4,27 @@ class WaveClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
     final Path path = Path();
-    final double waveHeight = size.height * 0.5; // Controls wave depth
+    final double waveHeight = size.height * 0.6; // Controls wave depth
 
     // Start at bottom-left (mirrored from original)
-    path.moveTo(-100, size.height / 2);
+    path.moveTo(-100, size.height / 1.5);
 
     // First downward curve (1/5 width)
     path.quadraticBezierTo(
       size.width * 0.1,
       size.height / 4 + waveHeight,
       // Control point (peak downward)
-      size.width * 0.2,
+      size.width * 0.23,
       size.height / 1.8, // End point (back to baseline)
     );
 
     // Upward curve (3/5 width)
     path.quadraticBezierTo(
       size.width * 0.5,
-      size.height / 1.9 - waveHeight,
+      size.height / 1.7 - waveHeight,
       // Control point (peak upward)
-      size.width * 0.8,
-      size.height / 1.9, // End point (back to baseline)
+      size.width * 0.77,
+      size.height / 1.8, // End point (back to baseline)
     );
 
     // Final downward curve (last 1/5 width)
@@ -32,8 +32,8 @@ class WaveClipper extends CustomClipper<Path> {
       size.width * 0.9,
       size.height / 4 + waveHeight,
       // Control point (peak downward)
-      size.width + 80,
-      size.height / 1.8, // End at bottom-right
+      size.width + 100,
+      size.height / 1.5, // End at bottom-right
     );
 
     // Close path (optional, depends on usage)
@@ -57,28 +57,33 @@ class RecipePage extends StatelessWidget {
         backgroundColor: Color(0xFF1F3354),
         title: Text(style: TextStyle(color: Colors.white), 'Recipe Page'),
       ),
-      body: Stack(
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ClipPath(
-            clipper: WaveClipper(),
-            child: Container(
-              height: 250, // Adjust this height to your needs
-              color: Color(0xFF1F3354), // Wave color (dark blue)
-            ),
-          ),
-          Flex(
-            direction: Axis.vertical,
+          Stack(
             children: [
-              SizedBox(height: 90),
-              Center(
-                child: ClipOval(
-                  child: Image.asset(
-                    'assets/recipes/Chicken Alfredo.jpg',
-                    width: 180, // Must be square (width = height)
-                    height: 180,
-                    fit: BoxFit.cover,
-                  ),
+              ClipPath(
+                clipper: WaveClipper(),
+                child: Container(
+                  height: 200, // Adjust this height to your needs
+                  color: Color(0xFF1F3354), // Wave color (dark blue)
                 ),
+              ),
+              Flex(
+                direction: Axis.vertical,
+                children: [
+                  SizedBox(height: MediaQuery.of(context).size.height * 0.08),
+                  Center(
+                    child: ClipOval(
+                      child: Image.asset(
+                        'assets/recipes/Pad Thai.jpg',
+                        width: 180, // Must be square (width = height)
+                        height: 180,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
