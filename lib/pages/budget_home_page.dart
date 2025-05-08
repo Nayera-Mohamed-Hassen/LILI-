@@ -202,7 +202,11 @@ class _BudgetPageState extends State<BudgetPage> {
               SizedBox(height: 30),
               Text(
                 "Transaction",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF213555),
+                ),
               ),
               SizedBox(height: 10),
               _transactionItem(

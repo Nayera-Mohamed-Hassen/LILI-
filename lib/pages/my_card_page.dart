@@ -19,13 +19,93 @@ class _MyCardPageState extends State<MyCardPage> {
           padding: const EdgeInsets.all(16),
           child: Column(
             children: [
-              Text(
-                "My Card",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              Row(
+                children: [
+                  BackButton(),
+                  CircleAvatar(radius: 40),
+                  SizedBox(width: 10),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Good Morning!',
+                        style: TextStyle(
+                          fontSize: 25,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF213555),
+                        ),
+                      ),
+                      Text(
+                        'Sandra',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF213555),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(width: 10),
+                  GestureDetector(
+                    onTapDown: (details) {
+                      showMenu(
+                        context: context,
+                        position: RelativeRect.fromLTRB(
+                          details.globalPosition.dx,
+                          details.globalPosition.dy,
+                          0,
+                          0,
+                        ),
+                        items: [
+                          PopupMenuItem(
+                            child: ListTile(
+                              leading: Icon(
+                                Icons.notification_important,
+                                color: Color(0xFF3E5879),
+                              ),
+                              title: Text('You exceeded the card limit.'),
+                            ),
+                          ),
+                          PopupMenuItem(
+                            child: ListTile(
+                              leading: Icon(
+                                Icons.new_releases,
+                                color: Colors.orange,
+                              ),
+                              title: Text('New task assigned.'),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                    child: Container(
+                      padding: EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Color(0xFF1D2345),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black12,
+                            blurRadius: 10,
+                            offset: Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Icon(
+                        Icons.notifications,
+                        color: Color(0xFFF5EFE7),
+                      ),
+                    ),
+                  ),
+                ],
               ),
+              // Text(
+              //   "My Card",
+              //   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              // ),
               SizedBox(height: 20),
               _buildCard(
-                greenCard,
+                blueCard,
                 "1253 5432 3521 3090",
                 "Sarah Muller",
                 "09/24",
@@ -63,32 +143,20 @@ Widget _buildCard(
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(Icons.nfc, color: isLight ? Colors.black : Colors.white),
+        Icon(Icons.nfc, color: Colors.white),
         SizedBox(height: 16),
         Text(
           number,
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: isLight ? Colors.black : Colors.white,
-          ),
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
         SizedBox(height: 16),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              name,
-              style: TextStyle(
-                color: isLight ? Colors.black87 : Colors.white70,
-                fontSize: 14,
-              ),
-            ),
+            Text(name, style: TextStyle(color: Colors.white, fontSize: 14)),
             Text(
               "Exp $expDate",
-              style: TextStyle(
-                color: isLight ? Colors.black54 : Colors.white70,
-                fontSize: 14,
-              ),
+              style: TextStyle(color: Colors.white, fontSize: 14),
             ),
           ],
         ),
