@@ -182,10 +182,7 @@ class _RecipeState extends State<Recipe> {
       'Advanced/Gourmet',
       '5-Ingredient Recipes',
       'Beginner-Friendly',
-      'One-Pot Meals',
       'Family-Friendly',
-      'Meal Prep',
-      'Budget-Friendly',
       'Low Effort',
     ],
     'Diet': [
