@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'navbar.dart'; // Import the Navbar
+import 'navbar.dart';
 import 'package:untitled4/models/user.dart';
 import 'package:untitled4/pages/more_info_page.dart';
 import 'package:untitled4/pages/edit_profile_page.dart';
-import 'package:untitled4/pages/wave.dart';
-
+import 'package:untitled4/pages/wave2.dart'; // <-- Import WaveClipper here
+import 'package:untitled4/pages/signing_page.dart';
 class ProfilePage extends StatefulWidget {
   @override
   _ProfilePageState createState() => _ProfilePageState();
@@ -35,7 +35,14 @@ class _ProfilePageState extends State<ProfilePage> {
       user = updatedUser;
     });
   }
-
+  void _navigateTosigning_page() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SigningPage(),
+      ),
+    );
+  }
   void _navigateToMoreInfo() {
     Navigator.push(
       context,
@@ -69,14 +76,13 @@ class _ProfilePageState extends State<ProfilePage> {
             TextButton(
               child: Text("Cancel"),
               onPressed: () {
-                Navigator.of(context).pop(); // Close dialog
+                Navigator.of(context).pop();
               },
             ),
             TextButton(
               child: Text("Logout"),
               onPressed: () {
-                Navigator.of(context).pop(); // Close dialog
-                // TODO: Add real logout logic here
+                Navigator.of(context).pop();
                 print("User logged out");
               },
             ),
@@ -92,64 +98,183 @@ class _ProfilePageState extends State<ProfilePage> {
       appBar: AppBar(
         backgroundColor: Color(0xFF213555),
         elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
+        automaticallyImplyLeading: false,
         actions: [
-          IconButton(
-            icon: Icon(Icons.notifications, color: Colors.white),
-            onPressed: () {
-              print('Notification icon pressed');
+          GestureDetector(
+            onTapDown: (details) {
+              showMenu(
+                context: context,
+                position: RelativeRect.fromLTRB(
+                  details.globalPosition.dx,
+                  details.globalPosition.dy,
+                  0,
+                  0,
+                ),
+                items: [
+                  PopupMenuItem(
+                    child: ListTile(
+                      leading: Icon(Icons.notification_important, color: Color(0xFF3E5879)),
+                      title: Text('Project UI is due today.'),
+                    ),
+                  ),
+                  PopupMenuItem(
+                    child: ListTile(
+                      leading: Icon(Icons.new_releases, color: Colors.orange),
+                      title: Text('New task assigned.'),
+                    ),
+                  ),
+                ],
+              );
             },
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Icon(Icons.notifications, color: Colors.white),
+            ),
           ),
         ],
       ),
-      backgroundColor: Color(0xFFF5F5F5),
+      //backgroundColor: Color(0xFFF5F5F5),
       body: SafeArea(
         child: Column(
           children: [
-            ClipPath(
-              clipper: CustomClipPath(),
-              child: Container(
-                height: 150,
-                color: Color(0xFF213555),
-                padding: EdgeInsets.only(top: 20),
-              ),
-            ),
-            Center(
-              child: Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
+            Stack(
+              children: [
+                ClipPath(
+                  clipper: WaveClipper(),
+                  child: Container(
+                    height: 250,
                     color: Color(0xFF213555),
-                    width: 4,
                   ),
                 ),
-                child: CircleAvatar(
-                  radius: 50,
-                  backgroundImage: AssetImage('assets/images/Hana.jpeg'),
+                Positioned(
+                  top: 100,
+                  left: 0,
+                  right: 0,
+                  child: Center(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Color(0xFF213555),
+                          width: 4,
+                        ),
+                      ),
+                      child: CircleAvatar(
+                        radius: 50,
+                        backgroundImage: AssetImage('assets/images/Hana.jpeg'),
+                      ),
+                    ),
+                  ),
                 ),
+              ],
+            ),
+            Container(
+              width: 291,
+              height: 130,
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              child: Stack(
+                children: [
+                  Positioned(
+                    left: 0,
+                    top: 0,
+                    child: Container(
+                      width: 110.86,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Name',
+                              style: TextStyle(
+                                  color: Color(0xFF1D2345),
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  fontFamily: 'Inter')),
+                          Text(user.name,
+                              style: TextStyle(
+                                  color: Color(0xFF3E5879),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w400,
+                                  fontFamily: 'Inter')),
+                          SizedBox(height: 4),
+                          Text('Date of Birth',
+                              style: TextStyle(
+                                  color: Color(0xFF1D2345),
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  fontFamily: 'Inter')),
+                          Text(user.dob,
+                              style: TextStyle(
+                                  color: Color(0xFF3E5879),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w400,
+                                  fontFamily: 'Inter')),
+                          SizedBox(height: 4),
+                          Text('Phone',
+                              style: TextStyle(
+                                  color: Color(0xFF1D2345),
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  fontFamily: 'Inter')),
+                          Text(user.phone,
+                              style: TextStyle(
+                                  color: Color(0xFF3E5879),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w400,
+                                  fontFamily: 'Inter')),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    left: 129.33,
+                    top: 0,
+                    child: Container(
+                      width: 161.67,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Email',
+                              style: TextStyle(
+                                  color: Color(0xFF1D2345),
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  fontFamily: 'Inter')),
+                          Text(user.email,
+                              style: TextStyle(
+                                  color: Color(0xFF3E5879),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w400,
+                                  fontFamily: 'Inter')),
+                          SizedBox(height: 4),
+                          Text('Address',
+                              style: TextStyle(
+                                  color: Color(0xFF1D2345),
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  fontFamily: 'Inter')),
+                          SizedBox(
+                            width: 161.67,
+                            child: Text(
+                              user.address,
+                              style: TextStyle(
+                                  color: Color(0xFF3E5879),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w400,
+                                  fontFamily: 'Inter'),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-            SizedBox(height: 10),
-            Text(
-              user.name,
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 20),
-            Text(user.email, style: TextStyle(fontSize: 18, color: Color(0xFF213555))),
-            Text(user.phone, style: TextStyle(fontSize: 18, color: Color(0xFF213555))),
             SizedBox(height: 10),
             GestureDetector(
               onTap: _navigateToMoreInfo,
               child: Container(
                 padding: EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.transparent,
-                ),
+                decoration: BoxDecoration(color: Colors.transparent),
                 child: Column(
                   children: [
                     Text(
@@ -174,18 +299,18 @@ class _ProfilePageState extends State<ProfilePage> {
                 backgroundColor: Color(0xFF213555),
                 foregroundColor: Colors.white,
                 fixedSize: Size(260, 40),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               ),
             ),
             ElevatedButton.icon(
-              onPressed: _showLogoutDialog,
+              onPressed: _navigateTosigning_page,
               icon: Icon(Icons.logout),
               label: Text("Log Out"),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Color(0xFF213555),
                 foregroundColor: Colors.white,
                 fixedSize: Size(260, 40),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               ),
             ),
           ],
