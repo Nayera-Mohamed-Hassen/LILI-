@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:untitled4/pages/my_card_page.dart';
 import 'package:untitled4/pages/budget_home_page.dart';
+import 'budgetAnalysis.dart';
 
 class BudgetPageNavbar extends StatefulWidget {
   @override
@@ -48,7 +49,7 @@ class _BudgetPageNavbarState extends State<BudgetPageNavbar> {
 
   final Color blueCard = Color(0xFF213555);
   final Color greenCard = Color(0xFFB2EBF2);
-  final Color blackCard = Color(0xFF263238);
+  final Color blackCard = Color(0xFF2A3F47);
 
   bool _showBalance = true;
   int _selectedIndex = 0;
@@ -62,7 +63,9 @@ class _BudgetPageNavbarState extends State<BudgetPageNavbar> {
   final List<Widget> _pages = [
     // Container(color: Colors.blue), // BudgetPage (Replace with actual page)
     BudgetPage(),
-    MyCardPage(), // MyCardPage (Replace with actual page)
+    MyCardPage(),
+    AnalysisPage(),
+    // MyCardPage (Replace with actual page)
     // AnalyticsPage(),           // AnalyticsPage (Replace with actual page)
   ];
 
@@ -83,7 +86,7 @@ class _BudgetPageNavbarState extends State<BudgetPageNavbar> {
       ),
       floatingActionButton: FloatingActionButton(
         key: _fabKey,
-        backgroundColor: Color(0xFF1D2345),
+        backgroundColor: Color(0xFF1F3354),
         child: Icon(Icons.add, size: 30, color: Color(0xFFF5EFE7)),
         onPressed: _showPopupMenu,
       ),
@@ -92,8 +95,8 @@ class _BudgetPageNavbarState extends State<BudgetPageNavbar> {
         // Current selected index
         height: 60,
         backgroundColor: Colors.transparent,
-        color: Color(0xFF1D2345),
-        buttonBackgroundColor: Color(0xFF1D2345),
+        color: Color(0xFF1F3354),
+        buttonBackgroundColor: Color(0xFF1F3354),
         items: items,
         onTap: _onItemTapped, // Handle item taps to switch pages
       ),

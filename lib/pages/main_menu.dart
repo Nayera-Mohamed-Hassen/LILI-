@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:untitled4/pages/tasks_home_page.dart';
 
-void main() {
-  runApp(MyApp());
-}
 
 class MyApp extends StatelessWidget {
   @override
@@ -65,7 +62,7 @@ class _MainMenuPageState extends State<MainMenuPage> {
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       buildButton("Show Inventory", '/inventory'),
-                      buildButton("Show Expenses", '/'),
+                      buildButton("Show Expenses", '/budget'),
                     ],
                   ),
                   SizedBox(height: 20),

@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 
 class BudgetPage extends StatefulWidget {
@@ -7,10 +8,11 @@ class BudgetPage extends StatefulWidget {
 
 class _BudgetPageState extends State<BudgetPage> {
   final GlobalKey _fabKey = GlobalKey();
+  bool _showBalance = false; // Default is hidden
 
   void _showPopupMenu() async {
     final RenderBox renderBox =
-        _fabKey.currentContext!.findRenderObject() as RenderBox;
+    _fabKey.currentContext!.findRenderObject() as RenderBox;
     final Offset offset = renderBox.localToGlobal(Offset.zero);
     final Size size = renderBox.size;
 
@@ -18,7 +20,7 @@ class _BudgetPageState extends State<BudgetPage> {
       context: context,
       position: RelativeRect.fromLTRB(
         offset.dx,
-        offset.dy - 130, // Show above FAB
+        offset.dy - 130,
         offset.dx + size.width,
         offset.dy,
       ),
@@ -26,10 +28,7 @@ class _BudgetPageState extends State<BudgetPage> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       items: [
         PopupMenuItem<String>(value: 'Item', child: Text('Add new card')),
-        PopupMenuItem<String>(
-          value: 'category',
-          child: Text('Add new expenses'),
-        ),
+        PopupMenuItem<String>(value: 'category', child: Text('Add new expenses')),
       ],
     );
 
@@ -41,10 +40,7 @@ class _BudgetPageState extends State<BudgetPage> {
   }
 
   final Color blueCard = Color(0xFF213555);
-  final Color greenCard = Color(0xFFB2EBF2);
-  final Color blackCard = Color(0xFF263238);
 
-  bool _showBalance = true;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -82,7 +78,7 @@ class _BudgetPageState extends State<BudgetPage> {
                       ),
                     ],
                   ),
-                  SizedBox(width: 10),
+                  Spacer(),
                   GestureDetector(
                     onTapDown: (details) {
                       showMenu(
@@ -96,19 +92,13 @@ class _BudgetPageState extends State<BudgetPage> {
                         items: [
                           PopupMenuItem(
                             child: ListTile(
-                              leading: Icon(
-                                Icons.notification_important,
-                                color: Color(0xFF3E5879),
-                              ),
+                              leading: Icon(Icons.notification_important, color: Color(0xFF3E5879)),
                               title: Text('You exceeded the card limit.'),
                             ),
                           ),
                           PopupMenuItem(
                             child: ListTile(
-                              leading: Icon(
-                                Icons.new_releases,
-                                color: Colors.orange,
-                              ),
+                              leading: Icon(Icons.new_releases, color: Colors.orange),
                               title: Text('New task assigned.'),
                             ),
                           ),
@@ -119,7 +109,7 @@ class _BudgetPageState extends State<BudgetPage> {
                       padding: EdgeInsets.all(8),
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: Color(0xFF1D2345),
+                        color: Color(0xFF1F3354),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black12,
@@ -128,10 +118,7 @@ class _BudgetPageState extends State<BudgetPage> {
                           ),
                         ],
                       ),
-                      child: Icon(
-                        Icons.notifications,
-                        color: Color(0xFFF5EFE7),
-                      ),
+                      child: Icon(Icons.notifications, color: Color(0xFFF5EFE7)),
                     ),
                   ),
                 ],
@@ -148,52 +135,39 @@ class _BudgetPageState extends State<BudgetPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      "Total balance",
-                      style: TextStyle(fontSize: 16, color: Colors.white),
-                    ),
+                    Text("Total balance", style: TextStyle(fontSize: 16, color: Colors.white)),
                     SizedBox(height: 10),
-                    // Conditionally show or hide the balance
-                    _showBalance
-                        ? Text(
-                          "\$40,500.80",
-                          style: TextStyle(
-                            fontSize: 32,
-                            fontWeight: FontWeight.bold,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: ImageFiltered(
+                            imageFilter: ImageFilter.blur(
+                              sigmaX: _showBalance ? 0 : 6,
+                              sigmaY: _showBalance ? 0 : 6,
+                            ),
+                            child: Text(
+                              "\$40,500.80",
+                              style: TextStyle(
+                                fontSize: 32,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          icon: Icon(
+                            _showBalance ? Icons.visibility : Icons.visibility_off,
                             color: Colors.white,
                           ),
-                        )
-                        : SizedBox(height: 32),
-                    // SizedBox(height: 10),
-                    // Text(
-                    //   "**** 9934 • Valid Thru 05/28",
-                    //   style: TextStyle(color: Colors.white),
-                    // ),
-                    // SizedBox(height: 16),
-                    // Row(
-                    //   mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    //   children: [
-                    //     _cardAction(Icons.request_page, "Request"),
-                    //     _cardAction(Icons.send, "Transfer"),
-                    //     _cardAction(Icons.add, ""),
-                    //   ],
-                    // ),
-                    // SizedBox(height: 16),
-                    Center(
-                      child: TextButton(
-                        onPressed: () {
-                          setState(() {
-                            _showBalance = !_showBalance;
-                          });
-                          if (!_showBalance) {
-                            Navigator.pushNamed(context, '/Hide');
-                          }
-                        },
-                        child: Text(
-                          _showBalance ? 'Hide' : 'Show',
-                          style: TextStyle(color: Colors.white),
+                          onPressed: () {
+                            setState(() {
+                              _showBalance = !_showBalance;
+                            });
+                          },
                         ),
-                      ),
+                      ],
                     ),
                   ],
                 ),
@@ -209,32 +183,13 @@ class _BudgetPageState extends State<BudgetPage> {
                 ),
               ),
               SizedBox(height: 10),
-              _transactionItem(
-                "Transfer to Firmansyah A.",
-                "-\$20",
-                "04:03 PM",
-              ),
+              _transactionItem("Transfer to Firmansyah A.", "-\$20", "04:03 PM"),
               _transactionItem("Receive from Adam S.", "+\$1,300", "02:15 PM"),
               _transactionItem("Transfer to Rina", "-\$20", "01:10 PM"),
             ],
           ),
         ),
       ),
-    );
-  }
-
-  Widget _cardAction(IconData icon, String label) {
-    return Column(
-      children: [
-        CircleAvatar(
-          backgroundColor: Colors.white,
-          child: Icon(icon, color: Colors.black),
-        ),
-        if (label.isNotEmpty) ...[
-          SizedBox(height: 6),
-          Text(label, style: TextStyle(fontSize: 12)),
-        ],
-      ],
     );
   }
 

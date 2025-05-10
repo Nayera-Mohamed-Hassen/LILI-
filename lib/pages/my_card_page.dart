@@ -8,7 +8,7 @@ class MyCardPage extends StatefulWidget {
 class _MyCardPageState extends State<MyCardPage> {
   final Color blueCard = Color(0xFF213555);
   final Color greenCard = Color(0xFFB2EBF2);
-  final Color blackCard = Color(0xFF263238);
+  final Color blackCard = Color(0xFF2A3F47);
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +21,7 @@ class _MyCardPageState extends State<MyCardPage> {
             children: [
               Row(
                 children: [
-                  BackButton(),
+                  BackButton(color: Color(0xFF213555)),
                   CircleAvatar(radius: 40),
                   SizedBox(width: 10),
                   Column(
@@ -82,7 +82,7 @@ class _MyCardPageState extends State<MyCardPage> {
                       padding: EdgeInsets.all(8),
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: Color(0xFF1D2345),
+                        color: Color(0xFF213555),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black12,

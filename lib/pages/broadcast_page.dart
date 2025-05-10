@@ -14,7 +14,7 @@ class BroadcastPage extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Image.asset('assets/images/g5.jpg', height: 261, width: 264),
+              Image.asset('assets/images/LILI_logo.png', height: 261, width: 264),
               // SizedBox(height: 30),
               Text(
                 'LILI',

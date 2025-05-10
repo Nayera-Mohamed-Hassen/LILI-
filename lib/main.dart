@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:untitled4/pages/budgetAnalysis.dart';
 import 'package:untitled4/pages/emergency.dart';
 import 'package:untitled4/pages/loadingRecipe.dart';
 import 'package:untitled4/pages/main_menu.dart';
@@ -34,7 +35,6 @@ void main() {
   runApp(LiliApp());
 }
 
-
 class LiliApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -45,9 +45,10 @@ class LiliApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         scaffoldBackgroundColor: Color(0xFFF5EFE7), // beige background
       ),
-      initialRoute: '/WaveClipper',
+      initialRoute: '/homepage',
       routes: {
         '/': (context) => BroadcastPage(),
+        '/analysis': (context) => AnalysisPage(),
         '/WaveClipper': (context) => RecipePage(),
         '/Recipe': (context) => Recipe(),
         '/loadingRecipe': (context) => RecipeLoading(),

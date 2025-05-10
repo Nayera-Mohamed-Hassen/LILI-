@@ -36,6 +36,8 @@ dependencies:
   gif_view: ^1.0.2
   gif: ^2.3.0
   image_picker: ^0.8.5+3
+  pie_chart: ^5.4.0
+  progress_bar_chart: ^0.0.12
 
 
 dev_dependencies:
