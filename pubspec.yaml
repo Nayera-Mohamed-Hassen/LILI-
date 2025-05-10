@@ -112,5 +112,13 @@ flutter:
       - assets/images/g5.jpg
       - assets/images/4498893.jpg
       - assets/images/Task.png
+      - assets/inventory/bandage.png
+      - assets/inventory/garlic.jpg
+      - assets/inventory/Salt.jpg
+      - assets/inventory/soap.jpg
+      - assets/inventory/tomato.jpg
+      - assets/inventory/toothpaste.jpg
+      - assets/inventory/Receipt.png
+      - assets/inventory/category.png
 
 
