@@ -79,7 +79,7 @@ class AnalysisPageState extends State<AnalysisPage> {
         title: Text('Analysis', style: TextStyle(color: Colors.white)),
         backgroundColor: Color(0xFF213555),
         iconTheme: const IconThemeData(color: Colors.white),
-      ),s
+      ),
 
       body: Column(
         children: [
