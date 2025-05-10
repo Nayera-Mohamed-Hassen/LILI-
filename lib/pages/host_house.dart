@@ -3,25 +3,20 @@ import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
-class InitSetupPage extends StatefulWidget {
-  const InitSetupPage({super.key});
+class HostHousePage extends StatefulWidget {
+  const HostHousePage({super.key});
 
   @override
-  _InitSetupPageState createState() => _InitSetupPageState();
+  _HostHousePageState createState() => _HostHousePageState();
 }
 
-class _InitSetupPageState extends State<InitSetupPage> {
+class _HostHousePageState extends State<HostHousePage> {
   // final _diet = TextEditingController();
-  final _weight = TextEditingController();
-  final _height = TextEditingController();
-  final _illnessController = TextEditingController();
-  final _alergiesController = TextEditingController();
+  final _houseName = TextEditingController();
+
   late ImagePicker _picker;
   XFile? _image;
-  DateTime? _selectedDate;
-  String? _selectedGender;
-  String? _selectedDiet;
-  late TextEditingController _dateController;
+
   @override
   void initState() {
     super.initState();
@@ -30,32 +25,8 @@ class _InitSetupPageState extends State<InitSetupPage> {
     // phoneController = TextEditingController(text: widget.user.phone);
     // addressController = TextEditingController(text: widget.user.address);
     _picker = ImagePicker();
-    _dateController = TextEditingController();
   }
 
-  final List<String> diets = [
-    'Balanced',
-    'High Protein',
-    'Low Carb',
-    'Keto',
-    'Vegetarian',
-    'Vegan',
-    'Pescatarian',
-    'Paleo',
-    'Gluten-Free',
-    'Dairy-Free',
-    'Mediterranean',
-    'Intermittent Fasting',
-    'Whole30',
-    'Low Fat',
-    'Dash Diet',
-    'Diabetic-Friendly',
-    'Low FODMAP',
-    'Raw Food',
-    'Carnivore',
-    'Custom',
-  ];
-  final List<String> genderOptions = ['Male', 'Female'];
   Future<void> _pickImage() async {
     final XFile? pickedImage = await _picker.pickImage(
       source: ImageSource.gallery,
@@ -68,6 +39,11 @@ class _InitSetupPageState extends State<InitSetupPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        leading: BackButton(),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+      ),
       backgroundColor: const Color(0xFFF2F2F2),
       body: SingleChildScrollView(
         child: Padding(
@@ -79,7 +55,7 @@ class _InitSetupPageState extends State<InitSetupPage> {
               Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  'Set Up',
+                  'Host House',
                   style: TextStyle(
                     color: const Color(0xFF213555),
                     fontSize: 48,
@@ -108,45 +84,24 @@ class _InitSetupPageState extends State<InitSetupPage> {
                 ),
               ),
               const SizedBox(height: 20),
-              _buildDatePickerField(context),
-              const SizedBox(height: 16),
-              _buildDropdownField('Gender', genderOptions, _selectedGender, (
-                value,
-              ) {
-                setState(() {
-                  _selectedGender = value;
-                });
-              }),
-              const SizedBox(height: 20),
-              _buildDropdownField('Diet', diets, _selectedDiet, (value) {
-                setState(() {
-                  _selectedDiet = value;
-                });
-              }),
-              const SizedBox(height: 20),
-              _buildTextField(_weight, 'Weight'),
-              const SizedBox(height: 20),
-              _buildTextField(_height, 'Height'),
-              const SizedBox(height: 20),
-              _buildTextField(_illnessController, 'Illness', maxLines: 4),
-              const SizedBox(height: 20),
-              _buildTextField(_alergiesController, 'Alergies', maxLines: 4),
+              _buildTextField(_houseName, 'House Name'),
               const SizedBox(height: 20),
               _buildButton(
-                'Next',
+                'Add User',
                 onPressed: () {
-                  if (_selectedGender == null ||
-                      _selectedDiet == null ||
-                      _selectedDate == null ||
-                      _weight.text.isEmpty ||
-                      _height.text.isEmpty ||
-                      _illnessController.text.isEmpty ||
-                      _alergiesController.text.isEmpty) {
+                  Navigator.pushNamed(context, '/add user');
+                },
+              ),
+              const SizedBox(height: 20),
+              _buildButton(
+                'Host House',
+                onPressed: () {
+                  if (_houseName.text.isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text('Please fill in all fields')),
                     );
                   } else {
-                    Navigator.pushNamed(context, '/hosting');
+                    Navigator.pushNamed(context, '/homepage');
                   }
                 },
               ),
@@ -220,49 +175,6 @@ class _InitSetupPageState extends State<InitSetupPage> {
             return DropdownMenuItem(value: item, child: Text(item));
           }).toList(),
       onChanged: onChanged,
-    );
-  }
-
-  @override
-  void dispose() {
-    _dateController.dispose(); // Don't forget to dispose the controller
-    super.dispose();
-  }
-
-  Widget _buildDatePickerField(BuildContext context) {
-    return GestureDetector(
-      onTap: () async {
-        final pickedDate = await showDatePicker(
-          context: context,
-          initialDate: DateTime.now(),
-          firstDate: DateTime(1900),
-          lastDate: DateTime(2100),
-        );
-        if (pickedDate != null) {
-          setState(() {
-            _selectedDate = pickedDate;
-            // Update the controller with the formatted date
-            _dateController.text = DateFormat(
-              'yyyy-MM-dd',
-            ).format(_selectedDate!);
-          });
-        }
-      },
-      child: AbsorbPointer(
-        child: TextField(
-          controller: _dateController, // Bind the controller
-          decoration: InputDecoration(
-            labelText: 'Birthdate',
-            hintText:
-                _selectedDate != null
-                    ? DateFormat('yyyy-MM-dd').format(_selectedDate!)
-                    : 'Select date',
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-            filled: true,
-            fillColor: Colors.white,
-          ),
-        ),
-      ),
     );
   }
 }

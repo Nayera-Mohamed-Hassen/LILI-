@@ -6,7 +6,7 @@ class AddUserPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5EFE7),
+      backgroundColor: const Color(0xFFF2F2F2),
       appBar: AppBar(
         leading: BackButton(),
         backgroundColor: Colors.transparent,
@@ -27,7 +27,7 @@ class AddUserPage extends StatelessWidget {
                 backgroundColor: Color(0xFF3E5879),
 
                 // const Color(0xFF3E5879)
-                minimumSize: Size(315, 55),
+                minimumSize: Size(430, 60),
                 shape: RoundedRectangleBorder(
                   side: BorderSide(width: 1),
                   borderRadius: BorderRadius.circular(5),
@@ -39,25 +39,6 @@ class AddUserPage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushNamed(context, '/homepage');
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFF3E5879),
-
-                // const Color(0xFF3E5879)
-                minimumSize: Size(315, 55),
-                shape: RoundedRectangleBorder(
-                  side: BorderSide(width: 1),
-                  borderRadius: BorderRadius.circular(5),
-                ),
-              ),
-              child: Text(
-                'Confirm',
-                style: TextStyle(color: Colors.white, fontSize: 18),
-              ),
-            ),
           ],
         ),
       ),

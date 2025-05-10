@@ -6,14 +6,14 @@ class HostingPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5EFE7),
+      backgroundColor: const Color(0xFFF2F2F2),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             ElevatedButton(
               onPressed: () {
-                Navigator.pushNamed(context, '/init setup');
+                Navigator.pushNamed(context, '/host house');
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Color(0xFF3E5879),
