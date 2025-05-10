@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 import 'package:intl/intl.dart';
 
 class CreateNewItemPage extends StatefulWidget {
@@ -11,6 +13,16 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
   final _quantityController = TextEditingController();
   String? _selectedCategory;
   DateTime? _selectedDate;
+  File? _pickedImage;
+
+  Future<void> _pickImage() async {
+    final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
+    if (picked != null) {
+      setState(() {
+        _pickedImage = File(picked.path);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,6 +41,41 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            SizedBox(height: 40),
+            Center(
+              child: Image.asset(
+                'assets/inventory/Receipt.png',
+                width: 150,
+                height: 150,
+                fit: BoxFit.contain,
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // 🖼️ Circle image picker and label
+            Row(
+              children: [
+                GestureDetector(
+                  onTap: _pickImage,
+                  child: CircleAvatar(
+                    radius: 30,
+                    backgroundColor: Colors.grey[300],
+                    backgroundImage:
+                    _pickedImage != null ? FileImage(_pickedImage!) : null,
+                    child: _pickedImage == null
+                        ? const Icon(Icons.add_a_photo, color: Colors.white)
+                        : null,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                const Text(
+                  'Add Item Image',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+
             _buildTextField(_titleController, 'Item Name'),
             const SizedBox(height: 16),
             _buildDropdown('Choose category'),
@@ -36,11 +83,12 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
             _buildTextField(_quantityController, 'Quantity', isNumber: true),
             const SizedBox(height: 16),
             _buildDatePickerField(context),
-            const SizedBox(height: 200),
+            const SizedBox(height: 100),
+
             Align(
               alignment: Alignment.bottomRight,
               child: IconButton(
-                icon: Icon(
+                icon: const Icon(
                   Icons.camera_alt,
                   size: 30,
                   color: Color(0xFF1D2345),
@@ -48,50 +96,43 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
                 onPressed: () {
                   showDialog(
                     context: context,
-                    builder:
-                        (ctx) => AlertDialog(
-                          title: Text('Scanning'),
-                          content: Text('Scanning the receipt...'),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.of(ctx).pop(),
-                              child: Text('OK'),
-                            ),
-                          ],
+                    builder: (ctx) => AlertDialog(
+                      title: const Text('Scanning'),
+                      content: const Text('Scanning the receipt...'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(ctx).pop(),
+                          child: const Text('OK'),
                         ),
+                      ],
+                    ),
                   );
                 },
               ),
             ),
             const SizedBox(height: 16),
+
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                _buildButton(
-                  'Save',
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder:
-                          (ctx) => AlertDialog(
-                            title: Text('Success'),
-                            content: Text('Item Added successfully!'),
-                            actions: [
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.pushNamed(context, '/inventory');
-                                },
-                                child: Text('OK'),
-                              ),
-                            ],
-                          ),
-                    );
-                  },
-                ),
-                _buildButton(
-                  'Discard',
-                  onPressed: () => Navigator.pop(context),
-                ),
+                _buildButton('Save', onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (ctx) => AlertDialog(
+                      title: const Text('Success'),
+                      content: const Text('Item Added successfully!'),
+                      actions: [
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pushNamed(context, '/inventory');
+                          },
+                          child: const Text('OK'),
+                        ),
+                      ],
+                    ),
+                  );
+                }),
+                _buildButton('Discard', onPressed: () => Navigator.pop(context)),
               ],
             ),
           ],
@@ -100,12 +141,8 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
     );
   }
 
-  Widget _buildTextField(
-    TextEditingController controller,
-    String label, {
-    int maxLines = 1,
-    bool isNumber = false,
-  }) {
+  Widget _buildTextField(TextEditingController controller, String label,
+      {int maxLines = 1, bool isNumber = false}) {
     return TextField(
       controller: controller,
       keyboardType: isNumber ? TextInputType.number : TextInputType.text,
@@ -127,16 +164,15 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
         filled: true,
         fillColor: Colors.white,
       ),
-      items:
-          [
-                'All',
-                'Food',
-                'Cleaning Supplies',
-                'Toiletries & Personal Care',
-                'Medications & First Aid',
-              ]
-              .map((item) => DropdownMenuItem(value: item, child: Text(item)))
-              .toList(),
+      items: [
+        'All',
+        'Food',
+        'Cleaning Supplies',
+        'Toiletries & Personal Care',
+        'Medications & First Aid',
+      ]
+          .map((item) => DropdownMenuItem(value: item, child: Text(item)))
+          .toList(),
       onChanged: (value) {
         setState(() {
           _selectedCategory = value;
@@ -164,10 +200,9 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
         child: TextField(
           decoration: InputDecoration(
             labelText: 'Expiry Date',
-            hintText:
-                _selectedDate != null
-                    ? DateFormat('yyyy-MM-dd').format(_selectedDate!)
-                    : 'Select date',
+            hintText: _selectedDate != null
+                ? DateFormat('yyyy-MM-dd').format(_selectedDate!)
+                : 'Select date',
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
             filled: true,
             fillColor: Colors.white,

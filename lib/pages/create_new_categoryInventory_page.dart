@@ -30,8 +30,15 @@ class _CreateNewCategoryInventoryPageState
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
+
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+            Image.asset(
+              'assets/inventory/category.png',
+              height: 150, // Adjust size as needed
+              width: 150, // Adjust size as needed
+            ),
+            SizedBox(height: 20,),
             _buildTextField(_titleController, 'Category Name '),
             const SizedBox(height: 16),
             _buildTextField(_descriptionController, 'Description', maxLines: 3),
@@ -47,18 +54,18 @@ class _CreateNewCategoryInventoryPageState
                       context: context,
                       builder:
                           (ctx) => AlertDialog(
-                            title: Text('Success'),
-                            content: Text('Category saved successfully!'),
-                            actions: [
-                              TextButton(
-                                onPressed: () {
-                                  // Navigator.of(ctx).pop(); // Close dialog
-                                  Navigator.pushNamed(context, '/inventory');
-                                },
-                                child: Text('OK'),
-                              ),
-                            ],
+                        title: Text('Success'),
+                        content: Text('Category saved successfully!'),
+                        actions: [
+                          TextButton(
+                            onPressed: () {
+                              // Navigator.of(ctx).pop(); // Close dialog
+                              Navigator.pushNamed(context, '/inventory');
+                            },
+                            child: Text('OK'),
                           ),
+                        ],
+                      ),
                     );
                   },
                 ),
@@ -75,10 +82,10 @@ class _CreateNewCategoryInventoryPageState
   }
 
   Widget _buildTextField(
-    TextEditingController controller,
-    String label, {
-    int maxLines = 1,
-  }) {
+      TextEditingController controller,
+      String label, {
+        int maxLines = 1,
+      }) {
     return TextField(
       controller: controller,
       maxLines: maxLines,
@@ -100,9 +107,9 @@ class _CreateNewCategoryInventoryPageState
         fillColor: Colors.white,
       ),
       items:
-          ['Option 1', 'Option 2', 'Option 3']
-              .map((item) => DropdownMenuItem(value: item, child: Text(item)))
-              .toList(),
+      ['Option 1', 'Option 2', 'Option 3']
+          .map((item) => DropdownMenuItem(value: item, child: Text(item)))
+          .toList(),
       onChanged: (value) {},
     );
   }
