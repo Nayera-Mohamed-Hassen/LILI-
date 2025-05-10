@@ -48,49 +48,129 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // appBar: AppBar(
+      //   iconTheme: const IconThemeData(color: Colors.white),
+      //   backgroundColor: const Color(0xFF1F3354),
+      //   title: const Text(
+      //     'Task manager',
+      //     style: TextStyle(color: Colors.white),
+      //   ),
+      // ),
       backgroundColor: Color(0xFFF5EFE7), // Beige background
       body: Padding(
         padding: EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            SizedBox(height: 20),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'welcome,',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF3E5879),
-                  ),
+                CircleAvatar(radius: 40),
+                SizedBox(width: 10),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Good Morning!',
+                      style: TextStyle(
+                        fontSize: 25,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF213555),
+                      ),
+                    ),
+                    Text(
+                      'Nayera',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF213555),
+                      ),
+                    ),
+                  ],
                 ),
-                Icon(
-                  Icons.notifications,
-                  color: Color(0xFF3E5879),
+                Spacer(),
+                GestureDetector(
+                  onTapDown: (details) {
+                    showMenu(
+                      context: context,
+                      position: RelativeRect.fromLTRB(
+                        details.globalPosition.dx,
+                        details.globalPosition.dy,
+                        0,
+                        0,
+                      ),
+                      items: [
+                        PopupMenuItem(
+                          child: ListTile(
+                            leading: Icon(
+                              Icons.notification_important,
+                              color: Color(0xFF3E5879),
+                            ),
+                            title: Text('Project UI is due today.'),
+                          ),
+                        ),
+                        PopupMenuItem(
+                          child: ListTile(
+                            leading: Icon(
+                              Icons.new_releases,
+                              color: Colors.orange,
+                            ),
+                            title: Text('New task assigned.'),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                  child: Container(
+                    padding: EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Color(0xFF1D2345),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black12,
+                          blurRadius: 10,
+                          offset: Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Icon(Icons.notifications, color: Color(0xFFF5EFE7)),
+                  ),
                 ),
               ],
             ),
-            SizedBox(height: 16),
+            SizedBox(height: 30),
 
             // Tasks Section
             Text(
               'Tasks:',
               style: TextStyle(
-                fontSize: 20,
+                fontSize: 24,
                 fontWeight: FontWeight.bold,
                 color: Color(0xFF3E5879),
               ),
             ),
-            SizedBox(height: 8),
 
+            // SizedBox(height: 8),
             ListView(
               shrinkWrap: true,
               physics: NeverScrollableScrollPhysics(),
               children: [
-                _buildTaskItem("load laundry", _checkbox1, (v) => setState(() => _checkbox1 = v ?? false)),
-                _buildTaskItem("sweep floors", _checkbox2, (v) => setState(() => _checkbox2 = v ?? false)),
-                _buildTaskItem("do dishes", _checkbox3, (v) => setState(() => _checkbox3 = v ?? false)),
+                _buildTaskItem(
+                  "load laundry",
+                  _checkbox1,
+                  (v) => setState(() => _checkbox1 = v ?? false),
+                ),
+                _buildTaskItem(
+                  "sweep floors",
+                  _checkbox2,
+                  (v) => setState(() => _checkbox2 = v ?? false),
+                ),
+                _buildTaskItem(
+                  "do dishes",
+                  _checkbox3,
+                  (v) => setState(() => _checkbox3 = v ?? false),
+                ),
               ],
             ),
 
@@ -106,7 +186,7 @@ class _HomePageState extends State<HomePage> {
                     color: Colors.black12,
                     blurRadius: 6,
                     offset: Offset(0, 2),
-                  )
+                  ),
                 ],
               ),
               child: TableCalendar(
@@ -139,12 +219,8 @@ class _HomePageState extends State<HomePage> {
                     color: Color(0xFF3E5879),
                     shape: BoxShape.circle,
                   ),
-                  defaultDecoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                  ),
-                  weekendDecoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                  ),
+                  defaultDecoration: BoxDecoration(shape: BoxShape.circle),
+                  weekendDecoration: BoxDecoration(shape: BoxShape.circle),
                 ),
               ),
             ),
