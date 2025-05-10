@@ -19,7 +19,7 @@ class Signing extends StatelessWidget {
           width: 390,
           height: 824,
           clipBehavior: Clip.antiAlias,
-          decoration: BoxDecoration(color: const Color(0xFFF5EFE7)),
+          decoration: BoxDecoration(color: const Color(0xFFF2F2F2)),
           child: Stack(
             children: [
               Positioned(

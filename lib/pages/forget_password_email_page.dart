@@ -1,12 +1,23 @@
 import 'package:flutter/material.dart';
 
-class ForgetPasswordEmailPage extends StatelessWidget {
+// class ForgetPasswordEmailPage extends StatelessWidget {
+//   const ForgetPasswordEmailPage({super.key});
+
+class ForgetPasswordEmailPage extends StatefulWidget {
   const ForgetPasswordEmailPage({super.key});
+
+  @override
+  _ForgetPasswordEmailPageState createState() =>
+      _ForgetPasswordEmailPageState();
+}
+
+class _ForgetPasswordEmailPageState extends State<ForgetPasswordEmailPage> {
+  final _emailController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5EFE7),
+      backgroundColor: const Color(0xFFF2F2F2),
       appBar: AppBar(
         leading: BackButton(),
         backgroundColor: Colors.transparent,
@@ -21,7 +32,7 @@ class ForgetPasswordEmailPage extends StatelessWidget {
               width: 400,
               height: 200,
               clipBehavior: Clip.antiAlias,
-              decoration: BoxDecoration(color: const Color(0xFFF5EFE7)),
+              decoration: BoxDecoration(color: const Color(0xFFF2F2F2)),
               child: Stack(
                 children: [
                   Positioned(
@@ -44,18 +55,22 @@ class ForgetPasswordEmailPage extends StatelessWidget {
             ),
 
             const SizedBox(height: 20),
-            const TextField(
-              decoration: InputDecoration(labelText: 'Enter email'),
-            ),
+
+            _buildTextField(_emailController, 'Email'),
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
-                //home page
+                // Here you can add validation or other actions
+                if (_emailController.text.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Please fill in both fields')),
+                  );
+                } else {
+                  Navigator.pushNamed(context, '/forget password reset');
+                }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Color(0xFF3E5879),
-
-                // const Color(0xFF3E5879)
                 minimumSize: Size(315, 55),
                 shape: RoundedRectangleBorder(
                   side: BorderSide(width: 1),
@@ -69,6 +84,23 @@ class ForgetPasswordEmailPage extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildTextField(
+    TextEditingController controller,
+    String label, {
+    int maxLines = 1,
+  }) {
+    return TextField(
+      controller: controller,
+      maxLines: maxLines,
+      decoration: InputDecoration(
+        labelText: label,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+        filled: true,
+        fillColor: Colors.white,
       ),
     );
   }
