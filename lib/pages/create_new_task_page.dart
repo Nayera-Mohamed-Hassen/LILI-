@@ -10,18 +10,18 @@ class _CreateNewTaskPageState extends State<CreateNewTaskPage> {
   final _descriptionController = TextEditingController();
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
-  bool isPrivate = true;
+  // bool isPrivate = true;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5EFE7),
+      backgroundColor: const Color(0xFFF2F2F2),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF3E5879),
+        backgroundColor: const Color(0xFF1F3354),
         title: const Text(
           'Add New Task',
-          style: TextStyle(color: Color(0xFFF5EFE7)),
+          style: TextStyle(color: Color(0xFFF2F2F2)),
         ),
-        iconTheme: const IconThemeData(color: Color(0xFFF5EFE7)),
+        iconTheme: const IconThemeData(color: Color(0xFFF2F2F2)),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -39,31 +39,6 @@ class _CreateNewTaskPageState extends State<CreateNewTaskPage> {
             _buildDatePicker(),
             const SizedBox(height: 16),
             _buildTimePicker(),
-            const SizedBox(height: 16),
-            Row(
-              // mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                SizedBox(width: 9),
-                Text(
-                  'Private Task',
-                  style: TextStyle(
-                    color: Color(0xFF3E5879),
-                    fontSize: 24,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                SizedBox(width: 157),
-                Switch(
-                  value: isPrivate,
-                  activeColor: Color(0xFF3E5879),
-                  onChanged: (value) {
-                    setState(() {
-                      isPrivate = value;
-                    });
-                  },
-                ),
-              ],
-            ),
             const SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -191,7 +166,7 @@ class _CreateNewTaskPageState extends State<CreateNewTaskPage> {
     return ElevatedButton(
       onPressed: onPressed,
       style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFF3E5879),
+        backgroundColor: const Color(0xFF1F3354),
         minimumSize: const Size(140, 50),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),

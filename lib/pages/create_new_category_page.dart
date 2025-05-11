@@ -15,9 +15,9 @@ class _CreateNewCategoryPageState extends State<CreateNewCategoryPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5EFE7),
+      backgroundColor: const Color(0xFFF2F2F2),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF3E5879),
+        backgroundColor: const Color(0xFF1F3354),
         title: const Text(
           'Add Category Task',
           style: TextStyle(color: Color(0xFFF5EFE7)),
@@ -32,31 +32,6 @@ class _CreateNewCategoryPageState extends State<CreateNewCategoryPage> {
             _buildTextField(_titleController, 'Title'),
             const SizedBox(height: 16),
             _buildTextField(_descriptionController, 'Description', maxLines: 3),
-            const SizedBox(height: 16),
-            Row(
-              // mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                SizedBox(width: 9),
-                Text(
-                  'Private Category',
-                  style: TextStyle(
-                    color: Color(0xFF3E5879),
-                    fontSize: 24,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                SizedBox(width: 109),
-                Switch(
-                  value: isPrivate,
-                  activeColor: Color(0xFF3E5879),
-                  onChanged: (value) {
-                    setState(() {
-                      isPrivate = value;
-                    });
-                  },
-                ),
-              ],
-            ),
             const SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -184,7 +159,7 @@ class _CreateNewCategoryPageState extends State<CreateNewCategoryPage> {
     return ElevatedButton(
       onPressed: onPressed,
       style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFF3E5879),
+        backgroundColor: const Color(0xFF1F3354),
         minimumSize: const Size(140, 50),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),

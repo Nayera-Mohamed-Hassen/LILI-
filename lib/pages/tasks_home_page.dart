@@ -13,6 +13,7 @@ class TasksHomePage extends StatefulWidget {
 
 class _TasksHomePageState extends State<TasksHomePage> {
   String selectedFilter = 'All';
+  String searchQuery = '';
 
   List<TaskModel> allTasks = [
     TaskModel(
@@ -65,27 +66,52 @@ class _TasksHomePageState extends State<TasksHomePage> {
   ];
 
   List<TaskModel> getFilteredTasks() {
+    List<TaskModel> filtered = allTasks;
+
     switch (selectedFilter) {
       case 'Done':
-        return allTasks.where((t) => t.isCompleted).toList();
+        filtered = filtered.where((t) => t.isCompleted).toList();
+        break;
       case 'In progress':
-        return allTasks
-            .where((t) => !t.isCompleted && t.progress < 1.0)
-            .toList();
+        filtered =
+            filtered.where((t) => !t.isCompleted && t.progress < 1.0).toList();
+        break;
       case 'Scheduled':
-        return allTasks
-            .where((t) => t.dueDate.isAfter(DateTime.now()))
-            .toList();
+        filtered =
+            filtered.where((t) => t.dueDate.isAfter(DateTime.now())).toList();
+        break;
       case 'All':
       default:
-        return allTasks;
+        break;
     }
+
+    if (searchQuery.isNotEmpty) {
+      filtered =
+          filtered
+              .where(
+                (t) =>
+                    t.title.toLowerCase().contains(searchQuery) ||
+                    t.description.toLowerCase().contains(searchQuery) ||
+                    t.assignedTo.toLowerCase().contains(searchQuery) ||
+                    t.category.toLowerCase().contains(
+                      searchQuery,
+                    ), // ✅ Must be set properly
+              )
+              .toList();
+    }
+
+    return filtered;
   }
 
   int _selectedIndex = 0;
   final items = [
     Icon(Icons.task, size: 30, color: Color(0xFFF5EFE7)),
     Icon(Icons.category, size: 30, color: Color(0xFFF5EFE7)),
+    Icon(
+      Icons.person,
+      size: 30,
+      color: Color(0xFFF5EFE7),
+    ), // ➕ Added People tab
   ];
 
   void _onItemTapped(int index) {
@@ -107,7 +133,7 @@ class _TasksHomePageState extends State<TasksHomePage> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            _buildHeader(),
+            // _buildHeader(),
             _buildSearch(),
             if (_selectedIndex == 0) _buildFilterChips(),
             SizedBox(height: 16),
@@ -115,16 +141,14 @@ class _TasksHomePageState extends State<TasksHomePage> {
               child:
                   _selectedIndex == 1
                       ? _buildCategoryList()
+                      : _selectedIndex == 2
+                      ? _buildPeopleList() // ➕ New method
                       : _inlineTaskList(),
             ),
           ],
         ),
       ),
-      // floatingActionButton: FloatingActionButton(
-      //   backgroundColor: Color(0xFF1D2345),
-      //   child: Icon(Icons.add, color: Color(0xFFF5EFE7)),
-      //   onPressed: () {},
-      // ),
+
       floatingActionButton: PopupMenuButton<String>(
         onSelected: (value) {
           if (value == 'task') {
@@ -135,12 +159,14 @@ class _TasksHomePageState extends State<TasksHomePage> {
             // Open New Category form
           }
         },
+        //0xFF1F3354 blue
+        //0xFFF2F2F2 white
         offset: Offset(0, -100),
-        color: Color(0xFFF5EFE7),
+        color: Color(0xFFF2F2F2),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
         icon: FloatingActionButton(
-          backgroundColor: Color((0xFF1D2345)),
-          child: Icon(Icons.add, size: 30, color: Color(0xFFF5EFE7)),
+          backgroundColor: Color((0xFF1F3354)),
+          child: Icon(Icons.add, size: 30, color: Color(0xFFF2F2F2)),
           onPressed: null, // Leave null to use PopupMenuButton's onSelected
         ),
         itemBuilder:
@@ -149,7 +175,7 @@ class _TasksHomePageState extends State<TasksHomePage> {
                 value: 'task',
                 child: Row(
                   children: [
-                    Icon(Icons.task, color: Color((0xFF1D2345))),
+                    Icon(Icons.task, color: Color((0xFF1F3354))),
                     SizedBox(width: 10),
                     Text(
                       "New Task",
@@ -162,7 +188,7 @@ class _TasksHomePageState extends State<TasksHomePage> {
                 value: 'category',
                 child: Row(
                   children: [
-                    Icon(Icons.category, color: Color((0xFF1D2345))),
+                    Icon(Icons.category, color: Color((0xFF1F3354))),
                     SizedBox(width: 10),
                     Text(
                       "New Category",
@@ -179,86 +205,10 @@ class _TasksHomePageState extends State<TasksHomePage> {
         index: _selectedIndex,
         height: 60,
         backgroundColor: Colors.transparent,
-        color: Color(0xFF1D2345),
-        buttonBackgroundColor: Color(0xFF1D2345),
+        color: Color(0xFF1F3354),
+        buttonBackgroundColor: Color(0xFF1F3354),
         onTap: _onItemTapped,
       ),
-    );
-  }
-
-  Widget _buildHeader() {
-    return Row(
-      children: [
-        // CircleAvatar(radius: 40),
-        SizedBox(width: 10),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Good Morning!',
-              style: TextStyle(
-                fontSize: 25,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF213555),
-              ),
-            ),
-            Text(
-              'Nayera',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF213555),
-              ),
-            ),
-          ],
-        ),
-        Spacer(),
-        GestureDetector(
-          onTapDown: (details) {
-            showMenu(
-              context: context,
-              position: RelativeRect.fromLTRB(
-                details.globalPosition.dx,
-                details.globalPosition.dy,
-                0,
-                0,
-              ),
-              items: [
-                PopupMenuItem(
-                  child: ListTile(
-                    leading: Icon(
-                      Icons.notification_important,
-                      color: Color(0xFF3E5879),
-                    ),
-                    title: Text('Project UI is due today.'),
-                  ),
-                ),
-                PopupMenuItem(
-                  child: ListTile(
-                    leading: Icon(Icons.new_releases, color: Colors.orange),
-                    title: Text('New task assigned.'),
-                  ),
-                ),
-              ],
-            );
-          },
-          child: Container(
-            padding: EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Color(0xFF1D2345),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black12,
-                  blurRadius: 10,
-                  offset: Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Icon(Icons.notifications, color: Color(0xFFF5EFE7)),
-          ),
-        ),
-      ],
     );
   }
 
@@ -267,11 +217,15 @@ class _TasksHomePageState extends State<TasksHomePage> {
       padding: const EdgeInsets.symmetric(vertical: 16),
       child: TextField(
         decoration: InputDecoration(
-          hintText: 'Search features...',
+          hintText: 'Search tasks...',
           prefixIcon: Icon(Icons.search),
-          suffixIcon: Icon(Icons.filter_list),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(28)),
         ),
+        onChanged: (value) {
+          setState(() {
+            searchQuery = value.toLowerCase();
+          });
+        },
       ),
     );
   }
@@ -287,9 +241,9 @@ class _TasksHomePageState extends State<TasksHomePage> {
         itemBuilder: (context, i) {
           final f = filters[i];
           return ActionChip(
-            label: Text(f, style: TextStyle(color: Color(0xFFF5EFE7))),
+            label: Text(f, style: TextStyle(color: Color(0xFFF2F2F2))),
             backgroundColor:
-                selectedFilter == f ? Color(0xFF3E5879) : Color(0xFF1D2345),
+                selectedFilter == f ? Color(0xFF3E5879) : Color(0xFF1F3354),
             onPressed: () => setState(() => selectedFilter = f),
           );
         },
@@ -303,7 +257,7 @@ class _TasksHomePageState extends State<TasksHomePage> {
       itemBuilder: (context, index) {
         final task = getFilteredTasks()[index];
         return Card(
-          color: Color(0xFF1D2345),
+          color: Color(0xFF1F3354),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
@@ -354,7 +308,7 @@ class _TasksHomePageState extends State<TasksHomePage> {
             allTasks.where((task) => task.category == category.name).toList();
 
         return Card(
-          color: Color(0xFF1D2345),
+          color: Color(0xFF1F3354),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(15),
           ),
@@ -378,7 +332,7 @@ class _TasksHomePageState extends State<TasksHomePage> {
                 context: context,
                 builder:
                     (context) => AlertDialog(
-                      backgroundColor: Color(0xFF1D2345),
+                      backgroundColor: Color(0xFF1F3354),
                       title: Text(
                         '${category.name} Tasks',
                         style: TextStyle(color: Color(0xFFF5EFE7)),
@@ -417,6 +371,96 @@ class _TasksHomePageState extends State<TasksHomePage> {
                         ),
                       ],
                     ),
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildPeopleList() {
+    // Group tasks by person
+    final Map<String, List<TaskModel>> peopleMap = {};
+    for (var task in allTasks) {
+      peopleMap.putIfAbsent(task.assignedTo, () => []).add(task);
+    }
+
+    return ListView.builder(
+      itemCount: peopleMap.keys.length,
+      itemBuilder: (context, index) {
+        final person = peopleMap.keys.elementAt(index);
+        final personTasks = peopleMap[person]!;
+        final avgProgress =
+            personTasks.map((t) => t.progress).reduce((a, b) => a + b) /
+            personTasks.length;
+
+        return Card(
+          color: Color(0xFF1F3354),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          margin: EdgeInsets.symmetric(vertical: 8),
+          child: ListTile(
+            leading: CircleAvatar(
+              backgroundColor: Color(0xFF3E5879),
+              child: Text(person[0], style: TextStyle(color: Colors.white)),
+            ),
+            title: Text(
+              person,
+              style: TextStyle(
+                color: Color(0xFFF5EFE7),
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+              ),
+            ),
+            subtitle: Text(
+              '${personTasks.length} tasks • ${(avgProgress * 100).toInt()}% done',
+              style: TextStyle(color: Color(0xFFF5EFE7)),
+            ),
+            trailing: Icon(Icons.arrow_forward_ios, color: Color(0xFFF5EFE7)),
+            onTap: () {
+              // Optionally show a list of that person's tasks in a dialog
+              showDialog(
+                context: context,
+                builder: (context) {
+                  return AlertDialog(
+                    backgroundColor: Color(0xFF1F3354),
+                    title: Text(
+                      '$person\'s Tasks',
+                      style: TextStyle(color: Color(0xFFF5EFE7)),
+                    ),
+                    content: Container(
+                      width: double.maxFinite,
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: personTasks.length,
+                        itemBuilder: (context, i) {
+                          final task = personTasks[i];
+                          return ListTile(
+                            title: Text(
+                              task.title,
+                              style: TextStyle(color: Color(0xFFF5EFE7)),
+                            ),
+                            subtitle: Text(
+                              '${task.progress * 100}%',
+                              style: TextStyle(color: Color(0xFFF5EFE7)),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: Text(
+                          'Close',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ],
+                  );
+                },
               );
             },
           ),

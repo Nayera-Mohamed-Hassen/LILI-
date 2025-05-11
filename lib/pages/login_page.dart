@@ -53,7 +53,7 @@ class _LoginPageState extends State<LoginPage> {
                       SnackBar(content: Text('Please fill in both fields')),
                     );
                   } else {
-                    Navigator.pushNamed(context, '/hosting');
+                    Navigator.pushNamed(context, '/homepage');
                   }
                 },
                 style: ElevatedButton.styleFrom(
