@@ -10,7 +10,7 @@ class _CreateNewTaskPageState extends State<CreateNewTaskPage> {
   final _descriptionController = TextEditingController();
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
-  // bool isPrivate = true;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -46,23 +46,32 @@ class _CreateNewTaskPageState extends State<CreateNewTaskPage> {
                 _buildButton(
                   'Save',
                   onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder:
-                          (ctx) => AlertDialog(
-                            title: Text('Success'),
-                            content: Text('Task saved successfully!'),
-                            actions: [
-                              TextButton(
-                                onPressed: () {
-                                  // Navigator.of(ctx).pop(); // Close dialog
-                                  Navigator.pushNamed(context, '/task home');
-                                },
-                                child: Text('OK'),
-                              ),
-                            ],
-                          ),
-                    );
+                    if (_titleController.text.isEmpty ||
+                        _descriptionController.text.isEmpty ||
+                        _selectedDate == null ||
+                        _selectedTime == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Please fill in all fields')),
+                      );
+                    } else {
+                      showDialog(
+                        context: context,
+                        builder:
+                            (ctx) => AlertDialog(
+                              title: Text('Success'),
+                              content: Text('Task saved successfully!'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () {
+                                    // Navigator.of(ctx).pop(); // Close dialog
+                                    Navigator.pushNamed(context, '/task home');
+                                  },
+                                  child: Text('OK'),
+                                ),
+                              ],
+                            ),
+                      );
+                    }
                   },
                 ),
                 _buildButton(

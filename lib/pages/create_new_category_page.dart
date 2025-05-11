@@ -9,9 +9,7 @@ class CreateNewCategoryPage extends StatefulWidget {
 class _CreateNewCategoryPageState extends State<CreateNewCategoryPage> {
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
-  DateTime? _selectedDate;
-  TimeOfDay? _selectedTime;
-  bool isPrivate = true;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -39,23 +37,30 @@ class _CreateNewCategoryPageState extends State<CreateNewCategoryPage> {
                 _buildButton(
                   'Save',
                   onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder:
-                          (ctx) => AlertDialog(
-                            title: Text('Success'),
-                            content: Text('Category saved successfully!'),
-                            actions: [
-                              TextButton(
-                                onPressed: () {
-                                  // Navigator.of(ctx).pop(); // Close dialog
-                                  Navigator.pushNamed(context, '/task home');
-                                },
-                                child: Text('OK'),
-                              ),
-                            ],
-                          ),
-                    );
+                    if (_titleController.text.isEmpty ||
+                        _descriptionController.text.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Please fill in all fields')),
+                      );
+                    } else {
+                      showDialog(
+                        context: context,
+                        builder:
+                            (ctx) => AlertDialog(
+                              title: Text('Success'),
+                              content: Text('Category saved successfully!'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () {
+                                    // Navigator.of(ctx).pop(); // Close dialog
+                                    Navigator.pushNamed(context, '/task home');
+                                  },
+                                  child: Text('OK'),
+                                ),
+                              ],
+                            ),
+                      );
+                    }
                   },
                 ),
                 _buildButton(
@@ -100,58 +105,6 @@ class _CreateNewCategoryPageState extends State<CreateNewCategoryPage> {
               .map((item) => DropdownMenuItem(value: item, child: Text(item)))
               .toList(),
       onChanged: (value) {},
-    );
-  }
-
-  Widget _buildDatePicker() {
-    return TextField(
-      readOnly: true,
-      onTap: () async {
-        final picked = await showDatePicker(
-          context: context,
-          initialDate: DateTime.now(),
-          firstDate: DateTime(2020),
-          lastDate: DateTime(2030),
-        );
-        if (picked != null) {
-          setState(() => _selectedDate = picked);
-        }
-      },
-      decoration: InputDecoration(
-        labelText:
-            _selectedDate == null
-                ? 'Select deadline'
-                : 'Deadline: ${_selectedDate!.year}/${_selectedDate!.month}/${_selectedDate!.day}',
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-        filled: true,
-        fillColor: Colors.white,
-        suffixIcon: Icon(Icons.calendar_today),
-      ),
-    );
-  }
-
-  Widget _buildTimePicker() {
-    return TextField(
-      readOnly: true,
-      onTap: () async {
-        final picked = await showTimePicker(
-          context: context,
-          initialTime: TimeOfDay.now(),
-        );
-        if (picked != null) {
-          setState(() => _selectedTime = picked);
-        }
-      },
-      decoration: InputDecoration(
-        labelText:
-            _selectedTime == null
-                ? 'Select time'
-                : 'Time: ${_selectedTime!.hour.toString().padLeft(2, '0')}:${_selectedTime!.minute.toString().padLeft(2, '0')}',
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-        filled: true,
-        fillColor: Colors.white,
-        suffixIcon: Icon(Icons.access_time),
-      ),
     );
   }
 
