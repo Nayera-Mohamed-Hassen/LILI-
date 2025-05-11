@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
+import 'add_new_itemInventory_page.dart';  // Page to create new item
+import 'package:untitled4/pages/create_new_categoryInventory_page.dart'; // Page to create new category
 
 class InventoryItem {
   final String name;
   final String category;
   int quantity;
-  final String image;
+  final String? image;
 
   InventoryItem({
     required this.name,
     required this.category,
     required this.quantity,
-    required this.image, // This will be the image path or URL
+    this.image,
   });
 }
 
@@ -24,7 +26,7 @@ class _InventoryPageState extends State<InventoryPage> {
   String searchQuery = '';
   int _selectedIndex = 0;
 
-  final List<String> categories = [
+  List<String> categories = [
     'All',
     'Food',
     'Cleaning Supplies',
@@ -41,14 +43,23 @@ class _InventoryPageState extends State<InventoryPage> {
     InventoryItem(name: 'Soap', category: 'Cleaning Supplies', quantity: 2, image: 'assets/inventory/soap.jpg'),
   ];
 
+  void _addNewItem(InventoryItem newItem) {
+    setState(() {
+      allItems.add(newItem);
+    });
+  }
+
+  void _addNewCategory(String newCategory) {
+    setState(() {
+      categories.add(newCategory);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     String selectedCategory = categories[_selectedIndex];
-
-    List<InventoryItem> filteredItems =
-    allItems.where((item) {
-      return (selectedCategory == 'All' ||
-          item.category == selectedCategory) &&
+    List<InventoryItem> filteredItems = allItems.where((item) {
+      return (selectedCategory == 'All' || item.category == selectedCategory) &&
           item.name.toLowerCase().contains(searchQuery.toLowerCase());
     }).toList();
 
@@ -67,14 +78,11 @@ class _InventoryPageState extends State<InventoryPage> {
         padding: EdgeInsets.all(8),
         child: Column(
           children: [
-            // Search bar
             TextField(
               decoration: InputDecoration(
                 hintText: 'Search...',
                 prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(28),
-                ),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(28)),
                 contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
                 filled: true,
                 fillColor: Colors.grey[200],
@@ -98,14 +106,10 @@ class _InventoryPageState extends State<InventoryPage> {
                         cat,
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          color: _selectedIndex == index
-                              ? Color(0xFFF5EFE7)
-                              : Colors.black,
+                          color: _selectedIndex == index ? Color(0xFFF5EFE7) : Colors.black,
                         ),
                       ),
-                      backgroundColor: _selectedIndex == index
-                          ? Color(0xFF1F3354)
-                          : Colors.transparent,
+                      backgroundColor: _selectedIndex == index ? Color(0xFF1F3354) : Colors.transparent,
                       onPressed: () {
                         setState(() {
                           _selectedIndex = index;
@@ -117,7 +121,6 @@ class _InventoryPageState extends State<InventoryPage> {
               ),
             ),
             SizedBox(height: 15),
-            // Inventory Items
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: groupedItems.entries.map((entry) {
@@ -138,11 +141,11 @@ class _InventoryPageState extends State<InventoryPage> {
                     ...entry.value.map(
                           (item) => Card(
                         child: ListTile(
-                          leading: Image.asset(
-                            item.image,
-                            width: 40, // Set the width of the image
-                            height: 40, // Set the height of the image
-                            fit: BoxFit.cover, // Ensure the image covers the area
+                          leading: item.image != null
+                              ? Image.asset(item.image!, width: 40, height: 40, fit: BoxFit.cover)
+                              : CircleAvatar(
+                            backgroundColor: Colors.grey[300],
+                            child: Icon(Icons.image_not_supported),
                           ),
                           title: Text(item.name),
                           subtitle: Row(
@@ -166,16 +169,14 @@ class _InventoryPageState extends State<InventoryPage> {
                               ),
                             ],
                           ),
-                          trailing: item.quantity <= 1
-                              ? Tooltip(
-                            message: 'Low in stock',
-                            child: Icon(
-                              Icons.circle,
-                              color: Colors.red,
-                              size: 12,
-                            ),
-                          )
-                              : null,
+                          trailing: IconButton(
+                            icon: Icon(Icons.delete, color: Color(0xFF1F3354)),
+                            onPressed: () {
+                              setState(() {
+                                allItems.remove(item);
+                              });
+                            },
+                          ),
                         ),
                       ),
                     ),
@@ -186,13 +187,24 @@ class _InventoryPageState extends State<InventoryPage> {
           ],
         ),
       ),
-      // Floating Action Button with PopupMenuButton
       floatingActionButton: PopupMenuButton<String>(
-        onSelected: (value) {
+        onSelected: (value) async {
           if (value == 'Item') {
-            Navigator.pushNamed(context, '/new item inventory');
+            final newItem = await Navigator.push<InventoryItem>(
+              context,
+              MaterialPageRoute(builder: (context) => CreateNewItemPage()),
+            );
+            if (newItem != null) {
+              _addNewItem(newItem);
+            }
           } else if (value == 'category') {
-            Navigator.pushNamed(context, '/new category inventory');
+            final newCategory = await Navigator.push<String>(
+              context,
+              MaterialPageRoute(builder: (context) => AddNewCategoryPage()),
+            );
+            if (newCategory != null && newCategory.isNotEmpty) {
+              _addNewCategory(newCategory);
+            }
           }
         },
         offset: Offset(0, -100),

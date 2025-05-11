@@ -72,8 +72,7 @@ class LiliApp extends StatelessWidget {
         '/create new category': (context) => CreateNewCategoryPage(),
         '/inventory': (context) => InventoryPage(),
         '/new item inventory': (context) => CreateNewItemPage(),
-        '/new category inventory':
-            (context) => CreateNewCategoryInventoryPage(),
+
         '/budget': (context) => BudgetPageNavbar(),
         '/budget home': (context) => BudgetPage(),
         '/my card': (context) => MyCardPage(),

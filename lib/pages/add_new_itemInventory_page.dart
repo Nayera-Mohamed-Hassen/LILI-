@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
-import 'package:intl/intl.dart';
+import 'create_new_categoryInventory_page.dart';
+import 'inventory_page.dart';
+import 'package:untitled4/models/category_manager.dart';
 
 class CreateNewItemPage extends StatefulWidget {
   @override
@@ -12,7 +14,6 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
   final _titleController = TextEditingController();
   final _quantityController = TextEditingController();
   String? _selectedCategory;
-  DateTime? _selectedDate;
   File? _pickedImage;
 
   Future<void> _pickImage() async {
@@ -24,132 +25,14 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF5EFE7),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF1F3354),
-        title: const Text(
-          'Add New Item To Inventory',
-          style: TextStyle(color: Color(0xFFF5EFE7)),
-        ),
-        iconTheme: const IconThemeData(color: Color(0xFFF5EFE7)),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            SizedBox(height: 40),
-            Center(
-              child: Image.asset(
-                'assets/inventory/Receipt.png',
-                width: 150,
-                height: 150,
-                fit: BoxFit.contain,
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            // 🖼️ Circle image picker and label
-            Row(
-              children: [
-                GestureDetector(
-                  onTap: _pickImage,
-                  child: CircleAvatar(
-                    radius: 30,
-                    backgroundColor: Colors.grey[300],
-                    backgroundImage:
-                    _pickedImage != null ? FileImage(_pickedImage!) : null,
-                    child: _pickedImage == null
-                        ? const Icon(Icons.add_a_photo, color: Colors.white)
-                        : null,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                const Text(
-                  'Add Item Image',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-
-            _buildTextField(_titleController, 'Item Name'),
-            const SizedBox(height: 16),
-            _buildDropdown('Choose category'),
-            const SizedBox(height: 16),
-            _buildTextField(_quantityController, 'Quantity', isNumber: true),
-            const SizedBox(height: 16),
-            _buildDatePickerField(context),
-            const SizedBox(height: 100),
-
-            Align(
-              alignment: Alignment.bottomRight,
-              child: IconButton(
-                icon: const Icon(
-                  Icons.camera_alt,
-                  size: 30,
-                  color: Color(0xFF1D2345),
-                ),
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (ctx) => AlertDialog(
-                      title: const Text('Scanning'),
-                      content: const Text('Scanning the receipt...'),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.of(ctx).pop(),
-                          child: const Text('OK'),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _buildButton('Save', onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (ctx) => AlertDialog(
-                      title: const Text('Success'),
-                      content: const Text('Item Added successfully!'),
-                      actions: [
-                        TextButton(
-                          onPressed: () {
-                            Navigator.pushNamed(context, '/inventory');
-                          },
-                          child: const Text('OK'),
-                        ),
-                      ],
-                    ),
-                  );
-                }),
-                _buildButton('Discard', onPressed: () => Navigator.pop(context)),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildTextField(TextEditingController controller, String label,
-      {int maxLines = 1, bool isNumber = false}) {
+      {bool isNumber = false}) {
     return TextField(
       controller: controller,
       keyboardType: isNumber ? TextInputType.number : TextInputType.text,
-      maxLines: maxLines,
       decoration: InputDecoration(
         labelText: label,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+        border: OutlineInputBorder(),
         filled: true,
         fillColor: Colors.white,
       ),
@@ -158,71 +41,189 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
 
   Widget _buildDropdown(String label) {
     return DropdownButtonFormField<String>(
+      value: _selectedCategory,
       decoration: InputDecoration(
         labelText: label,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+        border: OutlineInputBorder(),
         filled: true,
         fillColor: Colors.white,
       ),
-      items: [
-        'All',
-        'Food',
-        'Cleaning Supplies',
-        'Toiletries & Personal Care',
-        'Medications & First Aid',
-      ]
-          .map((item) => DropdownMenuItem(value: item, child: Text(item)))
+      items: CategoryManager()
+          .categories
+          .map((cat) => DropdownMenuItem(value: cat, child: Text(cat)))
           .toList(),
       onChanged: (value) {
         setState(() {
-          _selectedCategory = value;
+          _selectedCategory = value!;
         });
       },
     );
   }
 
-  Widget _buildDatePickerField(BuildContext context) {
-    return GestureDetector(
-      onTap: () async {
-        final pickedDate = await showDatePicker(
-          context: context,
-          initialDate: DateTime.now(),
-          firstDate: DateTime(2020),
-          lastDate: DateTime(2100),
-        );
-        if (pickedDate != null) {
-          setState(() {
-            _selectedDate = pickedDate;
-          });
-        }
-      },
-      child: AbsorbPointer(
-        child: TextField(
-          decoration: InputDecoration(
-            labelText: 'Expiry Date',
-            hintText: _selectedDate != null
-                ? DateFormat('yyyy-MM-dd').format(_selectedDate!)
-                : 'Select date',
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-            filled: true,
-            fillColor: Colors.white,
+  void _saveItem() {
+    if (_titleController.text.isEmpty ||
+        _quantityController.text.isEmpty ||
+        _selectedCategory == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Please fill in all required fields')),
+      );
+      return;
+    }
+
+    final newItem = InventoryItem(
+      name: _titleController.text,
+      category: _selectedCategory!,
+      quantity: int.tryParse(_quantityController.text) ?? 0,
+      image: _pickedImage?.path,
+    );
+
+    Navigator.pop(context, newItem);
+  }
+
+  void _discardItem() {
+    Navigator.pop(context);
+  }
+
+  Future<void> _navigateAndAddCategory() async {
+    final newCategory = await Navigator.push<String>(
+      context,
+      MaterialPageRoute(builder: (context) => AddNewCategoryPage()),
+    );
+
+    if (newCategory != null) {
+      setState(() {
+        _selectedCategory = newCategory;
+      });
+    }
+  }
+
+  // Custom button widget
+  Widget _buildButton(
+      String text, {
+        required VoidCallback onPressed,
+        Size? size,
+      }) {
+    final fixedSize = size ?? const Size(200, 60);
+
+    return SizedBox(
+      width: fixedSize.width,
+      height: fixedSize.height,
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const  Color(0xFF1F3354),
+          shape: RoundedRectangleBorder(
+            side: const BorderSide(width: 1),
+            borderRadius: BorderRadius.circular(5),
           ),
+        ),
+        child: Text(
+          text,
+          style: const TextStyle(color: Colors.white, fontSize: 18),
         ),
       ),
     );
   }
 
-  Widget _buildButton(String text, {required VoidCallback onPressed}) {
-    return ElevatedButton(
-      onPressed: onPressed,
-      style: ElevatedButton.styleFrom(
+  // Function to simulate scanning receipt
+  void _scanReceipt() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Scanning receipt...')),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF5EFE7),
+      appBar: AppBar(
         backgroundColor: const Color(0xFF1F3354),
-        minimumSize: const Size(140, 50),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        title: const Text('Add New Item To Inventory',
+            style: TextStyle(color: Color(0xFFF5EFE7))),
+        iconTheme: const IconThemeData(color: Color(0xFFF5EFE7)),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.add),
+            tooltip: 'Add New Category',
+            onPressed: _navigateAndAddCategory,
+          )
+        ],
       ),
-      child: Text(
-        text,
-        style: const TextStyle(color: Colors.white, fontSize: 16),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SizedBox(height:40),
+            // Image at the top
+            Image.asset('assets/inventory/Receipt.png', height: 200, ),
+            SizedBox(height: 20),
+
+            // Image Picker in a Row with text
+            Row(
+              children: [
+                GestureDetector(
+                  onTap: _pickImage,
+                  child: CircleAvatar(
+                    radius: 50,
+                    backgroundColor: Colors.grey[300],
+                    backgroundImage:
+                    _pickedImage != null ? FileImage(_pickedImage!) : null,
+                    child: _pickedImage == null
+                        ? Icon(Icons.add_a_photo, color: Colors.white)
+                        : null,
+                  ),
+                ),
+                SizedBox(width: 10),
+                Text(
+                  'Add Item Image',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            SizedBox(height: 16),
+            _buildTextField(_titleController, 'Item Name'),
+            SizedBox(height: 16),
+            _buildDropdown('Choose Category'),
+            SizedBox(height: 16),
+            _buildTextField(_quantityController, 'Quantity', isNumber: true),
+            SizedBox(height: 32),
+
+            // Camera button to scan receipt
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                IconButton(
+                  icon: Icon(Icons.camera_alt, size: 40, color: Color(0xFF3E5879)),
+                  onPressed: _scanReceipt,
+                ),
+                SizedBox(width: 10),
+                Text(
+                  'Scan Receipt',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            SizedBox(height: 32),
+
+            // Buttons in a Row
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildButton(
+                  'Save Item',
+                  onPressed: _saveItem,
+                  size: const Size(150, 60),
+                ),
+                _buildButton(
+                  'Discard',
+                  onPressed: _discardItem,
+                  size: const Size(150, 60),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
