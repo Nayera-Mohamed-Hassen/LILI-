@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
-import 'package:untitled4/pages/my_card_page.dart';
-import 'package:untitled4/pages/budget_home_page.dart';
+import 'package:LILI/pages/my_card_page.dart';
+import 'package:LILI/pages/budget_home_page.dart';
 import 'budgetAnalysis.dart';
 
 class BudgetPageNavbar extends StatefulWidget {

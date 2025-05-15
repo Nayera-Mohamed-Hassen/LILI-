@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:untitled4/models/category_manager.dart';
+import 'package:LILI/models/category_manager.dart';
 
 class AddNewCategoryPage extends StatefulWidget {
   @override
@@ -8,12 +8,13 @@ class AddNewCategoryPage extends StatefulWidget {
 
 class _AddNewCategoryPageState extends State<AddNewCategoryPage> {
   final TextEditingController _categoryController = TextEditingController();
-// Reusable button as in CreateNewItemPage
+
+  // Reusable button as in CreateNewItemPage
   Widget _buildButton(
-      String text, {
-        required VoidCallback onPressed,
-        Size? size,
-      }) {
+    String text, {
+    required VoidCallback onPressed,
+    Size? size,
+  }) {
     final fixedSize = size ?? const Size(200, 60);
     return SizedBox(
       width: fixedSize.width,
@@ -34,14 +35,19 @@ class _AddNewCategoryPageState extends State<AddNewCategoryPage> {
       ),
     );
   }
+
   void _discardCategory() {
     Navigator.pop(context); // Just go back without saving
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Add New Category',style: TextStyle(color: Color(0xFFF5EFE7))),
+        title: Text(
+          'Add New Category',
+          style: TextStyle(color: Color(0xFFF5EFE7)),
+        ),
         iconTheme: const IconThemeData(color: Color(0xFFF5EFE7)),
         backgroundColor: Color(0xFF1F3354),
       ),
@@ -49,7 +55,7 @@ class _AddNewCategoryPageState extends State<AddNewCategoryPage> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            SizedBox(height: 40,),
+            SizedBox(height: 40),
             Center(
               child: Image.asset(
                 'assets/inventory/category.webp',
@@ -77,7 +83,9 @@ class _AddNewCategoryPageState extends State<AddNewCategoryPage> {
                       Navigator.pop(context, newCategory);
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Please enter a category name')),
+                        const SnackBar(
+                          content: Text('Please enter a category name'),
+                        ),
                       );
                     }
                   },

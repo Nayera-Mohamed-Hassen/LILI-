@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:untitled4/pages/google_sign_in_sevice.dart';
+import 'package:LILI/pages/google_sign_in_sevice.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});

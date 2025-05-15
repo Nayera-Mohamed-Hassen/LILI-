@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'navbar.dart';
-import 'package:untitled4/models/user.dart';
-import 'package:untitled4/pages/more_info_page.dart';
-import 'package:untitled4/pages/edit_profile_page.dart';
-import 'package:untitled4/pages/wave2.dart'; // <-- Import WaveClipper here
-import 'package:untitled4/pages/signing_page.dart';
+import 'package:LILI/models/user.dart';
+import 'package:LILI/pages/more_info_page.dart';
+import 'package:LILI/pages/edit_profile_page.dart';
+import 'package:LILI/pages/wave2.dart'; // <-- Import WaveClipper here
+import 'package:LILI/pages/signing_page.dart';
+
 class ProfilePage extends StatefulWidget {
   @override
   _ProfilePageState createState() => _ProfilePageState();
@@ -26,7 +27,7 @@ class _ProfilePageState extends State<ProfilePage> {
     dob: "Mar 25, 2006",
     phone: "+91 956232134",
     address:
-    "99, Haji Abduakar Chawl, Dharavi Cross Rd, Kutti Wadi, Dharavi, Maharashtra",
+        "99, Haji Abduakar Chawl, Dharavi Cross Rd, Kutti Wadi, Dharavi, Maharashtra",
     allergies: ["shrimp", "strawberries"],
   );
 
@@ -35,29 +36,25 @@ class _ProfilePageState extends State<ProfilePage> {
       user = updatedUser;
     });
   }
+
   void _navigateTosigning_page() {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => SigningPage(),
-      ),
+      MaterialPageRoute(builder: (context) => SigningPage()),
     );
   }
+
   void _navigateToMoreInfo() {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => MoreInfoPage(user: user),
-      ),
+      MaterialPageRoute(builder: (context) => MoreInfoPage(user: user)),
     );
   }
 
   void _navigateToEditProfile() async {
     final updatedUser = await Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => EditProfilePage(user: user),
-      ),
+      MaterialPageRoute(builder: (context) => EditProfilePage(user: user)),
     );
 
     if (updatedUser != null) {
@@ -113,7 +110,10 @@ class _ProfilePageState extends State<ProfilePage> {
                 items: [
                   PopupMenuItem(
                     child: ListTile(
-                      leading: Icon(Icons.notification_important, color: Color(0xFF3E5879)),
+                      leading: Icon(
+                        Icons.notification_important,
+                        color: Color(0xFF3E5879),
+                      ),
                       title: Text('Project UI is due today.'),
                     ),
                   ),
@@ -141,10 +141,7 @@ class _ProfilePageState extends State<ProfilePage> {
               children: [
                 ClipPath(
                   clipper: WaveClipper(),
-                  child: Container(
-                    height: 250,
-                    color: Color(0xFF213555),
-                  ),
+                  child: Container(height: 250, color: Color(0xFF213555)),
                 ),
                 Positioned(
                   top: 100,
@@ -154,10 +151,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     child: Container(
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        border: Border.all(
-                          color: Color(0xFF213555),
-                          width: 4,
-                        ),
+                        border: Border.all(color: Color(0xFF213555), width: 4),
                       ),
                       child: CircleAvatar(
                         radius: 50,
@@ -182,44 +176,62 @@ class _ProfilePageState extends State<ProfilePage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Name',
-                              style: TextStyle(
-                                  color: Color(0xFF1D2345),
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  fontFamily: 'Inter')),
-                          Text(user.name,
-                              style: TextStyle(
-                                  color: Color(0xFF3E5879),
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w400,
-                                  fontFamily: 'Inter')),
+                          Text(
+                            'Name',
+                            style: TextStyle(
+                              color: Color(0xFF1D2345),
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              fontFamily: 'Inter',
+                            ),
+                          ),
+                          Text(
+                            user.name,
+                            style: TextStyle(
+                              color: Color(0xFF3E5879),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w400,
+                              fontFamily: 'Inter',
+                            ),
+                          ),
                           SizedBox(height: 4),
-                          Text('Date of Birth',
-                              style: TextStyle(
-                                  color: Color(0xFF1D2345),
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  fontFamily: 'Inter')),
-                          Text(user.dob,
-                              style: TextStyle(
-                                  color: Color(0xFF3E5879),
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w400,
-                                  fontFamily: 'Inter')),
+                          Text(
+                            'Date of Birth',
+                            style: TextStyle(
+                              color: Color(0xFF1D2345),
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              fontFamily: 'Inter',
+                            ),
+                          ),
+                          Text(
+                            user.dob,
+                            style: TextStyle(
+                              color: Color(0xFF3E5879),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w400,
+                              fontFamily: 'Inter',
+                            ),
+                          ),
                           SizedBox(height: 4),
-                          Text('Phone',
-                              style: TextStyle(
-                                  color: Color(0xFF1D2345),
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  fontFamily: 'Inter')),
-                          Text(user.phone,
-                              style: TextStyle(
-                                  color: Color(0xFF3E5879),
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w400,
-                                  fontFamily: 'Inter')),
+                          Text(
+                            'Phone',
+                            style: TextStyle(
+                              color: Color(0xFF1D2345),
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              fontFamily: 'Inter',
+                            ),
+                          ),
+                          Text(
+                            user.phone,
+                            style: TextStyle(
+                              color: Color(0xFF3E5879),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w400,
+                              fontFamily: 'Inter',
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -232,34 +244,44 @@ class _ProfilePageState extends State<ProfilePage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Email',
-                              style: TextStyle(
-                                  color: Color(0xFF1D2345),
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  fontFamily: 'Inter')),
-                          Text(user.email,
-                              style: TextStyle(
-                                  color: Color(0xFF3E5879),
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w400,
-                                  fontFamily: 'Inter')),
+                          Text(
+                            'Email',
+                            style: TextStyle(
+                              color: Color(0xFF1D2345),
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              fontFamily: 'Inter',
+                            ),
+                          ),
+                          Text(
+                            user.email,
+                            style: TextStyle(
+                              color: Color(0xFF3E5879),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w400,
+                              fontFamily: 'Inter',
+                            ),
+                          ),
                           SizedBox(height: 4),
-                          Text('Address',
-                              style: TextStyle(
-                                  color: Color(0xFF1D2345),
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  fontFamily: 'Inter')),
+                          Text(
+                            'Address',
+                            style: TextStyle(
+                              color: Color(0xFF1D2345),
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              fontFamily: 'Inter',
+                            ),
+                          ),
                           SizedBox(
                             width: 161.67,
                             child: Text(
                               user.address,
                               style: TextStyle(
-                                  color: Color(0xFF3E5879),
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w400,
-                                  fontFamily: 'Inter'),
+                                color: Color(0xFF3E5879),
+                                fontSize: 12,
+                                fontWeight: FontWeight.w400,
+                                fontFamily: 'Inter',
+                              ),
                             ),
                           ),
                         ],
@@ -299,7 +321,9 @@ class _ProfilePageState extends State<ProfilePage> {
                 backgroundColor: Color(0xFF213555),
                 foregroundColor: Colors.white,
                 fixedSize: Size(260, 40),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
             ),
             ElevatedButton.icon(
@@ -310,7 +334,9 @@ class _ProfilePageState extends State<ProfilePage> {
                 backgroundColor: Color(0xFF213555),
                 foregroundColor: Colors.white,
                 fixedSize: Size(260, 40),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
             ),
           ],

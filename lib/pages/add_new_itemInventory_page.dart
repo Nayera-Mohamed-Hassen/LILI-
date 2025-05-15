@@ -3,7 +3,7 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'create_new_categoryInventory_page.dart';
 import 'inventory_page.dart';
-import 'package:untitled4/models/category_manager.dart';
+import 'package:LILI/models/category_manager.dart';
 
 class CreateNewItemPage extends StatefulWidget {
   @override
@@ -25,8 +25,11 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
     }
   }
 
-  Widget _buildTextField(TextEditingController controller, String label,
-      {bool isNumber = false}) {
+  Widget _buildTextField(
+    TextEditingController controller,
+    String label, {
+    bool isNumber = false,
+  }) {
     return TextField(
       controller: controller,
       keyboardType: isNumber ? TextInputType.number : TextInputType.text,
@@ -48,10 +51,10 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
         filled: true,
         fillColor: Colors.white,
       ),
-      items: CategoryManager()
-          .categories
-          .map((cat) => DropdownMenuItem(value: cat, child: Text(cat)))
-          .toList(),
+      items:
+          CategoryManager().categories
+              .map((cat) => DropdownMenuItem(value: cat, child: Text(cat)))
+              .toList(),
       onChanged: (value) {
         setState(() {
           _selectedCategory = value!;
@@ -99,10 +102,10 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
 
   // Custom button widget
   Widget _buildButton(
-      String text, {
-        required VoidCallback onPressed,
-        Size? size,
-      }) {
+    String text, {
+    required VoidCallback onPressed,
+    Size? size,
+  }) {
     final fixedSize = size ?? const Size(200, 60);
 
     return SizedBox(
@@ -111,7 +114,7 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: const  Color(0xFF1F3354),
+          backgroundColor: const Color(0xFF1F3354),
           shape: RoundedRectangleBorder(
             side: const BorderSide(width: 1),
             borderRadius: BorderRadius.circular(5),
@@ -127,9 +130,9 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
 
   // Function to simulate scanning receipt
   void _scanReceipt() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Scanning receipt...')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('Scanning receipt...')));
   }
 
   @override
@@ -138,15 +141,17 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
       backgroundColor: const Color(0xFFF5EFE7),
       appBar: AppBar(
         backgroundColor: const Color(0xFF1F3354),
-        title: const Text('Add New Item To Inventory',
-            style: TextStyle(color: Color(0xFFF5EFE7))),
+        title: const Text(
+          'Add New Item To Inventory',
+          style: TextStyle(color: Color(0xFFF5EFE7)),
+        ),
         iconTheme: const IconThemeData(color: Color(0xFFF5EFE7)),
         actions: [
           IconButton(
             icon: Icon(Icons.add),
             tooltip: 'Add New Category',
             onPressed: _navigateAndAddCategory,
-          )
+          ),
         ],
       ),
       body: SingleChildScrollView(
@@ -154,9 +159,9 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            SizedBox(height:40),
+            SizedBox(height: 40),
             // Image at the top
-            Image.asset('assets/inventory/Receipt.png', height: 200, ),
+            Image.asset('assets/inventory/Receipt.png', height: 200),
             SizedBox(height: 20),
 
             // Image Picker in a Row with text
@@ -168,10 +173,11 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
                     radius: 50,
                     backgroundColor: Colors.grey[300],
                     backgroundImage:
-                    _pickedImage != null ? FileImage(_pickedImage!) : null,
-                    child: _pickedImage == null
-                        ? Icon(Icons.add_a_photo, color: Colors.white)
-                        : null,
+                        _pickedImage != null ? FileImage(_pickedImage!) : null,
+                    child:
+                        _pickedImage == null
+                            ? Icon(Icons.add_a_photo, color: Colors.white)
+                            : null,
                   ),
                 ),
                 SizedBox(width: 10),
@@ -194,7 +200,11 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 IconButton(
-                  icon: Icon(Icons.camera_alt, size: 40, color: Color(0xFF3E5879)),
+                  icon: Icon(
+                    Icons.camera_alt,
+                    size: 40,
+                    color: Color(0xFF3E5879),
+                  ),
                   onPressed: _scanReceipt,
                 ),
                 SizedBox(width: 10),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
-import 'add_new_itemInventory_page.dart';  // Page to create new item
-import 'package:untitled4/pages/create_new_categoryInventory_page.dart'; // Page to create new category
+import 'add_new_itemInventory_page.dart'; // Page to create new item
+import 'package:LILI/pages/create_new_categoryInventory_page.dart'; // Page to create new category
 
 class InventoryItem {
   final String name;
@@ -35,12 +35,42 @@ class _InventoryPageState extends State<InventoryPage> {
   ];
 
   final List<InventoryItem> allItems = [
-    InventoryItem(name: 'Tomato', category: 'Food', quantity: 3, image: 'assets/inventory/tomato.jpg'),
-    InventoryItem(name: 'Garlic', category: 'Food', quantity: 1, image: 'assets/inventory/garlic.jpg'),
-    InventoryItem(name: 'Salt', category: 'Food', quantity: 0, image: 'assets/inventory/Salt.jpg'),
-    InventoryItem(name: 'Bandage', category: 'Medications & First Aid', quantity: 2, image: 'assets/inventory/bandage.png'),
-    InventoryItem(name: 'Toothpaste', category: 'Toiletries & Personal Care', quantity: 5, image: 'assets/inventory/toothpaste.jpg'),
-    InventoryItem(name: 'Soap', category: 'Cleaning Supplies', quantity: 2, image: 'assets/inventory/soap.jpg'),
+    InventoryItem(
+      name: 'Tomato',
+      category: 'Food',
+      quantity: 3,
+      image: 'assets/inventory/tomato.jpg',
+    ),
+    InventoryItem(
+      name: 'Garlic',
+      category: 'Food',
+      quantity: 1,
+      image: 'assets/inventory/garlic.jpg',
+    ),
+    InventoryItem(
+      name: 'Salt',
+      category: 'Food',
+      quantity: 0,
+      image: 'assets/inventory/Salt.jpg',
+    ),
+    InventoryItem(
+      name: 'Bandage',
+      category: 'Medications & First Aid',
+      quantity: 2,
+      image: 'assets/inventory/bandage.png',
+    ),
+    InventoryItem(
+      name: 'Toothpaste',
+      category: 'Toiletries & Personal Care',
+      quantity: 5,
+      image: 'assets/inventory/toothpaste.jpg',
+    ),
+    InventoryItem(
+      name: 'Soap',
+      category: 'Cleaning Supplies',
+      quantity: 2,
+      image: 'assets/inventory/soap.jpg',
+    ),
   ];
 
   void _addNewItem(InventoryItem newItem) {
@@ -58,10 +88,12 @@ class _InventoryPageState extends State<InventoryPage> {
   @override
   Widget build(BuildContext context) {
     String selectedCategory = categories[_selectedIndex];
-    List<InventoryItem> filteredItems = allItems.where((item) {
-      return (selectedCategory == 'All' || item.category == selectedCategory) &&
-          item.name.toLowerCase().contains(searchQuery.toLowerCase());
-    }).toList();
+    List<InventoryItem> filteredItems =
+        allItems.where((item) {
+          return (selectedCategory == 'All' ||
+                  item.category == selectedCategory) &&
+              item.name.toLowerCase().contains(searchQuery.toLowerCase());
+        }).toList();
 
     Map<String, List<InventoryItem>> groupedItems = {};
     for (var item in filteredItems) {
@@ -82,8 +114,13 @@ class _InventoryPageState extends State<InventoryPage> {
               decoration: InputDecoration(
                 hintText: 'Search...',
                 prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(28)),
-                contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(28),
+                ),
+                contentPadding: EdgeInsets.symmetric(
+                  vertical: 15,
+                  horizontal: 20,
+                ),
                 filled: true,
                 fillColor: Colors.grey[200],
               ),
@@ -97,92 +134,109 @@ class _InventoryPageState extends State<InventoryPage> {
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
-                children: categories.map((cat) {
-                  int index = categories.indexOf(cat);
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    child: ActionChip(
-                      label: Text(
-                        cat,
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: _selectedIndex == index ? Color(0xFFF5EFE7) : Colors.black,
+                children:
+                    categories.map((cat) {
+                      int index = categories.indexOf(cat);
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        child: ActionChip(
+                          label: Text(
+                            cat,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color:
+                                  _selectedIndex == index
+                                      ? Color(0xFFF5EFE7)
+                                      : Colors.black,
+                            ),
+                          ),
+                          backgroundColor:
+                              _selectedIndex == index
+                                  ? Color(0xFF1F3354)
+                                  : Colors.transparent,
+                          onPressed: () {
+                            setState(() {
+                              _selectedIndex = index;
+                            });
+                          },
                         ),
-                      ),
-                      backgroundColor: _selectedIndex == index ? Color(0xFF1F3354) : Colors.transparent,
-                      onPressed: () {
-                        setState(() {
-                          _selectedIndex = index;
-                        });
-                      },
-                    ),
-                  );
-                }).toList(),
+                      );
+                    }).toList(),
               ),
             ),
             SizedBox(height: 15),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: groupedItems.entries.map((entry) {
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.symmetric(vertical: 8),
-                      child: Text(
-                        entry.key,
-                        style: TextStyle(
-                          color: Color(0xFF1F3354),
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+              children:
+                  groupedItems.entries.map((entry) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.symmetric(vertical: 8),
+                          child: Text(
+                            entry.key,
+                            style: TextStyle(
+                              color: Color(0xFF1F3354),
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                    ...entry.value.map(
+                        ...entry.value.map(
                           (item) => Card(
-                        child: ListTile(
-                          leading: item.image != null
-                              ? Image.asset(item.image!, width: 40, height: 40, fit: BoxFit.cover)
-                              : CircleAvatar(
-                            backgroundColor: Colors.grey[300],
-                            child: Icon(Icons.image_not_supported),
-                          ),
-                          title: Text(item.name),
-                          subtitle: Row(
-                            children: [
-                              IconButton(
-                                icon: Icon(Icons.remove),
+                            child: ListTile(
+                              leading:
+                                  item.image != null
+                                      ? Image.asset(
+                                        item.image!,
+                                        width: 40,
+                                        height: 40,
+                                        fit: BoxFit.cover,
+                                      )
+                                      : CircleAvatar(
+                                        backgroundColor: Colors.grey[300],
+                                        child: Icon(Icons.image_not_supported),
+                                      ),
+                              title: Text(item.name),
+                              subtitle: Row(
+                                children: [
+                                  IconButton(
+                                    icon: Icon(Icons.remove),
+                                    onPressed: () {
+                                      setState(() {
+                                        if (item.quantity > 0) item.quantity--;
+                                      });
+                                    },
+                                  ),
+                                  Text('${item.quantity}'),
+                                  IconButton(
+                                    icon: Icon(Icons.add),
+                                    onPressed: () {
+                                      setState(() {
+                                        item.quantity++;
+                                      });
+                                    },
+                                  ),
+                                ],
+                              ),
+                              trailing: IconButton(
+                                icon: Icon(
+                                  Icons.delete,
+                                  color: Color(0xFF1F3354),
+                                ),
                                 onPressed: () {
                                   setState(() {
-                                    if (item.quantity > 0) item.quantity--;
+                                    allItems.remove(item);
                                   });
                                 },
                               ),
-                              Text('${item.quantity}'),
-                              IconButton(
-                                icon: Icon(Icons.add),
-                                onPressed: () {
-                                  setState(() {
-                                    item.quantity++;
-                                  });
-                                },
-                              ),
-                            ],
-                          ),
-                          trailing: IconButton(
-                            icon: Icon(Icons.delete, color: Color(0xFF1F3354)),
-                            onPressed: () {
-                              setState(() {
-                                allItems.remove(item);
-                              });
-                            },
+                            ),
                           ),
                         ),
-                      ),
-                    ),
-                  ],
-                );
-              }).toList(),
+                      ],
+                    );
+                  }).toList(),
             ),
           ],
         ),
@@ -215,16 +269,17 @@ class _InventoryPageState extends State<InventoryPage> {
           child: Icon(Icons.add, size: 30, color: Color(0xFFF5EFE7)),
           onPressed: null,
         ),
-        itemBuilder: (BuildContext context) => [
-          PopupMenuItem<String>(
-            value: 'Item',
-            child: Text('Create New Item'),
-          ),
-          PopupMenuItem<String>(
-            value: 'category',
-            child: Text('Create New Category'),
-          ),
-        ],
+        itemBuilder:
+            (BuildContext context) => [
+              PopupMenuItem<String>(
+                value: 'Item',
+                child: Text('Create New Item'),
+              ),
+              PopupMenuItem<String>(
+                value: 'category',
+                child: Text('Create New Category'),
+              ),
+            ],
       ),
     );
   }

@@ -1,11 +1,11 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:untitled4/pages/budgetAnalysis.dart';
-import 'package:untitled4/pages/emergency.dart';
-import 'package:untitled4/pages/loadingRecipe.dart';
-import 'package:untitled4/pages/main_menu.dart';
-import 'package:untitled4/pages/profile.dart';
-import 'package:untitled4/pages/recipes.dart';
+import 'package:LILI/pages/budgetAnalysis.dart';
+import 'package:LILI/pages/emergency.dart';
+import 'package:LILI/pages/loadingRecipe.dart';
+import 'package:LILI/pages/main_menu.dart';
+import 'package:LILI/pages/profile.dart';
+import 'package:LILI/pages/recipes.dart';
 import 'pages/signing_page.dart';
 import 'pages/login_page.dart';
 import 'pages/signup_page.dart';
@@ -32,6 +32,7 @@ import 'pages/create_new_category_budget.dart';
 import 'pages/on_boarding.dart';
 import 'pages/google_sign_in_sevice.dart';
 import 'pages/host_house.dart';
+import 'pages/menuItem.dart';
 
 void main() {
   runApp(LiliApp());
@@ -47,9 +48,10 @@ class LiliApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         scaffoldBackgroundColor: Color(0xFFF2F2F2),
       ),
-      initialRoute: '/',
+      initialRoute: '/menu',
       routes: {
         '/': (context) => OnBoarding(),
+        '/menu': (context) => MenuItem(),
         '/analysis': (context) => AnalysisPage(),
         '/WaveClipper': (context) => RecipePage(),
         '/Recipe': (context) => Recipe(),

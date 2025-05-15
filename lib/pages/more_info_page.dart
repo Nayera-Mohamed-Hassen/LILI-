@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../models/user.dart';
-import 'wave2.dart';  // <-- Import WaveClipper here
-import 'package:untitled4/pages/profile.dart';  // <-- Import ProfilePage here
+import 'wave2.dart'; // <-- Import WaveClipper here
+import 'package:LILI/pages/profile.dart'; // <-- Import ProfilePage here
 
 class MoreInfoPage extends StatefulWidget {
   final User user;
@@ -34,7 +34,10 @@ class _MoreInfoPageState extends State<MoreInfoPage> {
                 items: [
                   PopupMenuItem(
                     child: ListTile(
-                      leading: Icon(Icons.notification_important, color: Color(0xFF3E5879)),
+                      leading: Icon(
+                        Icons.notification_important,
+                        color: Color(0xFF3E5879),
+                      ),
                       title: Text('Project UI is due today.'),
                     ),
                   ),
@@ -60,11 +63,8 @@ class _MoreInfoPageState extends State<MoreInfoPage> {
             Stack(
               children: [
                 ClipPath(
-                  clipper: WaveClipper(),  // <-- Use the WaveClipper here
-                  child: Container(
-                    height: 250,
-                    color: Color(0xFF213555),
-                  ),
+                  clipper: WaveClipper(), // <-- Use the WaveClipper here
+                  child: Container(height: 250, color: Color(0xFF213555)),
                 ),
                 Positioned(
                   top: 100,
@@ -74,10 +74,7 @@ class _MoreInfoPageState extends State<MoreInfoPage> {
                     child: Container(
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        border: Border.all(
-                          color: Color(0xFF213555),
-                          width: 4,
-                        ),
+                        border: Border.all(color: Color(0xFF213555), width: 4),
                       ),
                       child: CircleAvatar(
                         radius: 50,
@@ -103,7 +100,7 @@ class _MoreInfoPageState extends State<MoreInfoPage> {
               ),
             ),
             GestureDetector(
-              onTap: _navigateToless_info,  // <-- Navigate to ProfilePage
+              onTap: _navigateToless_info, // <-- Navigate to ProfilePage
               child: Container(
                 padding: EdgeInsets.all(20),
                 decoration: BoxDecoration(color: Colors.transparent),
@@ -118,7 +115,6 @@ class _MoreInfoPageState extends State<MoreInfoPage> {
                         color: Color(0xFF213555),
                       ),
                     ),
-
                   ],
                 ),
               ),
@@ -130,9 +126,8 @@ class _MoreInfoPageState extends State<MoreInfoPage> {
   }
 
   void _navigateToless_info() {
-    Navigator.pop(context);  // <-- This will go back to the previous screen
+    Navigator.pop(context); // <-- This will go back to the previous screen
   }
-
 
   Widget _infoBlock(String label, String value) {
     return Padding(
@@ -142,16 +137,10 @@ class _MoreInfoPageState extends State<MoreInfoPage> {
         children: [
           Text(
             label,
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
-            ),
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
           ),
           SizedBox(height: 4),
-          Text(
-            value,
-            style: TextStyle(fontSize: 16),
-          ),
+          Text(value, style: TextStyle(fontSize: 16)),
         ],
       ),
     );

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:table_calendar/table_calendar.dart';
-import 'package:untitled4/models/task.dart';
-import 'package:untitled4/models/category_task.dart';
+import 'package:LILI/models/task.dart';
+import 'package:LILI/models/category_task.dart';
 
 class TasksHomePage extends StatefulWidget {
   const TasksHomePage({Key? key}) : super(key: key);
