@@ -13,7 +13,6 @@ class _MyCardPageState extends State<MyCardPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFF5EFE7),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),

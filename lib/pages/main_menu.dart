@@ -17,7 +17,7 @@ class _MainMenuPageState extends State<MainMenuPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFF5EFE7), // Beige background
+      // Beige background
       body: Column(
         children: [
           SizedBox(height: 20),

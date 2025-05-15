@@ -27,6 +27,7 @@ class _CookingStepsPageState extends State<CookingStepsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        surfaceTintColor: Colors.transparent,
         iconTheme: const IconThemeData(color: Colors.white),
         backgroundColor: const Color(0xFF1F3354),
         title: const Text(
@@ -67,7 +68,7 @@ class _CookingStepsPageState extends State<CookingStepsPage> {
                 final isChecked = stepChecked[index];
                 return CheckboxListTile(
                   activeColor: const Color(0xFF1F3354),
-                  controlAffinity: ListTileControlAffinity.leading,
+                  controlAffinity: ListTileControlAffinity.trailing,
                   value: isChecked,
                   onChanged: (value) {
                     setState(() {

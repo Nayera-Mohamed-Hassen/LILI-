@@ -26,7 +26,6 @@ class _BudgetPageNavbarState extends State<BudgetPageNavbar> {
         offset.dx + size.width,
         offset.dy,
       ),
-      color: Color(0xFFF5EFE7),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       items: [
         PopupMenuItem<String>(

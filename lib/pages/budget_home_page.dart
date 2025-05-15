@@ -12,7 +12,7 @@ class _BudgetPageState extends State<BudgetPage> {
 
   void _showPopupMenu() async {
     final RenderBox renderBox =
-    _fabKey.currentContext!.findRenderObject() as RenderBox;
+        _fabKey.currentContext!.findRenderObject() as RenderBox;
     final Offset offset = renderBox.localToGlobal(Offset.zero);
     final Size size = renderBox.size;
 
@@ -24,11 +24,13 @@ class _BudgetPageState extends State<BudgetPage> {
         offset.dx + size.width,
         offset.dy,
       ),
-      color: Color(0xFFF5EFE7),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       items: [
         PopupMenuItem<String>(value: 'Item', child: Text('Add new card')),
-        PopupMenuItem<String>(value: 'category', child: Text('Add new expenses')),
+        PopupMenuItem<String>(
+          value: 'category',
+          child: Text('Add new expenses'),
+        ),
       ],
     );
 
@@ -44,7 +46,6 @@ class _BudgetPageState extends State<BudgetPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFF5EFE7),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
@@ -92,13 +93,19 @@ class _BudgetPageState extends State<BudgetPage> {
                         items: [
                           PopupMenuItem(
                             child: ListTile(
-                              leading: Icon(Icons.notification_important, color: Color(0xFF3E5879)),
+                              leading: Icon(
+                                Icons.notification_important,
+                                color: Color(0xFF3E5879),
+                              ),
                               title: Text('You exceeded the card limit.'),
                             ),
                           ),
                           PopupMenuItem(
                             child: ListTile(
-                              leading: Icon(Icons.new_releases, color: Colors.orange),
+                              leading: Icon(
+                                Icons.new_releases,
+                                color: Colors.orange,
+                              ),
                               title: Text('New task assigned.'),
                             ),
                           ),
@@ -118,7 +125,10 @@ class _BudgetPageState extends State<BudgetPage> {
                           ),
                         ],
                       ),
-                      child: Icon(Icons.notifications, color: Color(0xFFF5EFE7)),
+                      child: Icon(
+                        Icons.notifications,
+                        color: Color(0xFFF5EFE7),
+                      ),
                     ),
                   ),
                 ],
@@ -135,7 +145,10 @@ class _BudgetPageState extends State<BudgetPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("Total balance", style: TextStyle(fontSize: 16, color: Colors.white)),
+                    Text(
+                      "Total balance",
+                      style: TextStyle(fontSize: 16, color: Colors.white),
+                    ),
                     SizedBox(height: 10),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -158,7 +171,9 @@ class _BudgetPageState extends State<BudgetPage> {
                         ),
                         IconButton(
                           icon: Icon(
-                            _showBalance ? Icons.visibility : Icons.visibility_off,
+                            _showBalance
+                                ? Icons.visibility
+                                : Icons.visibility_off,
                             color: Colors.white,
                           ),
                           onPressed: () {
@@ -183,7 +198,11 @@ class _BudgetPageState extends State<BudgetPage> {
                 ),
               ),
               SizedBox(height: 10),
-              _transactionItem("Transfer to Firmansyah A.", "-\$20", "04:03 PM"),
+              _transactionItem(
+                "Transfer to Firmansyah A.",
+                "-\$20",
+                "04:03 PM",
+              ),
               _transactionItem("Receive from Adam S.", "+\$1,300", "02:15 PM"),
               _transactionItem("Transfer to Rina", "-\$20", "01:10 PM"),
             ],

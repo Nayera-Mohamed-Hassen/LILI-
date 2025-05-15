@@ -56,7 +56,6 @@ class _HomePageState extends State<HomePage> {
       //     style: TextStyle(color: Colors.white),
       //   ),
       // ),
-      backgroundColor: Color(0xFFF5EFE7), // Beige background
       body: Padding(
         padding: EdgeInsets.all(16),
         child: Column(
