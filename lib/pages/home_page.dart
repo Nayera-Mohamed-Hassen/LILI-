@@ -48,14 +48,6 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // appBar: AppBar(
-      //   iconTheme: const IconThemeData(color: Colors.white),
-      //   backgroundColor: const Color(0xFF1F3354),
-      //   title: const Text(
-      //     'Task manager',
-      //     style: TextStyle(color: Colors.white),
-      //   ),
-      // ),
       body: Stack(
         children: [
           Positioned.fill(
