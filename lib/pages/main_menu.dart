@@ -19,75 +19,89 @@ class _MainMenuPageState extends State<MainMenuPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       // Beige background
-      body: Column(
+      body: Stack(
         children: [
-          SizedBox(height: 20),
-          SizedBox(
-            width: MediaQuery.of(context).size.width - 30,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              // Aligns the icon to the right
-              children: [
-                Icon(Icons.notifications, color: Color(0xFF1F3354), size: 50),
-              ],
+          Positioned.fill(
+            child: Image.asset(
+              'assets/backgrounds/homepage.png',
+              fit: BoxFit.cover,
             ),
           ),
-          SizedBox(height: 20),
-          SizedBox(
-            width: MediaQuery.of(context).size.width - 30,
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: 'Search features...',
-                prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(28),
+          Column(
+            children: [
+              SizedBox(height: 20),
+              SizedBox(
+                width: MediaQuery.of(context).size.width - 30,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  // Aligns the icon to the right
+                  children: [
+                    Icon(
+                      Icons.notifications,
+                      color: Color(0xFFF2F2F2),
+                      size: 50,
+                    ),
+                  ],
                 ),
               ),
-            ),
-          ),
-          SizedBox(height: 20),
-          Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      buildButton("View Tasks", '/task home'),
-                      buildButton("Recommend Recipe", '/Recipe'),
-                    ],
+              SizedBox(height: 20),
+              SizedBox(
+                width: MediaQuery.of(context).size.width - 30,
+                child: TextField(
+                  decoration: InputDecoration(
+                    hintText: 'Search features...',
+                    prefixIcon: Icon(Icons.search),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(28),
+                    ),
                   ),
-                  SizedBox(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      buildButton("Show Inventory", '/inventory'),
-                      buildButton("Show Expenses", '/budget'),
-                    ],
-                  ),
-                  SizedBox(height: 20),
-
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      buildButton("Add To Shopping List", '/'),
-                      buildButton("Open Calendar", '/'),
-                    ],
-                  ),
-                  SizedBox(height: 20),
-
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      buildButton("Show Workout Plan", '/'),
-                      buildButton("Show Family Map", '/'),
-                    ],
-                  ),
-                ],
+                ),
               ),
-            ),
+              SizedBox(height: 20),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          buildButton("View Tasks", '/task home'),
+                          buildButton("Recommend Recipe", '/Recipe'),
+                        ],
+                      ),
+                      SizedBox(height: 20),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          buildButton("Show Inventory", '/inventory'),
+                          buildButton("Show Expenses", '/budget'),
+                        ],
+                      ),
+                      SizedBox(height: 20),
+
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          buildButton("Add To Shopping List", '/'),
+                          buildButton("Open Calendar", '/'),
+                        ],
+                      ),
+                      SizedBox(height: 20),
+
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          buildButton("Show Workout Plan", '/'),
+                          buildButton("Show Family Map", '/'),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              SizedBox(height: 30),
+            ],
           ),
-          SizedBox(height: 30),
         ],
       ),
     );
