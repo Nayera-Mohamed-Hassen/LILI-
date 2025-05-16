@@ -132,5 +132,9 @@ flutter:
     - assets/backgrounds/login.png
     - assets/backgrounds/main menu.png
     - assets/backgrounds/Sign in.png
+    - assets/images/food.gif
+    - assets/images/inventory.gif
+    - assets/images/money.gif
+    - assets/images/tasks.gif
 
 
