@@ -125,7 +125,7 @@ class _HomePageState extends State<HomePage> {
                         padding: EdgeInsets.all(8),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: Color(0xFF1D2345),
+                          color: Color(0xFF1F3354),
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black12,
@@ -238,14 +238,22 @@ class _HomePageState extends State<HomePage> {
   Widget _buildTaskItem(String label, bool value, Function(bool?) onChanged) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
-      child: CheckboxListTile(
-        title: Text(label),
-        value: value,
-        onChanged: onChanged,
-        controlAffinity: ListTileControlAffinity.leading,
-        contentPadding: EdgeInsets.zero,
-        dense: true,
-        visualDensity: VisualDensity.compact,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8),
+          color: Colors.white,
+        ),
+        child: CheckboxListTile(
+          title: Text(label),
+          value: value,
+          onChanged: onChanged,
+          controlAffinity: ListTileControlAffinity.leading,
+          contentPadding: EdgeInsets.zero,
+          dense: true,
+          visualDensity: VisualDensity.compact,
+
+          activeColor: Color(0xFF1F3354),
+        ),
       ),
     );
   }
