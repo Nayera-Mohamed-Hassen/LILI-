@@ -1,3 +1,4 @@
+import 'package:LILI/main.dart';
 import 'package:flutter/material.dart';
 import 'package:LILI/pages/tasks_home_page.dart';
 
@@ -96,22 +97,11 @@ class _MainMenuPageState extends State<MainMenuPage> {
     return SizedBox(
       width: 140,
       height: 150,
-      child: ElevatedButton(
+      child: PrimaryButton(
         onPressed: () {
           Navigator.pushNamed(context, route); // Navigate to respective screen
         },
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Color(0xFF1F3354),
-          foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-        child: Text(
-          text,
-          style: TextStyle(fontWeight: FontWeight.bold),
-          textAlign: TextAlign.center,
-        ),
+        text: text,
       ),
     );
   }

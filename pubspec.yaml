@@ -42,7 +42,7 @@ dependencies:
   google_sign_in: ^6.1.6  # Use latest version
   firebase_auth: ^4.7.2   # Optional if you're using Firebase
   firebase_core: ^2.31.0  # Optional
-  
+
 
 
 
@@ -122,5 +122,15 @@ flutter:
     - assets/inventory/toothpaste.jpg
     - assets/inventory/Receipt.png
     - assets/inventory/category.webp
+    - assets/backgrounds/adduser 1.png
+    - assets/backgrounds/emergncy.png
+    - assets/backgrounds/homepage.png
+    - assets/backgrounds/hosting.png
+    - assets/backgrounds/housing.png
+    - assets/backgrounds/init setup.png
+    - assets/backgrounds/joining.png
+    - assets/backgrounds/login.png
+    - assets/backgrounds/main menu.png
+    - assets/backgrounds/Sign in.png
 
 

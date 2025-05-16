@@ -48,7 +48,7 @@ class LiliApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         scaffoldBackgroundColor: Color(0xFFF2F2F2),
       ),
-      initialRoute: '/WaveClipper',
+      initialRoute: '/homepage',
       routes: {
         '/': (context) => OnBoarding(),
         '/menu': (context) => MenuItem(),
@@ -83,6 +83,89 @@ class LiliApp extends StatelessWidget {
             (context) => CreateNewCategoryBudgetPage(),
         '/host house': (context) => HostHousePage(),
       },
+    );
+  }
+}
+
+class PrimaryButton extends StatelessWidget {
+  final VoidCallback onPressed;
+  final String text;
+
+  const PrimaryButton({required this.onPressed, required this.text, super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      style: ButtonStyle(
+        shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+        backgroundColor: MaterialStateProperty.resolveWith<Color>((
+          Set<MaterialState> states,
+        ) {
+          return const Color(0xFF3E5879); // Always use base color
+        }),
+        overlayColor: MaterialStateProperty.resolveWith<Color>((
+          Set<MaterialState> states,
+        ) {
+          if (states.contains(MaterialState.pressed)) {
+            return const Color(0xFF213555); // Darker when pressed
+          }
+          return Colors.transparent;
+        }),
+        padding: MaterialStateProperty.all<EdgeInsets>(
+          const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        ),
+      ),
+      onPressed: onPressed,
+      child: Text(
+        text,
+        style: const TextStyle(color: Color(0xFFF2F2F2)),
+        textAlign: TextAlign.center,
+      ),
+    );
+  }
+}
+
+class SecondaryButton extends StatelessWidget {
+  final VoidCallback onPressed;
+  final String text;
+
+  const SecondaryButton({
+    required this.onPressed,
+    required this.text,
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      style: ButtonStyle(
+        shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+        backgroundColor: MaterialStateProperty.all<Color>(
+          const Color(0xFFF2F2F2),
+        ),
+        shadowColor: MaterialStateProperty.all<Color>(Colors.transparent),
+        side: MaterialStateProperty.resolveWith<BorderSide>((
+          Set<MaterialState> states,
+        ) {
+          // 5px when pressed, 3px otherwise
+          final width = states.contains(MaterialState.pressed) ? 5.0 : 3.0;
+          return BorderSide(width: width, color: const Color(0xFF3E5879));
+        }),
+        padding: MaterialStateProperty.all<EdgeInsetsGeometry>(
+          const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        ),
+        overlayColor: MaterialStateProperty.all<Color>(Colors.transparent),
+      ),
+      onPressed: onPressed,
+      child: Text(
+        text,
+        style: const TextStyle(color: Color(0xFF3E5879)),
+        textAlign: TextAlign.center,
+      ),
     );
   }
 }
