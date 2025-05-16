@@ -242,6 +242,14 @@ class _HomePageState extends State<HomePage> {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
           color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.2), // Shadow color
+              blurRadius: 6, // Softness
+              spreadRadius: 2, // Size beyond container
+              offset: Offset(3, 4), // Shadow position
+            ),
+          ],
         ),
         child: CheckboxListTile(
           title: Text(label),
@@ -251,7 +259,6 @@ class _HomePageState extends State<HomePage> {
           contentPadding: EdgeInsets.zero,
           dense: true,
           visualDensity: VisualDensity.compact,
-
           activeColor: Color(0xFF1F3354),
         ),
       ),

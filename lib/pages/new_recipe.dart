@@ -1,37 +1,17 @@
 import 'package:flutter/material.dart';
-
 import 'package:LILI/models/recipeItem.dart';
 
 class Recipe extends StatefulWidget {
-  final Set<RecipeItem> favoriteRecipes;
-  final Function(RecipeItem) onFavoriteToggle;
-
-  const Recipe({
-    Key? key,
-    required this.favoriteRecipes,
-    required this.onFavoriteToggle,
-  }) : super(key: key);
+  const Recipe({super.key});
 
   @override
   State<Recipe> createState() => _RecipeState();
 }
 
 class _RecipeState extends State<Recipe> {
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
-
   final TextEditingController searchController = TextEditingController();
   String searchQuery = '';
   Set<String> selectedSubFilters = {};
-
-  // Keep track of favorite recipes by name
 
   final List<RecipeItem> recipes = [
     RecipeItem(
@@ -203,12 +183,14 @@ class _RecipeState extends State<Recipe> {
     'Duration': ['Under 30 mins', '30-60 mins', 'Over 60 mins'],
   };
 
+  //search for you ya nayera
   @override
   Widget build(BuildContext context) {
     List<RecipeItem> filteredRecipes =
         recipes.where((recipe) {
           bool matches = true;
 
+          // Filtering logic (unchanged)
           if (selectedSubFilters.isNotEmpty) {
             if (filterOptions['Cuisine']!.any(selectedSubFilters.contains)) {
               matches &= selectedSubFilters.contains(recipe.cusine);
@@ -238,6 +220,7 @@ class _RecipeState extends State<Recipe> {
             }
           }
 
+          // New: Search by name or ingredients
           if (searchQuery.isNotEmpty) {
             final lowerQuery = searchQuery.toLowerCase();
             final nameMatch = recipe.name.toLowerCase().contains(lowerQuery);
@@ -268,7 +251,7 @@ class _RecipeState extends State<Recipe> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 3),
+                  SizedBox(height: 3),
                   Row(
                     children: [
                       Expanded(
@@ -281,7 +264,7 @@ class _RecipeState extends State<Recipe> {
                                 color: Colors.black.withOpacity(0.1),
                                 blurRadius: 8,
                                 spreadRadius: 2,
-                                offset: const Offset(2, 4),
+                                offset: Offset(2, 4),
                               ),
                             ],
                           ),
@@ -337,6 +320,7 @@ class _RecipeState extends State<Recipe> {
                                             crossAxisAlignment:
                                                 CrossAxisAlignment.start,
                                             children: [
+                                              // Top row with Clear and Close buttons
                                               Row(
                                                 mainAxisAlignment:
                                                     MainAxisAlignment
@@ -352,13 +336,12 @@ class _RecipeState extends State<Recipe> {
                                                     },
                                                     icon: const Icon(
                                                       Icons.clear,
-                                                      color: Colors.transparent,
+                                                      color: Colors.red,
                                                     ),
                                                     label: const Text(
                                                       "Clear Filters",
                                                       style: TextStyle(
-                                                        color:
-                                                            Colors.transparent,
+                                                        color: Colors.red,
                                                       ),
                                                     ),
                                                   ),
@@ -374,60 +357,110 @@ class _RecipeState extends State<Recipe> {
                                                 ],
                                               ),
                                               const SizedBox(height: 10),
-                                              for (var category
-                                                  in filterOptions.entries) ...[
-                                                Text(
-                                                  category.key,
-                                                  style: const TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 20,
+                                              ...filterOptions.entries.map((
+                                                entry,
+                                              ) {
+                                                final category = entry.key;
+                                                final options = entry.value;
+
+                                                return Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      category,
+                                                      style: const TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(height: 6),
+                                                    Wrap(
+                                                      spacing: 8,
+                                                      runSpacing: 4,
+                                                      children:
+                                                          options.map((option) {
+                                                            final isSelected =
+                                                                selectedSubFilters
+                                                                    .contains(
+                                                                      option,
+                                                                    );
+                                                            return FilterChip(
+                                                              backgroundColor:
+                                                                  const Color(
+                                                                    0xFF3E5879,
+                                                                  ),
+                                                              selectedColor:
+                                                                  const Color(
+                                                                    0xFF1F3354,
+                                                                  ),
+                                                              checkmarkColor:
+                                                                  Colors.white,
+                                                              label: Text(
+                                                                option,
+                                                                style: const TextStyle(
+                                                                  color:
+                                                                      Colors
+                                                                          .white,
+                                                                ),
+                                                              ),
+                                                              selected:
+                                                                  isSelected,
+                                                              onSelected: (
+                                                                selected,
+                                                              ) {
+                                                                setState(() {
+                                                                  if (selected) {
+                                                                    selectedSubFilters
+                                                                        .add(
+                                                                          option,
+                                                                        );
+                                                                  } else {
+                                                                    selectedSubFilters
+                                                                        .remove(
+                                                                          option,
+                                                                        );
+                                                                  }
+                                                                });
+                                                                setModalState(
+                                                                  () {},
+                                                                );
+                                                              },
+                                                            );
+                                                          }).toList(),
+                                                    ),
+                                                    const SizedBox(height: 16),
+                                                  ],
+                                                );
+                                              }).toList(),
+                                              Center(
+                                                child: ElevatedButton(
+                                                  style: ElevatedButton.styleFrom(
+                                                    backgroundColor:
+                                                        const Color(0xFF1F3354),
+                                                    foregroundColor:
+                                                        Colors.white,
+                                                    padding:
+                                                        const EdgeInsets.symmetric(
+                                                          horizontal: 32,
+                                                          vertical: 12,
+                                                        ),
+                                                    shape: RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            20,
+                                                          ),
+                                                    ),
+                                                  ),
+                                                  onPressed:
+                                                      () => Navigator.pop(
+                                                        context,
+                                                      ),
+                                                  child: const Text(
+                                                    'Apply Filters',
                                                   ),
                                                 ),
-                                                const SizedBox(height: 8),
-                                                Wrap(
-                                                  spacing: 6,
-                                                  runSpacing: 6,
-                                                  children:
-                                                      category.value.map((
-                                                        subFilter,
-                                                      ) {
-                                                        final isSelected =
-                                                            selectedSubFilters
-                                                                .contains(
-                                                                  subFilter,
-                                                                );
-                                                        return FilterChip(
-                                                          label: Text(
-                                                            subFilter,
-                                                          ),
-                                                          selected: isSelected,
-                                                          onSelected: (
-                                                            selected,
-                                                          ) {
-                                                            setModalState(() {
-                                                              if (selected) {
-                                                                selectedSubFilters
-                                                                    .add(
-                                                                      subFilter,
-                                                                    );
-                                                              } else {
-                                                                selectedSubFilters
-                                                                    .remove(
-                                                                      subFilter,
-                                                                    );
-                                                              }
-                                                            });
-                                                            setState(() {});
-                                                          },
-                                                          selectedColor:
-                                                              Colors
-                                                                  .blue
-                                                                  .shade300,
-                                                        );
-                                                      }).toList(),
-                                                ),
-                                                const SizedBox(height: 20),
-                                              ],
+                                              ),
                                             ],
                                           ),
                                         ),
@@ -443,121 +476,66 @@ class _RecipeState extends State<Recipe> {
                     ],
                   ),
                   const SizedBox(height: 10),
-                  ListView.builder(
-                    physics: const NeverScrollableScrollPhysics(),
-                    shrinkWrap: true,
-                    itemCount: filteredRecipes.length,
-                    itemBuilder: (context, index) {
-                      final recipe = filteredRecipes[index];
-                      final isFavorite = widget.favoriteRecipes.contains(
-                        recipe,
-                      );
 
-                      return Card(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                          side: const BorderSide(
-                            color: Color(0xFF1F3354),
-                            width: 1,
-                          ),
-                        ),
-                        elevation: 8,
-                        shadowColor: const Color(0xFF1F3354),
-                        margin: const EdgeInsets.symmetric(vertical: 8),
-                        child: Container(
-                          padding: const EdgeInsets.all(12),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                  // Recipe List
+                  Column(
+                    children:
+                        filteredRecipes.map((recipe) {
+                          return Column(
                             children: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(20),
-                                child: Image.asset(
-                                  recipe.image,
-                                  width: 100,
-                                  height: 100,
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      recipe.name,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.w800,
-                                        fontSize: 18,
-                                        color: Color(0xFF1F3354),
-                                      ),
-                                    ),
-                                    Text(
-                                      recipe.cusine,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 16,
-                                        color: Color(0xFF1F3354),
-                                      ),
-                                    ),
-                                    Text(
-                                      recipe.difficulty,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.w400,
-                                        fontSize: 14,
-                                        color: Color(0xFF1F3354),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(width: 6),
                               Container(
-                                width: 60,
-                                padding: const EdgeInsets.only(top: 4),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    IconButton(
-                                      iconSize: 28,
-                                      padding: EdgeInsets.zero,
-                                      constraints: const BoxConstraints(),
-                                      icon: Icon(
-                                        isFavorite
-                                            ? Icons.favorite
-                                            : Icons.favorite_border,
-                                        color:
-                                            isFavorite
-                                                ? Colors.red
-                                                : const Color(0xFF1F3354),
-                                      ),
-                                      onPressed: () {
-                                        widget.onFavoriteToggle(recipe);
-                                      },
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      '${recipe.timeTaken.inMinutes} min',
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.w700,
-                                        fontSize: 16,
-                                        color: Color(0xFF1F3354),
-                                      ),
-                                      textAlign: TextAlign.center,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: Color(0xFF3E5879)),
+                                  color: Colors.white,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.2),
+                                      // Shadow color
+                                      blurRadius: 6,
+                                      // Softness of the shadow
+                                      spreadRadius: 2,
+                                      // Size beyond the container
+                                      offset: Offset(
+                                        3,
+                                        4,
+                                      ), // Position of shadow (X, Y)
                                     ),
                                   ],
                                 ),
+                                child: ListTile(
+                                  contentPadding: const EdgeInsets.all(10),
+                                  title: Text(recipe.name),
+                                  subtitle: Text(
+                                    '${recipe.cusine} - ${recipe.mealType} - ${recipe.difficulty}',
+                                  ),
+                                  leading: SizedBox(
+                                    width: 100,
+                                    height: 100,
+                                    child: Image.asset(
+                                      recipe.image,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                  trailing: Text(
+                                    '${recipe.timeTaken.inMinutes} min',
+                                  ),
+                                  onTap: () {
+                                    // Handle tap
+                                  },
+                                ),
                               ),
+
+                              SizedBox(height: 10),
                             ],
-                          ),
-                        ),
-                      );
-                    },
+                          );
+                        }).toList(),
                   ),
                 ],
               ),
             ),
           ),
-          //SizedBox(height: 20),
+          SizedBox(height: 20),
         ],
       ),
     );

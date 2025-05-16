@@ -29,7 +29,7 @@ class _MainMenuPageState extends State<MainMenuPage> {
               onPressed: () {
                 Navigator.pushNamed(context, '/task home');
               },
-              text: "View Tasks",
+              text: "",
               image: "assets/images/tasks.gif",
             ),
 
@@ -43,9 +43,9 @@ class _MainMenuPageState extends State<MainMenuPage> {
             ),
             Column(
               children: [
-                SizedBox(height: 20, width: MediaQuery.of(context).size.width),
+                SizedBox(height: 50, width: MediaQuery.of(context).size.width),
                 SizedBox(
-                  width: MediaQuery.of(context).size.width - 30,
+                  width: MediaQuery.of(context).size.width - 50,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     // Aligns the icon to the right
@@ -53,25 +53,20 @@ class _MainMenuPageState extends State<MainMenuPage> {
                       Icon(
                         Icons.notifications,
                         color: Color(0xFFF2F2F2),
-                        size: 50,
+                        size: 40,
                       ),
                     ],
                   ),
                 ),
                 SizedBox(height: 20),
-                SizedBox(
-                  width: MediaQuery.of(context).size.width - 30,
-                  child: TextField(
-                    decoration: InputDecoration(
-                      hintText: 'Search features...',
-                      prefixIcon: Icon(Icons.search),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(28),
-                      ),
-                    ),
+                Container(
+                  decoration: BoxDecoration(
+                    color: Color(0xFFF2F2F2),
+                    borderRadius: BorderRadius.circular(230),
                   ),
                 ),
-                SizedBox(height: 20),
+
+                SizedBox(height: 40),
                 Expanded(
                   child: SingleChildScrollView(
                     child: Column(

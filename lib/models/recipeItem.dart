@@ -1,4 +1,3 @@
-
 class RecipeItem {
   final String name;
   final String cusine;
@@ -17,4 +16,19 @@ class RecipeItem {
     required this.difficulty,
     required this.image,
   });
+
+  @override
+  String toString() {
+    return this.name;
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is RecipeItem &&
+          runtimeType == other.runtimeType &&
+          name == other.name; // compare by unique name
+
+  @override
+  int get hashCode => name.hashCode;
 }

@@ -33,6 +33,7 @@ import 'pages/on_boarding.dart';
 import 'pages/google_sign_in_sevice.dart';
 import 'pages/host_house.dart';
 import 'pages/menuItem.dart';
+import 'pages/RecipeNavBar.dart';
 
 void main() {
   runApp(LiliApp());
@@ -48,13 +49,13 @@ class LiliApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         scaffoldBackgroundColor: Color(0xFFF2F2F2),
       ),
-      initialRoute: '/homepage',
+      initialRoute: '/Recipe',
       routes: {
         '/': (context) => OnBoarding(),
         '/menu': (context) => MenuItem(),
         '/analysis': (context) => AnalysisPage(),
-        '/WaveClipper': (context) => RecipePage(),
-        '/Recipe': (context) => Recipe(),
+        // '/WaveClipper': (context) => RecipePage(),
+        '/Recipe': (context) => RecipeNavbar(),
         '/loadingRecipe': (context) => RecipeLoading(),
         '/homepage': (context) => Navbar(),
         '/mainmenu': (context) => MainMenuPage(),
