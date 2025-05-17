@@ -88,12 +88,10 @@ class _InventoryPageState extends State<InventoryPage> {
   @override
   Widget build(BuildContext context) {
     String selectedCategory = categories[_selectedIndex];
-    List<InventoryItem> filteredItems =
-        allItems.where((item) {
-          return (selectedCategory == 'All' ||
-                  item.category == selectedCategory) &&
-              item.name.toLowerCase().contains(searchQuery.toLowerCase());
-        }).toList();
+    List<InventoryItem> filteredItems = allItems.where((item) {
+      return (selectedCategory == 'All' || item.category == selectedCategory) &&
+          item.name.toLowerCase().contains(searchQuery.toLowerCase());
+    }).toList();
 
     Map<String, List<InventoryItem>> groupedItems = {};
     for (var item in filteredItems) {
@@ -134,109 +132,127 @@ class _InventoryPageState extends State<InventoryPage> {
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
-                children:
-                    categories.map((cat) {
-                      int index = categories.indexOf(cat);
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        child: ActionChip(
-                          label: Text(
-                            cat,
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color:
-                                  _selectedIndex == index
-                                      ? Color(0xFFF5EFE7)
-                                      : Colors.black,
-                            ),
-                          ),
-                          backgroundColor:
-                              _selectedIndex == index
-                                  ? Color(0xFF1F3354)
-                                  : Colors.transparent,
-                          onPressed: () {
-                            setState(() {
-                              _selectedIndex = index;
-                            });
-                          },
+                children: categories.map((cat) {
+                  int index = categories.indexOf(cat);
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: ActionChip(
+                      label: Text(
+                        cat,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFFF2F2F2),
                         ),
-                      );
-                    }).toList(),
+                      ),
+                      backgroundColor: _selectedIndex == index
+                          ? Color(0xFF1F3354)
+                          : Color(0xFF3E5879),
+                      onPressed: () {
+                        setState(() {
+                          _selectedIndex = index;
+                        });
+                      },
+                    ),
+                  );
+                }).toList(),
               ),
             ),
             SizedBox(height: 15),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children:
-                  groupedItems.entries.map((entry) {
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: EdgeInsets.symmetric(vertical: 8),
-                          child: Text(
-                            entry.key,
-                            style: TextStyle(
-                              color: Color(0xFF1F3354),
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
+              children: groupedItems.entries.map((entry) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8),
+                      child: Text(
+                        entry.key,
+                        style: TextStyle(
+                          color: Color(0xFF1F3354),
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    ...entry.value.map(
+                          (item) => Card(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                          side: const BorderSide(
+                            color: Color(0xFF1F3354),
+                            width: 1,
                           ),
                         ),
-                        ...entry.value.map(
-                          (item) => Card(
-                            child: ListTile(
-                              leading:
-                                  item.image != null
-                                      ? Image.asset(
-                                        item.image!,
-                                        width: 40,
-                                        height: 40,
-                                        fit: BoxFit.cover,
-                                      )
-                                      : CircleAvatar(
-                                        backgroundColor: Colors.grey[300],
-                                        child: Icon(Icons.image_not_supported),
-                                      ),
-                              title: Text(item.name),
-                              subtitle: Row(
-                                children: [
-                                  IconButton(
-                                    icon: Icon(Icons.remove),
-                                    onPressed: () {
-                                      setState(() {
-                                        if (item.quantity > 0) item.quantity--;
-                                      });
-                                    },
+                        elevation: 8,
+                        shadowColor: const Color(0xFF1F3354),
+                        margin: const EdgeInsets.symmetric(vertical: 8),
+                        child: ListTile(
+                          leading: item.image != null
+                              ? Image.asset(
+                            item.image!,
+                            width: 40,
+                            height: 40,
+                            fit: BoxFit.cover,
+                          )
+                              : CircleAvatar(
+                            backgroundColor: Colors.grey[300],
+                            child: Icon(Icons.image_not_supported),
+                          ),
+                          title: Row(
+                            children: [
+                              Text(item.name),
+                              if (item.quantity <= 1) ...[
+                                SizedBox(width: 6),
+                                Container(
+                                  width: 10,
+                                  height: 10,
+                                  decoration: BoxDecoration(
+                                    color: Colors.red,
+                                    shape: BoxShape.circle,
                                   ),
-                                  Text('${item.quantity}'),
-                                  IconButton(
-                                    icon: Icon(Icons.add),
-                                    onPressed: () {
-                                      setState(() {
-                                        item.quantity++;
-                                      });
-                                    },
-                                  ),
-                                ],
-                              ),
-                              trailing: IconButton(
-                                icon: Icon(
-                                  Icons.delete,
-                                  color: Color(0xFF1F3354),
                                 ),
+                              ],
+                            ],
+                          ),
+                          subtitle: Row(
+                            children: [
+                              IconButton(
+                                icon: Icon(Icons.remove),
                                 onPressed: () {
                                   setState(() {
-                                    allItems.remove(item);
+                                    if (item.quantity > 0) item.quantity--;
                                   });
                                 },
                               ),
+                              Text('${item.quantity}'),
+                              IconButton(
+                                icon: Icon(Icons.add),
+                                onPressed: () {
+                                  setState(() {
+                                    item.quantity++;
+                                  });
+                                },
+                              ),
+                            ],
+                          ),
+                          trailing: IconButton(
+                            icon: Icon(
+                              Icons.delete,
+                              color: Color(0xFF1F3354),
                             ),
+                            onPressed: () {
+                              setState(() {
+                                allItems.remove(item);
+                              });
+                            },
                           ),
                         ),
-                      ],
-                    );
-                  }).toList(),
+                      ),
+                    ),
+                  ],
+                );
+              }).toList(),
             ),
           ],
         ),
@@ -262,24 +278,23 @@ class _InventoryPageState extends State<InventoryPage> {
           }
         },
         offset: Offset(0, -100),
-        color: Color(0xFFF5EFE7),
+        color: Color(0xFFF2F2F2),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
         icon: FloatingActionButton(
           backgroundColor: Color(0xFF1F3354),
-          child: Icon(Icons.add, size: 30, color: Color(0xFFF5EFE7)),
+          child: Icon(Icons.add, size: 30, color: Color(0xFFF2F2F2)),
           onPressed: null,
         ),
-        itemBuilder:
-            (BuildContext context) => [
-              PopupMenuItem<String>(
-                value: 'Item',
-                child: Text('Create New Item'),
-              ),
-              PopupMenuItem<String>(
-                value: 'category',
-                child: Text('Create New Category'),
-              ),
-            ],
+        itemBuilder: (BuildContext context) => [
+          PopupMenuItem<String>(
+            value: 'Item',
+            child: Text('Create New Item'),
+          ),
+          PopupMenuItem<String>(
+            value: 'category',
+            child: Text('Create New Category'),
+          ),
+        ],
       ),
     );
   }

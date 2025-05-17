@@ -9,20 +9,25 @@ class AddNewCategoryPage extends StatefulWidget {
 class _AddNewCategoryPageState extends State<AddNewCategoryPage> {
   final TextEditingController _categoryController = TextEditingController();
 
-  // Reusable button as in CreateNewItemPage
+
   Widget _buildButton(
-    String text, {
-    required VoidCallback onPressed,
-    Size? size,
-  }) {
+      String text, {
+        required VoidCallback onPressed,
+        Size? size,
+        Color? backgroundColor, // background color parameter
+        Color? textColor, // text color parameter
+      }) {
     final fixedSize = size ?? const Size(200, 60);
+    final bgColor = backgroundColor ?? const Color(0xFF3E5879);
+    final txtColor = textColor ?? Colors.white;
+
     return SizedBox(
       width: fixedSize.width,
       height: fixedSize.height,
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF1F3354),
+          backgroundColor: bgColor,
           shape: RoundedRectangleBorder(
             side: const BorderSide(width: 1),
             borderRadius: BorderRadius.circular(5),
@@ -30,11 +35,12 @@ class _AddNewCategoryPageState extends State<AddNewCategoryPage> {
         ),
         child: Text(
           text,
-          style: const TextStyle(color: Colors.white, fontSize: 18),
+          style: TextStyle(color: txtColor, fontSize: 18),
         ),
       ),
     );
   }
+
 
   void _discardCategory() {
     Navigator.pop(context); // Just go back without saving
@@ -71,7 +77,7 @@ class _AddNewCategoryPageState extends State<AddNewCategoryPage> {
               ),
             ),
             SizedBox(height: 40),
-            Row(
+              Column(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 _buildButton(
@@ -89,12 +95,15 @@ class _AddNewCategoryPageState extends State<AddNewCategoryPage> {
                       );
                     }
                   },
-                  size: const Size(150, 60),
+                  size: const Size(260, 40),
                 ),
+                SizedBox(height: 10),
                 _buildButton(
                   'Discard',
                   onPressed: _discardCategory,
-                  size: const Size(150, 60),
+                  size: const Size(260, 40),
+                  backgroundColor: Color(0xFFF2F2F2),
+                  textColor: Color(0xFF3E5879),
                 ),
               ],
             ),

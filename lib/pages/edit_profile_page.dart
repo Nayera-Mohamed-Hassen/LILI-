@@ -95,16 +95,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   Column(
                     children: [
                       ElevatedButton(
-                        onPressed: () => Navigator.pop(context),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Color(0xFF213555),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                          fixedSize: Size(260, 40),
-                        ),
-                        child: Text("Discard", style: TextStyle(fontSize: 18, color: Colors.white)),
-                      ),
-                      SizedBox(height: 10),
-                      ElevatedButton(
                         onPressed: () {
                           final updatedUser = widget.user.copyWith(
                             name: nameController.text,
@@ -115,12 +105,30 @@ class _EditProfilePageState extends State<EditProfilePage> {
                           Navigator.pop(context, updatedUser);
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Color(0xFF213555),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          backgroundColor:  Color(0xFF3E5879),
+                          shape: RoundedRectangleBorder(
+                            side: const BorderSide(width: 1),
+                            borderRadius: BorderRadius.circular(5),
+                          ),
                           fixedSize: Size(260, 40),
                         ),
                         child: Text("Save Changes", style: TextStyle(fontSize: 18, color: Colors.white)),
                       ),
+                      SizedBox(height: 10),
+                      ElevatedButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor:  Color(0xFFF2F2F2),
+                          shape: RoundedRectangleBorder(
+                            side: const BorderSide(width: 1),
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                          fixedSize: Size(260, 40),
+                        ),
+                        child: Text("Discard", style: TextStyle(fontSize: 18, color: Color(0xFF3E5879))),
+                      ),
+
+
                     ],
                   ),
                 ],

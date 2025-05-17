@@ -26,10 +26,10 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
   }
 
   Widget _buildTextField(
-    TextEditingController controller,
-    String label, {
-    bool isNumber = false,
-  }) {
+      TextEditingController controller,
+      String label, {
+        bool isNumber = false,
+      }) {
     return TextField(
       controller: controller,
       keyboardType: isNumber ? TextInputType.number : TextInputType.text,
@@ -51,10 +51,10 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
         filled: true,
         fillColor: Colors.white,
       ),
-      items:
-          CategoryManager().categories
-              .map((cat) => DropdownMenuItem(value: cat, child: Text(cat)))
-              .toList(),
+      items: CategoryManager()
+          .categories
+          .map((cat) => DropdownMenuItem(value: cat, child: Text(cat)))
+          .toList(),
       onChanged: (value) {
         setState(() {
           _selectedCategory = value!;
@@ -100,13 +100,16 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
     }
   }
 
-  // Custom button widget
   Widget _buildButton(
-    String text, {
-    required VoidCallback onPressed,
-    Size? size,
-  }) {
+      String text, {
+        required VoidCallback onPressed,
+        Size? size,
+        Color? backgroundColor, // background color parameter
+        Color? textColor, // text color parameter
+      }) {
     final fixedSize = size ?? const Size(200, 60);
+    final bgColor = backgroundColor ?? const Color(0xFF3E5879);
+    final txtColor = textColor ?? Colors.white;
 
     return SizedBox(
       width: fixedSize.width,
@@ -114,7 +117,7 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF1F3354),
+          backgroundColor: bgColor,
           shape: RoundedRectangleBorder(
             side: const BorderSide(width: 1),
             borderRadius: BorderRadius.circular(5),
@@ -122,7 +125,7 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
         ),
         child: Text(
           text,
-          style: const TextStyle(color: Colors.white, fontSize: 18),
+          style: TextStyle(color: txtColor, fontSize: 18),
         ),
       ),
     );
@@ -159,7 +162,23 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            SizedBox(height: 40),
+            // Scan receipt button aligned to the right, below AppBar
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                IconButton(
+                  icon: Icon(
+                    Icons.camera_alt,
+                    size: 30,
+                    color: const Color(0xFF3E5879),
+                  ),
+                  onPressed: _scanReceipt,
+                  tooltip: 'Scan Receipt',
+                ),
+              ],
+            ),
+            SizedBox(height: 10),
+
             // Image at the top
             Image.asset('assets/inventory/Receipt.png', height: 200),
             SizedBox(height: 20),
@@ -173,11 +192,10 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
                     radius: 50,
                     backgroundColor: Colors.grey[300],
                     backgroundImage:
-                        _pickedImage != null ? FileImage(_pickedImage!) : null,
-                    child:
-                        _pickedImage == null
-                            ? Icon(Icons.add_a_photo, color: Colors.white)
-                            : null,
+                    _pickedImage != null ? FileImage(_pickedImage!) : null,
+                    child: _pickedImage == null
+                        ? Icon(Icons.add_a_photo, color: Colors.white)
+                        : null,
                   ),
                 ),
                 SizedBox(width: 10),
@@ -195,40 +213,22 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
             _buildTextField(_quantityController, 'Quantity', isNumber: true),
             SizedBox(height: 32),
 
-            // Camera button to scan receipt
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                IconButton(
-                  icon: Icon(
-                    Icons.camera_alt,
-                    size: 40,
-                    color: Color(0xFF3E5879),
-                  ),
-                  onPressed: _scanReceipt,
-                ),
-                SizedBox(width: 10),
-                Text(
-                  'Scan Receipt',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-            SizedBox(height: 32),
-
-            // Buttons in a Row
-            Row(
+            // Buttons in a Column
+            Column(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 _buildButton(
                   'Save Item',
                   onPressed: _saveItem,
-                  size: const Size(150, 60),
+                  size: const Size(260, 40),
                 ),
+                SizedBox(height: 10),
                 _buildButton(
                   'Discard',
                   onPressed: _discardItem,
-                  size: const Size(150, 60),
+                  size: const Size(260, 40),
+                  backgroundColor: Color(0xFFF2F2F2),
+                  textColor: Color(0xFF3E5879),
                 ),
               ],
             ),

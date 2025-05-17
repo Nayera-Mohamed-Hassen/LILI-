@@ -326,16 +326,18 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
               ),
             ),
+            SizedBox(height: 10,),
             ElevatedButton.icon(
               onPressed: _navigateTosigning_page,
               icon: Icon(Icons.logout),
               label: Text("Log Out"),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFF213555),
-                foregroundColor: Colors.white,
+                backgroundColor: Color(0xFFF2F2F2),
+                foregroundColor: Colors.red,
                 fixedSize: Size(260, 40),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  side: const BorderSide(width: 1, color: Colors.red),
+                  borderRadius: BorderRadius.circular(5),
                 ),
               ),
             ),
