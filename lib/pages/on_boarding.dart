@@ -31,14 +31,15 @@ class OnBoarding extends StatelessWidget {
         'Skip',
         style: TextStyle(color: Colors.grey, fontSize: 20),
       ),
-      trailing: const Text(
-        'Login',
-        style: TextStyle(
-          color: Color(0xFF1D2345),
-          fontWeight: FontWeight.bold,
-          fontSize: 20,
-        ),
-      ),
+
+      // trailing: const Text(
+      //   'Login',
+      //   style: TextStyle(
+      //     color: Color(0xFF1D2345),
+      //     fontWeight: FontWeight.bold,
+      //     fontSize: 20,
+      //   ),
+      // ),
       background: [
         Center(
           child: SizedBox(
@@ -61,14 +62,20 @@ class OnBoarding extends StatelessWidget {
           child: SizedBox(
             height: 490,
             width: 430,
-            child: Image.asset('assets/images/Task.png', fit: BoxFit.contain),
+            child: Image.asset(
+              'assets/images/inventory tracking.png',
+              fit: BoxFit.contain,
+            ),
           ),
         ),
         Center(
           child: SizedBox(
             height: 490,
             width: 430,
-            child: Image.asset('assets/images/Task.png', fit: BoxFit.contain),
+            child: Image.asset(
+              'assets/images/meal planning.png',
+              fit: BoxFit.contain,
+            ),
           ),
         ),
         Center(
