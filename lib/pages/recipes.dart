@@ -474,7 +474,7 @@ class _RecipeState extends State<Recipe> {
                                 child: Image.asset(
                                   recipe.image,
                                   width: 100,
-                                  height: 100,
+                                  height: 110,
                                   fit: BoxFit.cover,
                                 ),
                               ),

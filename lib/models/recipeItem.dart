@@ -3,6 +3,7 @@ class RecipeItem {
   final String cusine;
   final String mealType;
   final List<String> ingredients;
+  final List<String>? steps; // optional now
   final Duration timeTaken;
   final String difficulty;
   final String image;
@@ -12,6 +13,7 @@ class RecipeItem {
     required this.cusine,
     required this.mealType,
     required this.ingredients,
+    this.steps, // optional
     required this.timeTaken,
     required this.difficulty,
     required this.image,

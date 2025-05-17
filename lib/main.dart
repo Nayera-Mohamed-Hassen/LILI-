@@ -88,29 +88,34 @@ class LiliApp extends StatelessWidget {
   }
 }
 
+//primary button
 class PrimaryButton extends StatelessWidget {
   final VoidCallback onPressed;
   final String text;
+  final double width;
+  final double height;
 
-  const PrimaryButton({required this.onPressed, required this.text, super.key});
+  const PrimaryButton({
+    required this.onPressed,
+    required this.text,
+    this.width = 0,
+    this.height = 0,
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return ElevatedButton(
+    Widget button = ElevatedButton(
       style: ButtonStyle(
         shape: MaterialStateProperty.all<RoundedRectangleBorder>(
           RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
-        backgroundColor: MaterialStateProperty.resolveWith<Color>((
-          Set<MaterialState> states,
-        ) {
-          return const Color(0xFF3E5879); // Always use base color
+        backgroundColor: MaterialStateProperty.resolveWith<Color>((_) {
+          return const Color(0xFF3E5879);
         }),
-        overlayColor: MaterialStateProperty.resolveWith<Color>((
-          Set<MaterialState> states,
-        ) {
+        overlayColor: MaterialStateProperty.resolveWith<Color>((states) {
           if (states.contains(MaterialState.pressed)) {
-            return const Color(0xFF213555); // Darker when pressed
+            return const Color(0xFF213555);
           }
           return Colors.transparent;
         }),
@@ -121,26 +126,42 @@ class PrimaryButton extends StatelessWidget {
       onPressed: onPressed,
       child: Text(
         text,
-        style: const TextStyle(color: Color(0xFFF2F2F2)),
+        style: const TextStyle(color: Color(0xFFF2F2F2), fontSize: 24),
         textAlign: TextAlign.center,
       ),
     );
+
+    // Wrap with SizedBox only if width or height > 0
+    if (width > 0 || height > 0) {
+      button = SizedBox(
+        width: width > 0 ? width : null,
+        height: height > 0 ? height : null,
+        child: button,
+      );
+    }
+
+    return button;
   }
 }
 
+//secondary button
 class SecondaryButton extends StatelessWidget {
   final VoidCallback onPressed;
   final String text;
+  final double width;
+  final double height;
 
   const SecondaryButton({
     required this.onPressed,
     required this.text,
+    this.width = 0,
+    this.height = 0,
     super.key,
   });
 
   @override
   Widget build(BuildContext context) {
-    return ElevatedButton(
+    Widget button = ElevatedButton(
       style: ButtonStyle(
         shape: MaterialStateProperty.all<RoundedRectangleBorder>(
           RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -149,12 +170,9 @@ class SecondaryButton extends StatelessWidget {
           const Color(0xFFF2F2F2),
         ),
         shadowColor: MaterialStateProperty.all<Color>(Colors.transparent),
-        side: MaterialStateProperty.resolveWith<BorderSide>((
-          Set<MaterialState> states,
-        ) {
-          // 5px when pressed, 3px otherwise
-          final width = states.contains(MaterialState.pressed) ? 5.0 : 3.0;
-          return BorderSide(width: width, color: const Color(0xFF3E5879));
+        side: MaterialStateProperty.resolveWith<BorderSide>((states) {
+          final sideWidth = states.contains(MaterialState.pressed) ? 5.0 : 3.0;
+          return BorderSide(width: sideWidth, color: const Color(0xFF3E5879));
         }),
         padding: MaterialStateProperty.all<EdgeInsetsGeometry>(
           const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
@@ -168,5 +186,15 @@ class SecondaryButton extends StatelessWidget {
         textAlign: TextAlign.center,
       ),
     );
+
+    if (width > 0 || height > 0) {
+      button = SizedBox(
+        width: width > 0 ? width : null,
+        height: height > 0 ? height : null,
+        child: button,
+      );
+    }
+
+    return button;
   }
 }
