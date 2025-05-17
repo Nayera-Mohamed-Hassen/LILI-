@@ -352,13 +352,14 @@ class _RecipeState extends State<Recipe> {
                                                     },
                                                     icon: const Icon(
                                                       Icons.clear,
-                                                      color: Colors.transparent,
+                                                      color: Color(0xFFbc2c2c),
                                                     ),
                                                     label: const Text(
                                                       "Clear Filters",
                                                       style: TextStyle(
-                                                        color:
-                                                            Colors.transparent,
+                                                        color: Color(
+                                                          0xFFbc2c2c,
+                                                        ),
                                                       ),
                                                     ),
                                                   ),
@@ -398,6 +399,10 @@ class _RecipeState extends State<Recipe> {
                                                                 );
                                                         return FilterChip(
                                                           label: Text(
+                                                            style: TextStyle(
+                                                              color:
+                                                                  Colors.white,
+                                                            ),
                                                             subFilter,
                                                           ),
                                                           selected: isSelected,
@@ -419,10 +424,11 @@ class _RecipeState extends State<Recipe> {
                                                             });
                                                             setState(() {});
                                                           },
-                                                          selectedColor:
-                                                              Colors
-                                                                  .blue
-                                                                  .shade300,
+                                                          selectedColor: Color(
+                                                            0xFF1F3354,
+                                                          ),
+                                                          backgroundColor:
+                                                              Color(0xFF3E5879),
                                                         );
                                                       }).toList(),
                                                 ),

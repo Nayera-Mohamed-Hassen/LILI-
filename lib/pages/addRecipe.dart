@@ -171,6 +171,20 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
           key: _formKey,
           child: ListView(
             children: [
+              GestureDetector(
+                onTap: _pickImage,
+                child: CircleAvatar(
+                  radius: 50,
+                  backgroundColor: Colors.grey[300],
+                  backgroundImage:
+                      _pickedImage != null ? FileImage(_pickedImage!) : null,
+                  child:
+                      _pickedImage == null
+                          ? const Icon(Icons.add_a_photo, color: Colors.white)
+                          : null,
+                ),
+              ),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _nameController,
                 decoration: const InputDecoration(labelText: 'Recipe Name'),
@@ -180,33 +194,6 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
                             ? 'Please enter a recipe name'
                             : null,
               ),
-
-              const SizedBox(height: 16),
-
-              // Image picker UI here
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (_pickedImage != null)
-                    Center(
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(20),
-                        child: Image.file(
-                          _pickedImage!,
-                          width: 150,
-                          height: 150,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                    ),
-                  TextButton.icon(
-                    icon: const Icon(Icons.image),
-                    label: const Text('Pick Image'),
-                    onPressed: _pickImage,
-                  ),
-                ],
-              ),
-
               const SizedBox(height: 16),
 
               // Dropdowns for filters
