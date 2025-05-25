@@ -67,7 +67,6 @@ def selectHouseHold(query:str = "") -> list:
 
 def insertUser(
     user_Name: str,
-    user_role: str,
     user_password: str,
     user_birthday: str,  # Format: "YYYY-MM-DD"
     user_profilePic: str = None,
@@ -99,7 +98,7 @@ def insertUser(
 
         values = (
             user_Name,
-            user_role,
+            "user",
             user_password,
             user_birthday,
             user_profilePic,
