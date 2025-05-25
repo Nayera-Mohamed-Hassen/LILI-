@@ -38,9 +38,12 @@ class _HomePageState extends State<HomePage> {
       Navigator.pushNamed(context, '/mainmenu'); // Navigate to MainMenu
     }
     if (index == 2) {
-      Navigator.pushNamed(context, '/emergency'); // Navigate to EmergencyPage
+      Navigator.pushNamed(context, '/dash board '); // Navigate to EmergencyPage
     }
     if (index == 3) {
+      Navigator.pushNamed(context, '/emergency'); // Navigate to EmergencyPage
+    }
+    if (index == 4) {
       Navigator.pushNamed(context, '/profile'); // Navigate to ProfilePage
     }
   }

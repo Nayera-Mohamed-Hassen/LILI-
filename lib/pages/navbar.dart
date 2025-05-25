@@ -5,6 +5,7 @@ import 'home_page.dart';
 import 'main_menu.dart';
 import 'emergency.dart';
 import 'profile.dart';
+import 'dash_board_page.dart';
 
 class Navbar extends StatefulWidget {
   @override
@@ -17,6 +18,7 @@ class _NavbarState extends State<Navbar> {
   final List<Widget> _pages = [
     HomePage(),
     MainMenuPage(),
+    ReportDashboard(),
     EmergencyPage(),
     ProfilePage(),
   ];
@@ -31,6 +33,7 @@ class _NavbarState extends State<Navbar> {
         items: const <Widget>[
           Icon(Icons.home, size: 30, color: Color(0xFFF2F2F2)),
           Icon(Icons.menu, size: 30, color: Color(0xFFF2F2F2)),
+          Icon(Icons.dashboard_outlined, size: 30, color: Color(0xFFF2F2F2)),
           Icon(Icons.warning_amber_rounded, size: 30, color: Color(0xFFF2F2F2)),
           Icon(Icons.settings, size: 30, color: Color(0xFFF2F2F2)),
         ],

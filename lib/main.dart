@@ -34,6 +34,7 @@ import 'pages/google_sign_in_sevice.dart';
 import 'pages/host_house.dart';
 import 'pages/menuItem.dart';
 import 'pages/RecipeNavBar.dart';
+import 'pages/dash_board_page.dart';
 
 void main() {
   runApp(LiliApp());
@@ -49,7 +50,7 @@ class LiliApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         scaffoldBackgroundColor: Color(0xFFF2F2F2),
       ),
-      initialRoute: '/',
+      initialRoute: '/homepage',
       routes: {
         '/': (context) => OnBoarding(),
         '/menu': (context) => MenuItem(),
@@ -83,6 +84,7 @@ class LiliApp extends StatelessWidget {
         '/create new category budget':
             (context) => CreateNewCategoryBudgetPage(),
         '/host house': (context) => HostHousePage(),
+        '/dash board ': (context) => ReportDashboard(),
       },
     );
   }

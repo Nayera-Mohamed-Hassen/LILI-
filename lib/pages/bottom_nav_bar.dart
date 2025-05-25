@@ -39,13 +39,16 @@ class _BottomNavBarState extends State<BottomNavBar> {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: List.generate(
               4, // Number of tabs
-                  (index) {
+              (index) {
                 return IconButton(
                   icon: Icon(
                     _getIcon(index),
-                    color: widget.currentIndex == index
-                        ? Color(0xFFF5EFE7) // Beige for selected icon
-                        : Color(0xFF213555), // Navy blue for unselected icons
+                    color:
+                        widget.currentIndex == index
+                            ? Color(0xFFF5EFE7) // Beige for selected icon
+                            : Color(
+                              0xFF213555,
+                            ), // Navy blue for unselected icons
                     size: 24, // Adjust icon size as needed
                   ),
                   onPressed: () {
@@ -64,7 +67,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: List.generate(
               4, // Number of tabs
-                  (index) {
+              (index) {
                 return AnimatedContainer(
                   duration: Duration(milliseconds: 300),
                   width: widget.currentIndex == index ? 64 : 0,
@@ -87,7 +90,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: List.generate(
               4, // Number of tabs
-                  (index) {
+              (index) {
                 return AnimatedContainer(
                   duration: Duration(milliseconds: 300),
                   width: widget.currentIndex == index ? 48 : 0,
@@ -113,8 +116,10 @@ class _BottomNavBarState extends State<BottomNavBar> {
       case 1:
         return Icons.menu;
       case 2:
-        return Icons.warning;
+        return Icons.dashboard_outlined;
       case 3:
+        return Icons.warning;
+      case 4:
         return Icons.settings;
       default:
         return Icons.home;
