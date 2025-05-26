@@ -154,6 +154,35 @@ def selectUser(query: str = "",id:int = 0) -> list:
     except Exception as e:
         print("Error fetching user data:", e)
         return []
+    
+
+############ update user #############
+
+def executeWriteQuery(query: str) -> bool:
+    try:
+        conn = mysql.connector.connect(
+            host=os.getenv("MYSQL_HOST"),
+            port=os.getenv("MYSQL_PORT"),
+            user=os.getenv("MYSQL_USER"),
+            password=os.getenv("MYSQL_PASSWORD"),
+            database=os.getenv("MYSQL_DATABASE")
+        )
+
+        cursor = conn.cursor()
+        cursor.execute(query)
+        conn.commit()
+
+        cursor.close()
+        conn.close()
+        return True
+
+    except Exception as e:
+        print("Error executing write query:", e)
+        return False
+
+
+
+
 
 ######### insert notification   #################
 

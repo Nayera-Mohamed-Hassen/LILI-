@@ -1,8 +1,17 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from app.mySQLConnection import insertUser, insertAllergy, selectUser
+from app.mySQLConnection import insertUser, selectUser, insertAllergy, insertHouseHold, executeWriteQuery
+
+
 
 router = APIRouter(prefix="/user", tags=["User"])
+
+class HouseHold(BaseModel):
+    name: str
+    pic: str
+    address: str
+    email: str 
+
 
 class UserLogin(BaseModel):
     email: str
@@ -76,3 +85,28 @@ async def login(user: UserLogin):
             raise HTTPException(status_code=401, detail="Invalid email or password")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/household/create")
+async def create_household(data: HouseHold):
+    
+    # 1. Insert the household
+    success = insertHouseHold(data.name, data.pic, data.address)
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to create household")
+
+    # 2. Get household id by name (if insertHouseHold doesn't return it)
+    house_result = selectUser(query=f'SELECT house_Id FROM household_tbl WHERE house_Name = "{data.name}"')
+
+    if not house_result:
+        raise HTTPException(status_code=404, detail="Household not found")
+
+    house_id = house_result[0]["house_Id"]
+    print(f"Household ID: {house_id}")
+
+    # 3. Update the user's house_id
+    update_query = f'UPDATE user_tbl SET house_Id = {house_id} WHERE user_email = "{data.email}"'
+
+    print(f"Update Query: {update_query}")
+    executeWriteQuery(query=update_query)  # run update using existing query function
+
+    return {"message": "Household created", "house_id": house_id}

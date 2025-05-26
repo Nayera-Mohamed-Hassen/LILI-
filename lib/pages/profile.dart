@@ -326,7 +326,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
               ),
             ),
-            SizedBox(height: 10,),
+            SizedBox(height: 10),
             ElevatedButton.icon(
               onPressed: _navigateTosigning_page,
               icon: Icon(Icons.logout),
@@ -347,3 +347,10 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 }
+
+// _buildButton(
+//   'Add User',
+//   onPressed: () {
+//     Navigator.pushNamed(context, '/add user');
+//   },
+// ),

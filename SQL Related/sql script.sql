@@ -54,3 +54,9 @@ not_timeStamp time not null,
 user_Id int,
 FOREIGN KEY (user_Id) REFERENCES user_tbl(user_Id)
 );
+
+#mysql -h mysql.railway.internal -P 3306 -u root -p lili < backup.sql
+
+
+
+

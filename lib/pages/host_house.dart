@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
@@ -13,17 +16,14 @@ class HostHousePage extends StatefulWidget {
 class _HostHousePageState extends State<HostHousePage> {
   // final _diet = TextEditingController();
   final _houseName = TextEditingController();
-
+  final _houseAddress = TextEditingController();
+  final _UserEmail = TextEditingController();
   late ImagePicker _picker;
   XFile? _image;
 
   @override
   void initState() {
     super.initState();
-    // nameController = TextEditingController(text: widget.user.name);
-    // emailController = TextEditingController(text: widget.user.email);
-    // phoneController = TextEditingController(text: widget.user.phone);
-    // addressController = TextEditingController(text: widget.user.address);
     _picker = ImagePicker();
   }
 
@@ -65,11 +65,11 @@ class _HostHousePageState extends State<HostHousePage> {
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 70),
               GestureDetector(
                 onTap: _pickImage,
                 child: CircleAvatar(
-                  radius: 50,
+                  radius: 70,
                   backgroundColor: Colors.grey[300],
                   backgroundImage:
                       _image != null ? FileImage(File(_image!.path)) : null,
@@ -83,25 +83,54 @@ class _HostHousePageState extends State<HostHousePage> {
                           : null,
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 70),
               _buildTextField(_houseName, 'House Name'),
               const SizedBox(height: 20),
-              _buildButton(
-                'Add User',
-                onPressed: () {
-                  Navigator.pushNamed(context, '/add user');
-                },
-              ),
+              _buildTextField(_houseAddress, 'House Address'),
               const SizedBox(height: 20),
+              _buildTextField(_UserEmail, 'User Email'),
+              const SizedBox(height: 20),
+              // _buildButton(
+              //   'Add User',
+              //   onPressed: () {
+              //     Navigator.pushNamed(context, '/add user');
+              //   },
+              // ),
               _buildButton(
                 'Host House',
-                onPressed: () {
-                  if (_houseName.text.isEmpty) {
+                onPressed: () async {
+                  final name = _houseName.text.trim();
+                  final address = _houseAddress.text.trim();
+                  final email = _UserEmail.text.trim();
+
+                  if (name.isEmpty || address.isEmpty || email.isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text('Please fill in all fields')),
                     );
-                  } else {
+                    return;
+                  }
+
+                  final url = Uri.parse(
+                    'http://10.0.2.2:8000/user/household/create',
+                  ); // update route
+
+                  final response = await http.post(
+                    url,
+                    headers: {"Content-Type": "application/json"},
+                    body: jsonEncode({
+                      "name": name,
+                      "address": address,
+                      "pic": "", // Upload image support can be added later
+                      "email": email,
+                    }),
+                  );
+
+                  if (response.statusCode == 200) {
                     Navigator.pushNamed(context, '/homepage');
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Failed to host house')),
+                    );
                   }
                 },
               ),
