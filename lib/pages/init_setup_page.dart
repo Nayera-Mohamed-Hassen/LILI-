@@ -133,7 +133,7 @@ class _InitSetupPageState extends State<InitSetupPage> {
               const SizedBox(height: 20),
               _buildTextField(_height, 'Height'),
               const SizedBox(height: 20),
-              _buildTextField(_alergiesController, 'Alergies', maxLines: 4),
+              _buildTextField(_alergiesController, 'Allergies', maxLines: 4),
               const SizedBox(height: 20),
               _buildButton(
                 'Next',
@@ -157,6 +157,7 @@ class _InitSetupPageState extends State<InitSetupPage> {
                       "diet": _selectedDiet,
                       "gender": _selectedGender,
                       "house_id": 1,
+                      "allergy": _alergiesController.text,
                     }),
                   );
 
