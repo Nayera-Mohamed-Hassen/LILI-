@@ -24,10 +24,10 @@ class _EmergencyPageState extends State<EmergencyPage> {
     });
 
     if (index == 0) {
-      Navigator.pushNamed(context, '/homepage');// Navigate to HomePage
+      Navigator.pushNamed(context, '/homepage'); // Navigate to HomePage
     } else if (index == 1) {
       Navigator.pushNamed(context, '/mainmenu'); // Navigate to MainMenuPage
-   } else if (index == 3) {
+    } else if (index == 3) {
       Navigator.pushNamed(context, '/profile'); // Navigate to ProfilePage
     }
   }
@@ -35,14 +35,12 @@ class _EmergencyPageState extends State<EmergencyPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFF5EFE7), // Beige background
       body: Center(
         child: Text(
           'Emergency Center',
           style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
         ),
       ),
-
     );
   }
 }

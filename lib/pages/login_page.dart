@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -46,16 +49,36 @@ class _LoginPageState extends State<LoginPage> {
               _buildTextField(_passwordController, 'Password'),
               const SizedBox(height: 30),
               ElevatedButton(
-                onPressed: () {
-                  if (_emailController.text.isEmpty ||
-                      _passwordController.text.isEmpty) {
+                onPressed: () async {
+                  final email = _emailController.text.trim();
+                  final password = _passwordController.text.trim();
+
+                  if (email.isEmpty || password.isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text('Please fill in both fields')),
                     );
-                  } else {
+                    return;
+                  }
+
+                  final url = Uri.parse(
+                    'http://10.0.2.2:8000/user/login',
+                  ); // same as your signup host
+
+                  final response = await http.post(
+                    url,
+                    headers: {"Content-Type": "application/json"},
+                    body: jsonEncode({"email": email, "password": password}),
+                  );
+
+                  if (response.statusCode == 200) {
                     Navigator.pushNamed(context, '/homepage');
+                  } else {
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(SnackBar(content: Text('Login failed')));
                   }
                 },
+
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF3E5879),
                   minimumSize: const Size(430, 60),

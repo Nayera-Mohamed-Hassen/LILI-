@@ -4,6 +4,10 @@ from app.mySQLConnection import insertUser, insertAllergy, selectUser
 
 router = APIRouter(prefix="/user", tags=["User"])
 
+class UserLogin(BaseModel):
+    email: str
+    password: str
+
 class UserSignup(BaseModel):
     name: str
     password: str
@@ -57,3 +61,18 @@ def signup(user: UserSignup):
             insertAllergy(allergy_name=a.strip(), user_Id=user_id)
 
     return {"message": "User signed up successfully"}
+
+
+
+@router.post("/login")
+async def login(user: UserLogin):
+    try:
+        query = 'SELECT * FROM user_tbl WHERE user_email = "'+user.email + '"AND user_password = "'+ user.password + '"'
+        result = selectUser(query=query)
+
+        if result:
+            return {"status": "success", "user_id": result[0]["user_Id"]}
+        else:
+            raise HTTPException(status_code=401, detail="Invalid email or password")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
