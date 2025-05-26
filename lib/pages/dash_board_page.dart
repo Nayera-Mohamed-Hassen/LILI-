@@ -4,59 +4,171 @@ import 'package:percent_indicator/percent_indicator.dart';
 class ReportDashboard extends StatelessWidget {
   const ReportDashboard({super.key});
 
+  // Widget buildCard(
+  //   String title,
+  //   IconData icon,
+  //   Color color,
+  //   String value,
+  //   String subtitle,
+  // ) {
+  //   return SizedBox(
+  //     width: 160,
+  //     height: 160, // 👈 Set a fixed height too!
+  //     child: Card(
+  //       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+  //       elevation: 4,
+  //       child: Container(
+  //         padding: const EdgeInsets.all(16),
+  //         decoration: BoxDecoration(
+  //           borderRadius: BorderRadius.circular(20),
+  //           color: color.withOpacity(0.4),
+  //         ),
+  //         child: Column(
+  //           crossAxisAlignment: CrossAxisAlignment.start,
+  //           mainAxisAlignment:
+  //               MainAxisAlignment.spaceBetween, // 👈 Even spacing
+  //           children: [
+  //             Icon(icon, size: 28, color: color),
+  //             Text(
+  //               value,
+  //               style: TextStyle(
+  //                 fontSize: 20,
+  //                 fontWeight: FontWeight.bold,
+  //                 color: color,
+  //               ),
+  //             ),
+  //             Column(
+  //               crossAxisAlignment: CrossAxisAlignment.start,
+  //               children: [
+  //                 Text(
+  //                   title,
+  //                   style: const TextStyle(
+  //                     fontSize: 14,
+  //                     fontWeight: FontWeight.w500,
+  //                   ),
+  //                 ),
+  //                 Text(
+  //                   subtitle,
+  //                   style: const TextStyle(fontSize: 12, color: Colors.grey),
+  //                 ),
+  //               ],
+  //             ),
+  //           ],
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
   Widget buildCard(
     String title,
     IconData icon,
     Color color,
     String value,
-    String subtitle,
-  ) {
-    return SizedBox(
-      width: 160,
-      height: 160, // 👈 Set a fixed height too!
-      child: Card(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        elevation: 4,
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
+    String subtitle, {
+    VoidCallback? onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: SizedBox(
+        width: 162,
+        height: 190, // 🔧 Fixed height added
+        child: Card(
+          shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
-            color: color.withOpacity(0.4),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment:
-                MainAxisAlignment.spaceBetween, // 👈 Even spacing
-            children: [
-              Icon(icon, size: 28, color: color),
-              Text(
-                value,
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: color,
+          elevation: 4,
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              color: color.withOpacity(0.6),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment:
+                  MainAxisAlignment.spaceBetween, // 👈 Balanced layout
+              children: [
+                Icon(icon, size: 30, color: color),
+                Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                  ),
                 ),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                    ),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
                   ),
-                  Text(
-                    subtitle,
-                    style: const TextStyle(fontSize: 12, color: Colors.grey),
-                  ),
-                ],
-              ),
-            ],
+                ),
+                Text(
+                  subtitle,
+                  style: const TextStyle(fontSize: 12, color: Colors.black),
+                ),
+              ],
+            ),
           ),
         ),
       ),
+    );
+  }
+
+  void showDetailSheet(
+    BuildContext context,
+    String title,
+    List<String> details, {
+    bool showCheckboxes = false,
+  }) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        List<bool> checked = List.generate(details.length, (index) => false);
+
+        return StatefulBuilder(
+          builder:
+              (context, setState) => Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    ...List.generate(details.length, (index) {
+                      return showCheckboxes
+                          ? CheckboxListTile(
+                            value: checked[index],
+                            title: Text(details[index]),
+                            controlAffinity: ListTileControlAffinity.leading,
+                            onChanged: (val) {
+                              setState(() {
+                                checked[index] = val!;
+                              });
+                            },
+                          )
+                          : ListTile(
+                            leading: const Icon(Icons.arrow_right),
+                            title: Text(details[index]),
+                          );
+                    }),
+                  ],
+                ),
+              ),
+        );
+      },
     );
   }
 
@@ -169,7 +281,7 @@ class ReportDashboard extends StatelessWidget {
               ),
             ),
             Padding(
-              padding: EdgeInsets.all(36),
+              padding: EdgeInsets.all(35),
               child: SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -189,6 +301,12 @@ class ReportDashboard extends StatelessWidget {
                           Color(0xFF3E5879),
                           '6 items',
                           'Check milk, rice, oil...',
+                          onTap:
+                              () => showDetailSheet(context, 'Low Inventory', [
+                                'Milk - 1 day left',
+                                'Rice - Running low',
+                                'Cooking Oil - Refill soon',
+                              ]),
                         ),
                         buildCard(
                           'Today\'s Tasks',
@@ -196,6 +314,14 @@ class ReportDashboard extends StatelessWidget {
                           Color(0xFF3E5879),
                           '5 tasks',
                           '2 overdue',
+                          onTap:
+                              () => showDetailSheet(context, 'Today\'s Tasks', [
+                                'Clean kitchen',
+                                'Buy groceries',
+                                'Water plants',
+                                'Do laundry',
+                                'Call plumber',
+                              ], showCheckboxes: true),
                         ),
                         buildCard(
                           'Meal Suggestions',
@@ -203,13 +329,27 @@ class ReportDashboard extends StatelessWidget {
                           Color(0xFF3E5879),
                           '3 meals',
                           'Based on fridge items',
+                          onTap:
+                              () =>
+                                  showDetailSheet(context, 'Suggested Meals', [
+                                    'Pasta with tomato sauce',
+                                    'Vegetable stir-fry',
+                                    'Egg & toast breakfast',
+                                  ]),
                         ),
+
                         buildCard(
-                          'Workout Progress',
+                          'Home Workout',
                           Icons.fitness_center,
                           Color(0xFF3E5879),
-                          '70%',
-                          '3/5 completed',
+                          '3 exercises',
+                          '15 min, Cardio, Stretch',
+                          onTap:
+                              () => showDetailSheet(context, 'Home Workout', [
+                                '15 min Full Body Workout',
+                                '10 min Cardio Blast',
+                                '5 min Guided Stretch',
+                              ]),
                         ),
                       ],
                     ),
