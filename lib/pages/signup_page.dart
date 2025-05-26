@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:LILI/pages/google_sign_in_sevice.dart';
 import 'package:http/http.dart' as http;
 
+import 'init_setup_page.dart';
+
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
 
@@ -61,7 +63,7 @@ class _SignUpPageState extends State<SignUpPage> {
               const SizedBox(height: 30),
               _buildButton(
                 'Next',
-                onPressed: () async {
+                onPressed: () {
                   if (_name.text.isEmpty ||
                       _email.text.isEmpty ||
                       _phoneNumber.text.isEmpty ||
@@ -71,26 +73,18 @@ class _SignUpPageState extends State<SignUpPage> {
                       SnackBar(content: Text('Please fill in all fields')),
                     );
                   } else {
-                    final response = await http.post(
-                      Uri.parse("http://10.0.2.2:8000/user/signup"),
-                      headers: {"Content-Type": "application/json"},
-                      body: jsonEncode({
-                        "name": _name.text,
-                        "role": "parent", // or another role
-                        "password": _passwordController.text,
-                        "birthday": "2000-01-01", // add a date picker later
-                        "email": _email.text,
-                        "phone": _phoneNumber.text,
-                      }),
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder:
+                            (context) => InitSetupPage(
+                              name: _name.text,
+                              email: _email.text,
+                              password: _passwordController.text,
+                              phone: _phoneNumber.text,
+                            ),
+                      ),
                     );
-
-                    if (response.statusCode == 200) {
-                      Navigator.pushNamed(context, '/init setup');
-                    } else {
-                      ScaffoldMessenger.of(
-                        context,
-                      ).showSnackBar(SnackBar(content: Text('Signup failed')));
-                    }
                   }
                 },
               ),

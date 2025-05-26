@@ -50,7 +50,7 @@ class LiliApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         scaffoldBackgroundColor: Color(0xFFF2F2F2),
       ),
-      initialRoute: '/homepage',
+      initialRoute: '/',
       routes: {
         '/': (context) => OnBoarding(),
         '/menu': (context) => MenuItem(),
@@ -67,7 +67,7 @@ class LiliApp extends StatelessWidget {
         '/signup': (context) => SignUpPage(),
         '/hosting': (context) => HostingPage(),
         '/joining': (context) => JoiningPage(),
-        '/init setup': (context) => InitSetupPage(),
+        //'/init setup': (context) => InitSetupPage(),
         '/forget password email': (context) => ForgetPasswordEmailPage(),
         '/forget password reset': (context) => ForgetPasswordResetPage(),
         '/add user': (context) => AddUserPage(),

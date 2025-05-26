@@ -2,9 +2,22 @@ import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class InitSetupPage extends StatefulWidget {
-  const InitSetupPage({super.key});
+  final String name;
+  final String email;
+  final String password;
+  final String phone;
+
+  const InitSetupPage({
+    super.key,
+    required this.name,
+    required this.email,
+    required this.password,
+    required this.phone,
+  });
 
   @override
   _InitSetupPageState createState() => _InitSetupPageState();
@@ -22,6 +35,7 @@ class _InitSetupPageState extends State<InitSetupPage> {
   String? _selectedGender;
   String? _selectedDiet;
   late TextEditingController _dateController;
+
   @override
   void initState() {
     super.initState();
@@ -34,28 +48,19 @@ class _InitSetupPageState extends State<InitSetupPage> {
   }
 
   final List<String> diets = [
-    'Balanced',
-    'High Protein',
-    'Low Carb',
-    'Keto',
-    'Vegetarian',
     'Vegan',
-    'Pescatarian',
-    'Paleo',
+    'Vegetarian',
+    'Keto',
     'Gluten-Free',
+    'Paleo',
+    'Low-Carb',
     'Dairy-Free',
-    'Mediterranean',
-    'Intermittent Fasting',
+    'Low-Fat',
     'Whole30',
-    'Low Fat',
-    'Dash Diet',
-    'Diabetic-Friendly',
-    'Low FODMAP',
-    'Raw Food',
-    'Carnivore',
-    'Custom',
+    'Halal',
   ];
   final List<String> genderOptions = ['Male', 'Female'];
+
   Future<void> _pickImage() async {
     final XFile? pickedImage = await _picker.pickImage(
       source: ImageSource.gallery,
@@ -128,25 +133,39 @@ class _InitSetupPageState extends State<InitSetupPage> {
               const SizedBox(height: 20),
               _buildTextField(_height, 'Height'),
               const SizedBox(height: 20),
-              _buildTextField(_illnessController, 'Illness', maxLines: 4),
-              const SizedBox(height: 20),
               _buildTextField(_alergiesController, 'Alergies', maxLines: 4),
               const SizedBox(height: 20),
               _buildButton(
                 'Next',
-                onPressed: () {
-                  if (_selectedGender == null ||
-                      _selectedDiet == null ||
-                      _selectedDate == null ||
-                      _weight.text.isEmpty ||
-                      _height.text.isEmpty ||
-                      _illnessController.text.isEmpty ||
-                      _alergiesController.text.isEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Please fill in all fields')),
-                    );
-                  } else {
+                onPressed: () async {
+                  final url = Uri.parse(
+                    'http://10.0.2.2:8000/user/signup',
+                  ); // update your URL
+
+                  final response = await http.post(
+                    url,
+                    headers: {"Content-Type": "application/json"},
+                    body: jsonEncode({
+                      "name": widget.name,
+                      "email": widget.email,
+                      "password": widget.password,
+                      "phone": widget.phone,
+                      "birthday": _dateController.text,
+                      "profile_pic": "", // add image upload support later
+                      "height": double.tryParse(_height.text),
+                      "weight": double.tryParse(_weight.text),
+                      "diet": _selectedDiet,
+                      "gender": _selectedGender,
+                      "house_id": 1,
+                    }),
+                  );
+
+                  if (response.statusCode == 200) {
                     Navigator.pushNamed(context, '/hosting');
+                  } else {
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(SnackBar(content: Text('Signup failed')));
                   }
                 },
               ),
