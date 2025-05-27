@@ -14,7 +14,6 @@ class InventoryItem {
   final String name;
   final String category;
   int quantity;
-  int userId;
   final String? image;
 
   InventoryItem({
@@ -22,7 +21,6 @@ class InventoryItem {
     required this.category,
     required this.quantity,
     this.image,
-    required this.userId,
   });
 }
 
@@ -32,6 +30,12 @@ class InventoryPage extends StatefulWidget {
 }
 
 class _InventoryPageState extends State<InventoryPage> {
+  @override
+  void initState() {
+    super.initState();
+    getUserInventoryItems();
+  }
+
   String searchQuery = '';
   int _selectedIndex = 0;
 
@@ -82,16 +86,50 @@ class _InventoryPageState extends State<InventoryPage> {
     // ),
   ];
 
-  void _addNewItem(InventoryItem newItem) {
+  Future<void> getUserInventoryItems() async {
+    try {
+      final response = await http.post(
+        Uri.parse('http://10.0.2.2:8000/user/inventory/get-items'),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({"user_id": userId}),
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        final List<InventoryItem> loadedItems =
+            data.map((item) {
+              return InventoryItem(
+                name: item['name'],
+                category: item['category'],
+                quantity: item['quantity'],
+                image: item['image'],
+              );
+            }).toList();
+
+        setState(() {
+          allItems.clear();
+          allItems.addAll(loadedItems);
+        });
+      } else {
+        throw Exception('Failed to load inventory: ${response.body}');
+      }
+    } catch (e) {
+      print('Error fetching inventory: $e');
+    }
+  }
+
+  void _addNewItem(InventoryItem newItem) async {
     setState(() {
       allItems.add(newItem);
     });
+    await getUserInventoryItems();
   }
 
   void _addNewCategory(String newCategory) {
     setState(() {
       categories.add(newCategory);
     });
+    getUserInventoryItems();
   }
 
   Future<void> updateItemQuantity(

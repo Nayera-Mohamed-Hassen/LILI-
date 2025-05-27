@@ -354,3 +354,27 @@ async def update_inventory_quantity(data: UpdateQuantityRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
+
+
+class UserRequest(BaseModel):
+    user_id: int
+
+@router.post("/inventory/get-items")
+async def get_inventory_items(data: UserRequest):
+    try:
+        house_result = selectUser(f'SELECT house_Id FROM user_tbl WHERE user_Id = "{data.user_id}"')
+        if not house_result:
+            raise HTTPException(status_code=404, detail="House ID not found for user")
+
+        house_id = house_result[0]["house_Id"]
+        client = MongoClient(os.getenv("MONGO_URI"))
+        db = client["lili"]
+        inventory_collection = db["inventory"]
+
+        items = list(inventory_collection.find({"house_id": house_id}))
+        for item in items:
+            item["_id"] = str(item["_id"])
+        return items
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
