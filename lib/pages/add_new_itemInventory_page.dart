@@ -118,7 +118,14 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
                   TextButton(
                     onPressed: () {
                       Navigator.of(ctx).pop();
-                      Navigator.of(context).pop();
+                      // Create an InventoryItem instance to pass back
+                      final newItem = InventoryItem(
+                        name: _titleController.text,
+                        category: _selectedCategory!,
+                        quantity: int.tryParse(_quantityController.text) ?? 0,
+                        image: _pickedImage?.path,
+                      );
+                      Navigator.of(context).pop(newItem);
                     },
                     child: Text("OK"),
                   ),

@@ -220,7 +220,8 @@ def estimate_expiry_date(item_name: str) -> dict:
 
     expiry_date = datetime.now() + timedelta(days=expiry_days)
 
-    return expiry_date.strftime("%Y-%m-%d"),close_matches[0]
+    return expiry_date.strftime("%Y-%m-%d"), close_matches[0] if close_matches else item_name
+
      
     
 
