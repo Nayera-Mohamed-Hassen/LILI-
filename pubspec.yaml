@@ -141,5 +141,8 @@ flutter:
     - assets/images/tasks.gif
     - assets/images/inventory tracking.png
     - assets/images/meal planning.png
+    - assets/images/expenses.png
+    - assets/images/income.png
+    - assets/images/visa.png
 
 

@@ -61,6 +61,59 @@ class _ProfilePageState extends State<ProfilePage> {
       updateUser(updatedUser);
     }
   }
+  void showDetailSheet(
+      BuildContext context,
+      String title,
+      List<String> details, {
+        bool showCheckboxes = false,
+      }) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        List<bool> checked = List.generate(details.length, (index) => false);
+
+        return StatefulBuilder(
+          builder: (context, setState) => Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                ...List.generate(details.length, (index) {
+                  return showCheckboxes
+                      ? CheckboxListTile(
+                    value: checked[index],
+                    title: Text(details[index]),
+                    controlAffinity: ListTileControlAffinity.leading,
+                    onChanged: (val) {
+                      setState(() {
+                        checked[index] = val!;
+                      });
+                    },
+                  )
+                      : ListTile(
+                    leading: const Icon(Icons.arrow_right),
+                    title: Text(details[index]),
+                  );
+                }),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
 
   void _showLogoutDialog() {
     showDialog(
@@ -326,7 +379,28 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
               ),
             ),
-            SizedBox(height: 10),
+            SizedBox(height: 5),
+            ElevatedButton.icon(
+              onPressed: () {
+                showDetailSheet(
+                  context,
+                  "House Code",
+                  ["Code: HJ223FA56", "Location: Main Home", "Owner: Farah"],
+                  showCheckboxes: false,
+                );
+              },
+              icon: Icon(Icons.person_add),
+              label: Text("Add User"),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color(0xFF213555),
+                foregroundColor: Colors.white,
+                fixedSize: Size(260, 40),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            ),
+            SizedBox(height: 5),
             ElevatedButton.icon(
               onPressed: _navigateTosigning_page,
               icon: Icon(Icons.logout),
