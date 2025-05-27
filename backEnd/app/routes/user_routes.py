@@ -277,3 +277,80 @@ async def add_item(item: InventoryItem):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+class DeleteItemRequest(BaseModel):
+    user_id: int
+    name: str
+
+@router.delete("/inventory/delete")
+async def delete_inventory_item(data: DeleteItemRequest):
+    try:
+        # Get house_id using user_id from MySQL
+        house_result = selectUser(f'SELECT house_Id FROM user_tbl WHERE user_Id = "{data.user_id}"')
+        if not house_result:
+            raise HTTPException(status_code=404, detail="House ID not found for user")
+
+        house_id = house_result[0]["house_Id"]
+
+        MONGO_URI = os.getenv("MONGO_URI")
+        client = MongoClient(MONGO_URI)
+        db = client["lili"]
+        inventory_collection = db["inventory"]
+
+        # Delete inventory items that match name and house_id
+        delete_result = inventory_collection.delete_many({
+            "house_id": house_id,
+            "name": data.name
+        })
+
+        if delete_result.deleted_count == 0:
+            return {"status": "not_found", "message": "No matching items found to delete"}
+
+        return {
+            "status": "success",
+            "deleted_count": delete_result.deleted_count,
+            "message": "Matching items deleted successfully"
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+
+class UpdateQuantityRequest(BaseModel):
+    user_id: int
+    name: str
+    quantity: int
+
+@router.put("/inventory/update-quantity")
+async def update_inventory_quantity(data: UpdateQuantityRequest):
+    try:
+        # Get house_id using user_id from MySQL
+        house_result = selectUser(f'SELECT house_Id FROM user_tbl WHERE user_Id = "{data.user_id}"')
+        if not house_result:
+            raise HTTPException(status_code=404, detail="House ID not found for user")
+
+        house_id = house_result[0]["house_Id"]
+
+        MONGO_URI = os.getenv("MONGO_URI")
+        client = MongoClient(MONGO_URI)
+        db = client["lili"]
+        inventory_collection = db["inventory"]
+
+        # Update the quantity of the matching item
+        update_result = inventory_collection.update_one(
+            {"house_id": house_id, "name": data.name},
+            {"$set": {"quantity": data.quantity}}
+        )
+
+        if update_result.matched_count == 0:
+            return {"status": "not_found", "message": "No matching item found to update"}
+
+        return {
+            "status": "success",
+            "message": "Quantity updated successfully"
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    

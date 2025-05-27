@@ -123,6 +123,7 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
                         name: _titleController.text,
                         category: _selectedCategory!,
                         quantity: int.tryParse(_quantityController.text) ?? 0,
+                        userId: userId,
                         image: _pickedImage?.path,
                       );
                       Navigator.of(context).pop(newItem);

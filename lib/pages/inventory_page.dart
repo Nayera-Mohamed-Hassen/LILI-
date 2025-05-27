@@ -1,12 +1,20 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/http.dart' as http;
+import '../user_session.dart';
 import 'add_new_itemInventory_page.dart'; // Page to create new item
 import 'package:LILI/pages/create_new_categoryInventory_page.dart'; // Page to create new category
+
+final int? userId = UserSession().getUserId();
 
 class InventoryItem {
   final String name;
   final String category;
   int quantity;
+  int userId;
   final String? image;
 
   InventoryItem({
@@ -14,6 +22,7 @@ class InventoryItem {
     required this.category,
     required this.quantity,
     this.image,
+    required this.userId,
   });
 }
 
@@ -35,42 +44,42 @@ class _InventoryPageState extends State<InventoryPage> {
   ];
 
   final List<InventoryItem> allItems = [
-    InventoryItem(
-      name: 'Tomato',
-      category: 'Food',
-      quantity: 3,
-      image: 'assets/inventory/tomato.jpg',
-    ),
-    InventoryItem(
-      name: 'Garlic',
-      category: 'Food',
-      quantity: 1,
-      image: 'assets/inventory/garlic.jpg',
-    ),
-    InventoryItem(
-      name: 'Salt',
-      category: 'Food',
-      quantity: 0,
-      image: 'assets/inventory/Salt.jpg',
-    ),
-    InventoryItem(
-      name: 'Bandage',
-      category: 'Medications & First Aid',
-      quantity: 2,
-      image: 'assets/inventory/bandage.png',
-    ),
-    InventoryItem(
-      name: 'Toothpaste',
-      category: 'Toiletries & Personal Care',
-      quantity: 5,
-      image: 'assets/inventory/toothpaste.jpg',
-    ),
-    InventoryItem(
-      name: 'Soap',
-      category: 'Cleaning Supplies',
-      quantity: 2,
-      image: 'assets/inventory/soap.jpg',
-    ),
+    // InventoryItem(
+    //   name: 'Tomato',
+    //   category: 'Food',
+    //   quantity: 3,
+    //   image: 'assets/inventory/tomato.jpg',
+    // ),
+    // InventoryItem(
+    //   name: 'Garlic',
+    //   category: 'Food',
+    //   quantity: 1,
+    //   image: 'assets/inventory/garlic.jpg',
+    // ),
+    // InventoryItem(
+    //   name: 'Salt',
+    //   category: 'Food',
+    //   quantity: 0,
+    //   image: 'assets/inventory/Salt.jpg',
+    // ),
+    // InventoryItem(
+    //   name: 'Bandage',
+    //   category: 'Medications & First Aid',
+    //   quantity: 2,
+    //   image: 'assets/inventory/bandage.png',
+    // ),
+    // InventoryItem(
+    //   name: 'Toothpaste',
+    //   category: 'Toiletries & Personal Care',
+    //   quantity: 5,
+    //   image: 'assets/inventory/toothpaste.jpg',
+    // ),
+    // InventoryItem(
+    //   name: 'Soap',
+    //   category: 'Cleaning Supplies',
+    //   quantity: 2,
+    //   image: 'assets/inventory/soap.jpg',
+    // ),
   ];
 
   void _addNewItem(InventoryItem newItem) {
@@ -85,13 +94,47 @@ class _InventoryPageState extends State<InventoryPage> {
     });
   }
 
+  Future<void> updateItemQuantity(
+    String name,
+    int newQuantity,
+    int? userId,
+  ) async {
+    final response = await http.put(
+      Uri.parse('http://10.0.2.2:8000/user/inventory/update-quantity'),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({
+        "user_id": userId,
+        "name": name,
+        "quantity": newQuantity,
+      }),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to update quantity: ${response.body}');
+    }
+  }
+
+  Future<void> deleteItemFromBackend(String name, int? userId) async {
+    final response = await http.delete(
+      Uri.parse('http://10.0.2.2:8000/user/inventory/delete'),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({"user_id": userId, "name": name}),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to delete item: ${response.body}');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     String selectedCategory = categories[_selectedIndex];
-    List<InventoryItem> filteredItems = allItems.where((item) {
-      return (selectedCategory == 'All' || item.category == selectedCategory) &&
-          item.name.toLowerCase().contains(searchQuery.toLowerCase());
-    }).toList();
+    List<InventoryItem> filteredItems =
+        allItems.where((item) {
+          return (selectedCategory == 'All' ||
+                  item.category == selectedCategory) &&
+              item.name.toLowerCase().contains(searchQuery.toLowerCase());
+        }).toList();
 
     Map<String, List<InventoryItem>> groupedItems = {};
     for (var item in filteredItems) {
@@ -132,127 +175,179 @@ class _InventoryPageState extends State<InventoryPage> {
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
-                children: categories.map((cat) {
-                  int index = categories.indexOf(cat);
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    child: ActionChip(
-                      label: Text(
-                        cat,
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFFF2F2F2),
+                children:
+                    categories.map((cat) {
+                      int index = categories.indexOf(cat);
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        child: ActionChip(
+                          label: Text(
+                            cat,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFFF2F2F2),
+                            ),
+                          ),
+                          backgroundColor:
+                              _selectedIndex == index
+                                  ? Color(0xFF1F3354)
+                                  : Color(0xFF3E5879),
+                          onPressed: () {
+                            setState(() {
+                              _selectedIndex = index;
+                            });
+                          },
                         ),
-                      ),
-                      backgroundColor: _selectedIndex == index
-                          ? Color(0xFF1F3354)
-                          : Color(0xFF3E5879),
-                      onPressed: () {
-                        setState(() {
-                          _selectedIndex = index;
-                        });
-                      },
-                    ),
-                  );
-                }).toList(),
+                      );
+                    }).toList(),
               ),
             ),
             SizedBox(height: 15),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: groupedItems.entries.map((entry) {
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.symmetric(vertical: 8),
-                      child: Text(
-                        entry.key,
-                        style: TextStyle(
-                          color: Color(0xFF1F3354),
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    ...entry.value.map(
-                          (item) => Card(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                          side: const BorderSide(
-                            color: Color(0xFF1F3354),
-                            width: 1,
-                          ),
-                        ),
-                        elevation: 8,
-                        shadowColor: const Color(0xFF1F3354),
-                        margin: const EdgeInsets.symmetric(vertical: 8),
-                        child: ListTile(
-                          leading: item.image != null
-                              ? Image.asset(
-                            item.image!,
-                            width: 40,
-                            height: 40,
-                            fit: BoxFit.cover,
-                          )
-                              : CircleAvatar(
-                            backgroundColor: Colors.grey[300],
-                            child: Icon(Icons.image_not_supported),
-                          ),
-                          title: Row(
-                            children: [
-                              Text(item.name),
-                              if (item.quantity <= 1) ...[
-                                SizedBox(width: 6),
-                                Container(
-                                  width: 10,
-                                  height: 10,
-                                  decoration: BoxDecoration(
-                                    color: Colors.red,
-                                    shape: BoxShape.circle,
-                                  ),
-                                ),
-                              ],
-                            ],
-                          ),
-                          subtitle: Row(
-                            children: [
-                              IconButton(
-                                icon: Icon(Icons.remove),
-                                onPressed: () {
-                                  setState(() {
-                                    if (item.quantity > 0) item.quantity--;
-                                  });
-                                },
-                              ),
-                              Text('${item.quantity}'),
-                              IconButton(
-                                icon: Icon(Icons.add),
-                                onPressed: () {
-                                  setState(() {
-                                    item.quantity++;
-                                  });
-                                },
-                              ),
-                            ],
-                          ),
-                          trailing: IconButton(
-                            icon: Icon(
-                              Icons.delete,
+              children:
+                  groupedItems.entries.map((entry) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.symmetric(vertical: 8),
+                          child: Text(
+                            entry.key,
+                            style: TextStyle(
                               color: Color(0xFF1F3354),
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
                             ),
-                            onPressed: () {
-                              setState(() {
-                                allItems.remove(item);
-                              });
-                            },
                           ),
                         ),
-                      ),
-                    ),
-                  ],
-                );
-              }).toList(),
+                        ...entry.value.map(
+                          (item) => Card(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                              side: const BorderSide(
+                                color: Color(0xFF1F3354),
+                                width: 1,
+                              ),
+                            ),
+                            elevation: 8,
+                            shadowColor: const Color(0xFF1F3354),
+                            margin: const EdgeInsets.symmetric(vertical: 8),
+                            child: ListTile(
+                              leading:
+                                  item.image != null
+                                      ? Image.asset(
+                                        item.image!,
+                                        width: 40,
+                                        height: 40,
+                                        fit: BoxFit.cover,
+                                      )
+                                      : CircleAvatar(
+                                        backgroundColor: Colors.grey[300],
+                                        child: Icon(Icons.image_not_supported),
+                                      ),
+                              title: Row(
+                                children: [
+                                  Text(item.name),
+                                  if (item.quantity <= 1) ...[
+                                    SizedBox(width: 6),
+                                    Container(
+                                      width: 10,
+                                      height: 10,
+                                      decoration: BoxDecoration(
+                                        color: Colors.red,
+                                        shape: BoxShape.circle,
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                              subtitle: Row(
+                                children: [
+                                  IconButton(
+                                    icon: Icon(Icons.remove),
+                                    onPressed: () async {
+                                      if (item.quantity > 0) {
+                                        setState(() {
+                                          item.quantity--;
+                                        });
+                                        try {
+                                          await updateItemQuantity(
+                                            item.name,
+                                            item.quantity,
+                                            UserSession().getUserId(),
+                                          );
+                                        } catch (e) {
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                'Failed to update quantity: $e',
+                                              ),
+                                            ),
+                                          );
+                                        }
+                                      }
+                                    },
+                                  ),
+                                  Text('${item.quantity}'),
+                                  IconButton(
+                                    icon: Icon(Icons.add),
+                                    onPressed: () async {
+                                      setState(() {
+                                        item.quantity++;
+                                      });
+                                      try {
+                                        await updateItemQuantity(
+                                          item.name,
+                                          item.quantity,
+                                          UserSession().getUserId(),
+                                        );
+                                      } catch (e) {
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              'Failed to update quantity: $e',
+                                            ),
+                                          ),
+                                        );
+                                      }
+                                    },
+                                  ),
+                                ],
+                              ),
+                              trailing: IconButton(
+                                icon: Icon(
+                                  Icons.delete,
+                                  color: Color(0xFF1F3354),
+                                ),
+                                onPressed: () async {
+                                  try {
+                                    await deleteItemFromBackend(
+                                      item.name,
+                                      UserSession().getUserId(),
+                                    ); // Call API
+                                    setState(() {
+                                      allItems.remove(item); // Remove from UI
+                                    });
+                                  } catch (e) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('Failed to delete: $e'),
+                                      ),
+                                    );
+                                  }
+                                },
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  }).toList(),
             ),
           ],
         ),
@@ -285,16 +380,17 @@ class _InventoryPageState extends State<InventoryPage> {
           child: Icon(Icons.add, size: 30, color: Color(0xFFF2F2F2)),
           onPressed: null,
         ),
-        itemBuilder: (BuildContext context) => [
-          PopupMenuItem<String>(
-            value: 'Item',
-            child: Text('Create New Item'),
-          ),
-          PopupMenuItem<String>(
-            value: 'category',
-            child: Text('Create New Category'),
-          ),
-        ],
+        itemBuilder:
+            (BuildContext context) => [
+              PopupMenuItem<String>(
+                value: 'Item',
+                child: Text('Create New Item'),
+              ),
+              PopupMenuItem<String>(
+                value: 'category',
+                child: Text('Create New Category'),
+              ),
+            ],
       ),
     );
   }

@@ -7,7 +7,7 @@ class UserSession {
 
   UserSession._internal();
 
-  int? userId;
+  int? userId = 0;
 
   void setUserId(int id) {
     userId = id;
