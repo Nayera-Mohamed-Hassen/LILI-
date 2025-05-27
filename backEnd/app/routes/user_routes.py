@@ -148,55 +148,120 @@ async def create_household(data: HouseHold):
 
 ################ Inventory Management ################
 
-from datetime import datetime, timedelta
-from difflib import get_close_matches
 
 EXPIRY_KEYWORDS = {
     "frozen_meat": {
-        "keywords": ["chicken", "beef", "steak", "meat", "turkey", "pork", "lamb"],
+        "keywords": [
+            "chicken", "beef", "steak", "meat", "turkey", "pork", "lamb", 
+            "duck", "goat", "venison", "bacon", "sausage", "ham", "ground beef"
+        ],
         "days": 180
     },
     "seafood": {
-        "keywords": ["fish", "shrimp", "salmon", "crab", "lobster"],
+        "keywords": [
+            "fish", "shrimp", "salmon", "crab", "lobster", "tilapia", "cod", 
+            "mackerel", "tuna", "squid", "octopus", "scallops", "anchovy"
+        ],
         "days": 180
     },
     "dairy": {
-        "keywords": ["milk", "cheese", "yogurt", "butter", "cream"],
+        "keywords": [
+            "milk", "cheese", "yogurt", "butter", "cream", "curd", "ghee", 
+            "sour cream", "cream cheese", "paneer", "custard"
+        ],
         "days": 7
     },
     "bread": {
-        "keywords": ["bread", "bun", "toast", "bagel"],
+        "keywords": [
+            "bread", "bun", "toast", "bagel", "roll", "brioche", "naan", 
+            "pita", "sourdough", "rye bread", "ciabatta"
+        ],
         "days": 4
     },
     "eggs": {
-        "keywords": ["egg", "eggs"],
+        "keywords": [
+            "egg", "eggs", "boiled egg", "scrambled egg", "omelette"
+        ],
         "days": 21
     },
     "fruits": {
-        "keywords": ["apple", "banana", "grape", "mango", "fruit", "pear", "orange", "kiwi"],
+        "keywords": [
+            "apple", "banana", "grape", "mango", "fruit", "pear", "orange", 
+            "kiwi", "pineapple", "watermelon", "strawberry", "blueberry", 
+            "peach", "plum", "cherry", "apricot", "pomegranate", "melon"
+        ],
         "days": 7
     },
     "vegetables": {
-        "keywords": ["lettuce", "spinach", "broccoli", "carrot", "cucumber", "vegetable", "tomato"],
+        "keywords": [
+            "lettuce", "spinach", "broccoli", "carrot", "cucumber", 
+            "vegetable", "tomato", "pepper", "onion", "garlic", "zucchini", 
+            "cauliflower", "potato", "cabbage", "kale", "beet", "radish", 
+            "eggplant", "sweet potato"
+        ],
         "days": 5
     },
     "pantry": {
-        "keywords": ["rice", "pasta", "noodles", "flour", "sugar", "salt", "cereal"],
+        "keywords": [
+            "rice", "pasta", "noodles", "flour", "sugar", "salt", "cereal", 
+            "lentils", "oats", "quinoa", "barley", "cornmeal", "spaghetti", 
+            "macaroni", "breadcrumbs", "wheat"
+        ],
         "days": 180
     },
     "snacks": {
-        "keywords": ["chips", "cookies", "cracker", "snack"],
+        "keywords": [
+            "chips", "cookies", "cracker", "snack", "popcorn", "candy", 
+            "pretzels", "granola bar", "trail mix", "nuts", "biscuits"
+        ],
         "days": 60
     },
     "canned": {
-        "keywords": ["canned", "beans", "corn", "soup", "tuna"],
+        "keywords": [
+            "canned", "beans", "corn", "soup", "tuna", "peas", "tomato paste", 
+            "canned fruit", "canned vegetables", "spam", "canned chicken", 
+            "evaporated milk"
+        ],
         "days": 365
     },
     "frozen": {
-        "keywords": ["frozen", "ice cream", "frozen pizza", "frozen vegetables"],
+        "keywords": [
+            "frozen", "ice cream", "frozen pizza", "frozen vegetables", 
+            "frozen fruit", "frozen meals", "frozen dumplings", "frozen berries"
+        ],
         "days": 365
+    },
+    "condiments": {
+        "keywords": [
+            "ketchup", "mustard", "mayonnaise", "soy sauce", "vinegar", 
+            "salad dressing", "hot sauce", "barbecue sauce", "salsa", 
+            "relish", "honey", "jam", "jelly", "maple syrup"
+        ],
+        "days": 180
+    },
+    "beverages": {
+        "keywords": [
+            "juice", "soda", "cola", "coffee", "tea", "milkshake", 
+            "smoothie", "energy drink", "iced tea", "bottled water"
+        ],
+        "days": 30
+    },
+    "baked_goods": {
+        "keywords": [
+            "cake", "muffin", "pastry", "pie", "croissant", "donut", 
+            "brownie", "cupcake", "tart"
+        ],
+        "days": 5
+    },
+    "leftovers": {
+        "keywords": [
+            "leftover", "cooked", "meal prep", "leftover chicken", 
+            "leftover rice", "leftover pasta", "cooked beef"
+        ],
+        "days": 3
     }
 }
+
 
 def estimate_expiry_date(item_name: str) -> dict:
     item_name_lower = item_name.lower()
@@ -299,6 +364,7 @@ async def delete_inventory_item(data: DeleteItemRequest):
         db = client["lili"]
         inventory_collection = db["inventory"]
 
+        print(data.expiry)
         # Delete inventory items that match name and house_id
         delete_result = inventory_collection.delete_many({
             "house_id": house_id,
@@ -333,6 +399,7 @@ async def update_inventory_quantity(data: UpdateQuantityRequest):
             raise HTTPException(status_code=404, detail="House ID not found for user")
 
         house_id = house_result[0]["house_Id"]
+
 
         MONGO_URI = os.getenv("MONGO_URI")
         client = MongoClient(MONGO_URI)
@@ -369,6 +436,9 @@ async def get_inventory_items(data: UserRequest):
             raise HTTPException(status_code=404, detail="House ID not found for user")
 
         house_id = house_result[0]["house_Id"]
+        
+        print(f"Household ID: {house_id}")
+
         client = MongoClient(os.getenv("MONGO_URI"))
         db = client["lili"]
         inventory_collection = db["inventory"]

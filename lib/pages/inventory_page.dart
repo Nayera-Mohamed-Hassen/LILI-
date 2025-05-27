@@ -8,8 +8,6 @@ import '../user_session.dart';
 import 'add_new_itemInventory_page.dart'; // Page to create new item
 import 'package:LILI/pages/create_new_categoryInventory_page.dart'; // Page to create new category
 
-final int? userId = UserSession().getUserId();
-
 class InventoryItem {
   final String name;
   final String category;
@@ -65,7 +63,7 @@ class _InventoryPageState extends State<InventoryPage> {
       final response = await http.post(
         Uri.parse('http://10.0.2.2:8000/user/inventory/get-items'),
         headers: {"Content-Type": "application/json"},
-        body: jsonEncode({"user_id": userId}),
+        body: jsonEncode({"user_id": UserSession().getUserId()}),
       );
 
       if (response.statusCode == 200) {
