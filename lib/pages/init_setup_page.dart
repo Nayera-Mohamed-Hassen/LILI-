@@ -39,10 +39,6 @@ class _InitSetupPageState extends State<InitSetupPage> {
   @override
   void initState() {
     super.initState();
-    // nameController = TextEditingController(text: widget.user.name);
-    // emailController = TextEditingController(text: widget.user.email);
-    // phoneController = TextEditingController(text: widget.user.phone);
-    // addressController = TextEditingController(text: widget.user.address);
     _picker = ImagePicker();
     _dateController = TextEditingController();
   }

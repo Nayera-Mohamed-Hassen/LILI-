@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
+import '../user_session.dart';
+
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
@@ -71,7 +73,20 @@ class _LoginPageState extends State<LoginPage> {
                   );
 
                   if (response.statusCode == 200) {
-                    Navigator.pushNamed(context, '/homepage');
+                    final data = jsonDecode(response.body);
+                    final userId =
+                        data['user_id']; // make sure your backend sends this
+
+                    if (userId != 0) {
+                      UserSession().setUserId(userId);
+                      Navigator.pushNamed(context, '/homepage');
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Login response missing user ID'),
+                        ),
+                      );
+                    }
                   } else {
                     ScaffoldMessenger.of(
                       context,

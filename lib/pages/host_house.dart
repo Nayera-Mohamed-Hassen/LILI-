@@ -90,12 +90,6 @@ class _HostHousePageState extends State<HostHousePage> {
               const SizedBox(height: 20),
               _buildTextField(_UserEmail, 'User Email'),
               const SizedBox(height: 20),
-              // _buildButton(
-              //   'Add User',
-              //   onPressed: () {
-              //     Navigator.pushNamed(context, '/add user');
-              //   },
-              // ),
               _buildButton(
                 'Host House',
                 onPressed: () async {

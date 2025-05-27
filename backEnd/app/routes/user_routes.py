@@ -1,21 +1,31 @@
+import os
+from typing import Optional
+
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from app.mySQLConnection import insertUser, selectUser, insertAllergy, insertHouseHold, executeWriteQuery
+from pymongo import MongoClient
 
+from app.mySQLConnection import insertUser, selectUser, insertAllergy, insertHouseHold, executeWriteQuery, selectHouseHold
 
+HouseHold_id = 1  # Default household ID, can be changed as needed
+user_id = 1  # Default user ID, can be changed as needed
 
 router = APIRouter(prefix="/user", tags=["User"])
 
-class HouseHold(BaseModel):
-    name: str
-    pic: str
-    address: str
-    email: str 
+def get_household_id() -> int:
+    try:
+        HouseHold_id = selectUser("select house_Id from user_tbl where user_Id = " + str(user_id))
+        if not HouseHold_id:
+            raise HTTPException(status_code=404, detail="Household not found")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    if HouseHold_id:
+        HouseHold_id = HouseHold_id[0]["house_Id"]
+    else:
+        raise HTTPException(status_code=404, detail="Household not found")  
+    return HouseHold_id
 
-
-class UserLogin(BaseModel):
-    email: str
-    password: str
+################ User Signup  ################
 
 class UserSignup(BaseModel):
     name: str
@@ -73,6 +83,16 @@ def signup(user: UserSignup):
 
 
 
+
+
+################ user login ################
+
+class UserLogin(BaseModel):
+    email: str
+    password: str
+
+
+
 @router.post("/login")
 async def login(user: UserLogin):
     try:
@@ -80,11 +100,23 @@ async def login(user: UserLogin):
         result = selectUser(query=query)
 
         if result:
+            user_id = result[0]["user_Id"]
             return {"status": "success", "user_id": result[0]["user_Id"]}
         else:
             raise HTTPException(status_code=401, detail="Invalid email or password")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+################ Create Household ################
+
+class HouseHold(BaseModel):
+    name: str
+    pic: str
+    address: str
+    email: str
+
+
 
 @router.post("/household/create")
 async def create_household(data: HouseHold):
@@ -110,3 +142,137 @@ async def create_household(data: HouseHold):
     executeWriteQuery(query=update_query)  # run update using existing query function
 
     return {"message": "Household created", "house_id": house_id}
+
+
+
+
+################ Inventory Management ################
+
+from datetime import datetime, timedelta
+from difflib import get_close_matches
+
+EXPIRY_KEYWORDS = {
+    "frozen_meat": {
+        "keywords": ["chicken", "beef", "steak", "meat", "turkey", "pork", "lamb"],
+        "days": 180
+    },
+    "seafood": {
+        "keywords": ["fish", "shrimp", "salmon", "crab", "lobster"],
+        "days": 180
+    },
+    "dairy": {
+        "keywords": ["milk", "cheese", "yogurt", "butter", "cream"],
+        "days": 7
+    },
+    "bread": {
+        "keywords": ["bread", "bun", "toast", "bagel"],
+        "days": 4
+    },
+    "eggs": {
+        "keywords": ["egg", "eggs"],
+        "days": 21
+    },
+    "fruits": {
+        "keywords": ["apple", "banana", "grape", "mango", "fruit", "pear", "orange", "kiwi"],
+        "days": 7
+    },
+    "vegetables": {
+        "keywords": ["lettuce", "spinach", "broccoli", "carrot", "cucumber", "vegetable", "tomato"],
+        "days": 5
+    },
+    "pantry": {
+        "keywords": ["rice", "pasta", "noodles", "flour", "sugar", "salt", "cereal"],
+        "days": 180
+    },
+    "snacks": {
+        "keywords": ["chips", "cookies", "cracker", "snack"],
+        "days": 60
+    },
+    "canned": {
+        "keywords": ["canned", "beans", "corn", "soup", "tuna"],
+        "days": 365
+    },
+    "frozen": {
+        "keywords": ["frozen", "ice cream", "frozen pizza", "frozen vegetables"],
+        "days": 365
+    }
+}
+
+def estimate_expiry_date(item_name: str) -> dict:
+    item_name_lower = item_name.lower()
+    all_keywords = []
+    keyword_to_category = {}
+
+    for category, data in EXPIRY_KEYWORDS.items():
+        for keyword in data["keywords"]:
+            all_keywords.append(keyword)
+            keyword_to_category[keyword] = category
+
+    close_matches = get_close_matches(item_name_lower, all_keywords, n=1, cutoff=0.6)
+
+    if close_matches:
+        matched_keyword = close_matches[0]
+        matched_category = keyword_to_category[matched_keyword]
+        expiry_days = EXPIRY_KEYWORDS[matched_category]["days"]
+    else:
+        matched_category = "default"
+        expiry_days = 14
+
+    expiry_date = datetime.now() + timedelta(days=expiry_days)
+
+    return expiry_date.strftime("%Y-%m-%d"),close_matches[0]
+     
+    
+
+
+################ Inventory Routes ################
+
+MONGO_URI = os.getenv("MONGO_URI")
+client = MongoClient(MONGO_URI)
+db = client["lili"]
+inventory_collection = db["inventory"]
+
+
+class InventoryItem(BaseModel):
+    name: str
+    category: str
+    quantity: int
+    #image: Optional[str]
+    user_id: int  # Added user_id here
+
+
+@router.post("/inventory/add")
+async def add_item(item: InventoryItem):
+    try:
+        expiry_info,name = estimate_expiry_date(item.name)
+
+        print(item.user_id)
+        house_result = selectUser(f'SELECT house_Id FROM user_tbl WHERE user_Id = "{item.user_id}"')
+        if not house_result:
+            raise HTTPException(status_code=404, detail="House ID not found for user")
+
+        house_id = house_result[0]["house_Id"]
+        print(f"Household ID: {house_id}")
+
+        item_dict = item.dict()
+        
+        item_dict = {
+            "name": name,
+            "category": item.category,
+            "quantity": item.quantity,
+            "user_id": item.user_id,
+            "expiry_date": expiry_info,
+            "house_id": house_id
+        }
+        
+
+        inventory_collection.insert_one(item_dict)
+
+        return {
+            "status": "success",
+            "message": "Item added successfully",
+            "expiry_date": expiry_info,
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
