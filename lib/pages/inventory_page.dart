@@ -282,7 +282,10 @@ class _InventoryPageState extends State<InventoryPage> {
                                       )
                                       : CircleAvatar(
                                         backgroundColor: Colors.grey[300],
-                                        child: Icon(Icons.image_not_supported),
+                                        child: Icon(
+                                          Icons.image_not_supported,
+                                          color: Color(0xFF1F3354),
+                                        ),
                                       ),
                               title: Row(
                                 children: [
