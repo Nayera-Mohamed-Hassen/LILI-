@@ -97,7 +97,7 @@ class _MainMenuPageState extends State<MainMenuPage> {
 
                         Menuitem(
                           onPressed: () {
-                            Navigator.pushNamed(context, '/budget');
+                            Navigator.pushNamed(context, '/Expenses ');
                           },
                           text: "Track Expenses",
                           image: "assets/images/money.gif",
