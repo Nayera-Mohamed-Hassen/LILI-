@@ -15,12 +15,14 @@ class InventoryItem {
   final String category;
   int quantity;
   final String? image;
+  final String? expiryDate; // add this
 
   InventoryItem({
     required this.name,
     required this.category,
     required this.quantity,
     this.image,
+    this.expiryDate,
   });
 }
 
@@ -47,44 +49,16 @@ class _InventoryPageState extends State<InventoryPage> {
     'Medications & First Aid',
   ];
 
-  final List<InventoryItem> allItems = [
-    // InventoryItem(
-    //   name: 'Tomato',
-    //   category: 'Food',
-    //   quantity: 3,
-    //   image: 'assets/inventory/tomato.jpg',
-    // ),
-    // InventoryItem(
-    //   name: 'Garlic',
-    //   category: 'Food',
-    //   quantity: 1,
-    //   image: 'assets/inventory/garlic.jpg',
-    // ),
-    // InventoryItem(
-    //   name: 'Salt',
-    //   category: 'Food',
-    //   quantity: 0,
-    //   image: 'assets/inventory/Salt.jpg',
-    // ),
-    // InventoryItem(
-    //   name: 'Bandage',
-    //   category: 'Medications & First Aid',
-    //   quantity: 2,
-    //   image: 'assets/inventory/bandage.png',
-    // ),
-    // InventoryItem(
-    //   name: 'Toothpaste',
-    //   category: 'Toiletries & Personal Care',
-    //   quantity: 5,
-    //   image: 'assets/inventory/toothpaste.jpg',
-    // ),
-    // InventoryItem(
-    //   name: 'Soap',
-    //   category: 'Cleaning Supplies',
-    //   quantity: 2,
-    //   image: 'assets/inventory/soap.jpg',
-    // ),
-  ];
+  final List<InventoryItem> allItems = [];
+
+  int? calculateDaysLeft(String? expiryDateStr) {
+    if (expiryDateStr == null) return null;
+    final expiryDate = DateTime.tryParse(expiryDateStr);
+    if (expiryDate == null) return null;
+    final now = DateTime.now();
+    final difference = expiryDate.difference(now).inDays;
+    return difference >= 0 ? difference : 0;
+  }
 
   Future<void> getUserInventoryItems() async {
     try {
@@ -103,6 +77,7 @@ class _InventoryPageState extends State<InventoryPage> {
                 category: item['category'],
                 quantity: item['quantity'],
                 image: item['image'],
+                expiryDate: item['expiry_date'],
               );
             }).toList();
 
@@ -152,11 +127,15 @@ class _InventoryPageState extends State<InventoryPage> {
     }
   }
 
-  Future<void> deleteItemFromBackend(String name, int? userId) async {
+  Future<void> deleteItemFromBackend(
+    String name,
+    int? userId,
+    String? expiry,
+  ) async {
     final response = await http.delete(
       Uri.parse('http://10.0.2.2:8000/user/inventory/delete'),
       headers: {"Content-Type": "application/json"},
-      body: jsonEncode({"user_id": userId, "name": name}),
+      body: jsonEncode({"user_id": userId, "name": name, "expiry": expiry}),
     );
 
     if (response.statusCode != 200) {
@@ -289,7 +268,13 @@ class _InventoryPageState extends State<InventoryPage> {
                                       ),
                               title: Row(
                                 children: [
-                                  Text(item.name),
+                                  Text(
+                                    item.name,
+                                    style: TextStyle(
+                                      color: Color(0xFF1F3354),
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
                                   if (item.quantity <= 1) ...[
                                     SizedBox(width: 6),
                                     Container(
@@ -301,12 +286,32 @@ class _InventoryPageState extends State<InventoryPage> {
                                       ),
                                     ),
                                   ],
+                                  if (item.expiryDate != null) ...[
+                                    SizedBox(width: 8),
+                                    Icon(
+                                      Icons.schedule,
+                                      size: 16,
+                                      color: Color(0xFF3E5879),
+                                    ),
+                                    SizedBox(width: 4),
+                                    Text(
+                                      '${calculateDaysLeft(item.expiryDate)} days left',
+                                      style: TextStyle(
+                                        color: Color(0xFF3E5879),
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
                                 ],
                               ),
+
                               subtitle: Row(
                                 children: [
                                   IconButton(
-                                    icon: Icon(Icons.remove),
+                                    icon: Icon(
+                                      Icons.remove,
+                                      color: Color(0xFF1F3354),
+                                    ),
                                     onPressed: () async {
                                       if (item.quantity > 0) {
                                         setState(() {
@@ -332,9 +337,18 @@ class _InventoryPageState extends State<InventoryPage> {
                                       }
                                     },
                                   ),
-                                  Text('${item.quantity}'),
+                                  Text(
+                                    '${item.quantity}',
+                                    style: TextStyle(
+                                      color: Color(0xFF1F3354),
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
                                   IconButton(
-                                    icon: Icon(Icons.add),
+                                    icon: Icon(
+                                      Icons.add,
+                                      color: Color(0xFF1F3354),
+                                    ),
                                     onPressed: () async {
                                       setState(() {
                                         item.quantity++;
@@ -370,6 +384,7 @@ class _InventoryPageState extends State<InventoryPage> {
                                     await deleteItemFromBackend(
                                       item.name,
                                       UserSession().getUserId(),
+                                      item.expiryDate,
                                     ); // Call API
                                     setState(() {
                                       allItems.remove(item); // Remove from UI

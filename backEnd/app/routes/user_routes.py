@@ -282,6 +282,7 @@ async def add_item(item: InventoryItem):
 class DeleteItemRequest(BaseModel):
     user_id: int
     name: str
+    expiry: str
 
 @router.delete("/inventory/delete")
 async def delete_inventory_item(data: DeleteItemRequest):
@@ -301,7 +302,8 @@ async def delete_inventory_item(data: DeleteItemRequest):
         # Delete inventory items that match name and house_id
         delete_result = inventory_collection.delete_many({
             "house_id": house_id,
-            "name": data.name
+            "name": data.name,
+            "expiry_date": data.expiry  # Assuming expiry is a string in the format "YYYY-MM-DD"
         })
 
         if delete_result.deleted_count == 0:
