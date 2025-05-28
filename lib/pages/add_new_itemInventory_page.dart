@@ -1,6 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import '../user_session.dart';
 import 'create_new_categoryInventory_page.dart';
 import 'inventory_page.dart';
 import 'package:LILI/models/category_manager.dart';
@@ -26,10 +30,10 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
   }
 
   Widget _buildTextField(
-      TextEditingController controller,
-      String label, {
-        bool isNumber = false,
-      }) {
+    TextEditingController controller,
+    String label, {
+    bool isNumber = false,
+  }) {
     return TextField(
       controller: controller,
       keyboardType: isNumber ? TextInputType.number : TextInputType.text,
@@ -51,10 +55,10 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
         filled: true,
         fillColor: Colors.white,
       ),
-      items: CategoryManager()
-          .categories
-          .map((cat) => DropdownMenuItem(value: cat, child: Text(cat)))
-          .toList(),
+      items:
+          CategoryManager().categories
+              .map((cat) => DropdownMenuItem(value: cat, child: Text(cat)))
+              .toList(),
       onChanged: (value) {
         setState(() {
           _selectedCategory = value!;
@@ -63,7 +67,7 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
     );
   }
 
-  void _saveItem() {
+  void _saveItem() async {
     if (_titleController.text.isEmpty ||
         _quantityController.text.isEmpty ||
         _selectedCategory == null) {
@@ -73,15 +77,90 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
       return;
     }
 
-    final newItem = InventoryItem(
-      name: _titleController.text,
-      category: _selectedCategory!,
-      quantity: int.tryParse(_quantityController.text) ?? 0,
-      image: _pickedImage?.path,
-    );
+    final int? userId = UserSession().getUserId();
+    if (userId == null || userId == 0) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('User not logged in')));
+      return;
+    }
 
-    Navigator.pop(context, newItem);
+    final newItem = {
+      "name": _titleController.text,
+      "category": _selectedCategory!,
+      "quantity":
+          _quantityController.text.isNotEmpty
+              ? int.tryParse(_quantityController.text) ?? 0
+              : 0,
+      "user_id": userId,
+    };
+
+    print("Sending item: ${jsonEncode(newItem)}");
+
+    try {
+      final response = await http.post(
+        Uri.parse("http://10.0.2.2:8000/user/inventory/add"),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(newItem),
+      );
+
+      if (response.statusCode == 200) {
+        final result = jsonDecode(response.body);
+        String expiryDate = result["expiry_date"];
+
+        showDialog(
+          context: context,
+          builder:
+              (ctx) => AlertDialog(
+                title: Text("Item Saved"),
+                content: Text("Expiry Date: $expiryDate"),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(ctx).pop();
+                      // Create an InventoryItem instance to pass back
+                      final newItem = InventoryItem(
+                        name: _titleController.text,
+                        category: _selectedCategory!,
+                        quantity: int.tryParse(_quantityController.text) ?? 0,
+                        image: _pickedImage?.path,
+                      );
+                      Navigator.of(context).pop(newItem);
+                    },
+                    child: Text("OK"),
+                  ),
+                ],
+              ),
+        );
+      } else {
+        throw Exception("Failed to save item");
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
+    }
   }
+
+  // void _saveItem() {
+  //   if (_titleController.text.isEmpty ||
+  //       _quantityController.text.isEmpty ||
+  //       _selectedCategory == null) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(content: Text('Please fill in all required fields')),
+  //     );
+  //     return;
+  //   }
+  //
+  //   final newItem = InventoryItem(
+  //     name: _titleController.text,
+  //     category: _selectedCategory!,
+  //     quantity: int.tryParse(_quantityController.text) ?? 0,
+  //     image: _pickedImage?.path,
+  //   );
+  //
+  //   Navigator.pop(context, newItem);
+  // }
 
   void _discardItem() {
     Navigator.pop(context);
@@ -101,12 +180,12 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
   }
 
   Widget _buildButton(
-      String text, {
-        required VoidCallback onPressed,
-        Size? size,
-        Color? backgroundColor, // background color parameter
-        Color? textColor, // text color parameter
-      }) {
+    String text, {
+    required VoidCallback onPressed,
+    Size? size,
+    Color? backgroundColor, // background color parameter
+    Color? textColor, // text color parameter
+  }) {
     final fixedSize = size ?? const Size(200, 60);
     final bgColor = backgroundColor ?? const Color(0xFF3E5879);
     final txtColor = textColor ?? Colors.white;
@@ -123,10 +202,7 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
             borderRadius: BorderRadius.circular(5),
           ),
         ),
-        child: Text(
-          text,
-          style: TextStyle(color: txtColor, fontSize: 18),
-        ),
+        child: Text(text, style: TextStyle(color: txtColor, fontSize: 18)),
       ),
     );
   }
@@ -192,10 +268,11 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
                     radius: 50,
                     backgroundColor: Colors.grey[300],
                     backgroundImage:
-                    _pickedImage != null ? FileImage(_pickedImage!) : null,
-                    child: _pickedImage == null
-                        ? Icon(Icons.add_a_photo, color: Colors.white)
-                        : null,
+                        _pickedImage != null ? FileImage(_pickedImage!) : null,
+                    child:
+                        _pickedImage == null
+                            ? Icon(Icons.add_a_photo, color: Colors.white)
+                            : null,
                   ),
                 ),
                 SizedBox(width: 10),
