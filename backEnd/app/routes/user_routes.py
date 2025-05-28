@@ -1,5 +1,5 @@
 import os
-from typing import Optional
+from typing import List, Optional
 from datetime import datetime, timedelta
 from difflib import get_close_matches
 from fastapi import APIRouter, HTTPException
@@ -449,5 +449,120 @@ async def get_inventory_items(data: UserRequest):
             item["_id"] = str(item["_id"])
         return items
 
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+class RecipeItem(BaseModel):
+    name: str
+    cusine: str
+    mealType: str
+    ingredients: list[str]
+    steps: Optional[list[str]] = None
+    timeTaken: int  # store duration as minutes (int)
+    difficulty: str
+    image: str
+
+recipes = [
+    # {
+    #     "name": "Spaghetti Carbonara",
+    #     "cusine": "Italian",
+    #     "mealType": "Dinner",
+    #     "ingredients": ["Spaghetti", "Eggs", "Parmesan cheese", "Bacon"],
+    #     "timeTaken": 30,
+    #     "difficulty": "Intermediate",
+    #     "image": "Spaghetti Carbonara.jpg"
+    # },
+    {
+        "name": "Sushi Rolls",
+        "cusine": "Japanese",
+        "mealType": "Dinner",
+        "ingredients": ["Sushi rice", "Nori", "Salmon", "Avocado", "Soy sauce"],
+        "timeTaken": 45,
+        "difficulty": "Advanced/Gourmet",
+        "image": "Sushi Rolls.jpg"
+    },
+    {
+        "name": "Tacos",
+        "cusine": "Mexican",
+        "mealType": "Lunch",
+        "ingredients": ["Taco shells", "Ground beef", "Lettuce", "Cheese", "Sour cream"],
+        "timeTaken": 25,
+        "difficulty": "Quick & Easy (under 30 mins)",
+        "image": "tacos.jpg"
+    },
+    {
+        "name": "Vegan Buddha Bowl",
+        "cusine": "Vegan",
+        "mealType": "Lunch",
+        "ingredients": ["Quinoa", "Chickpeas", "Avocado", "Spinach", "Tahini"],
+        "timeTaken": 30,
+        "difficulty": "Intermediate",
+        "image": "Vegan Buddha Bowl.jpg"
+    },
+    {
+        "name": "Chicken Alfredo",
+        "cusine": "Italian",
+        "mealType": "Dinner",
+        "ingredients": ["Fettuccine", "Chicken breast", "Heavy cream", "Parmesan cheese", "Garlic"],
+        "timeTaken": 40,
+        "difficulty": "Intermediate",
+        "image": "Chicken Alfredo.jpg"
+    },
+    {
+        "name": "Pad Thai",
+        "cusine": "Thai",
+        "mealType": "Dinner",
+        "ingredients": ["Rice noodles", "Shrimp", "Egg", "Peanuts", "Bean sprouts"],
+        "timeTaken": 30,
+        "difficulty": "Intermediate",
+        "image": "Pad Thai.jpg"
+    },
+    {
+        "name": "Beef Wellington",
+        "cusine": "English",
+        "mealType": "Dinner",
+        "ingredients": ["Beef tenderloin", "Puff pastry", "Mushrooms", "Egg yolk"],
+        "timeTaken": 120,
+        "difficulty": "Advanced/Gourmet",
+        "image": "Beef Wellington.jpg"
+    },
+    {
+        "name": "Falafel",
+        "cusine": "Middle Eastern",
+        "mealType": "Lunch",
+        "ingredients": ["Chickpeas", "Garlic", "Cumin", "Parsley", "Tahini"],
+        "timeTaken": 45,
+        "difficulty": "Intermediate",
+        "image": "Falafel.jpg"
+    },
+    {
+        "name": "Fish Tacos",
+        "cusine": "Mexican",
+        "mealType": "Lunch",
+        "ingredients": ["Fish fillets", "Taco shells", "Cabbage", "Lime", "Cilantro"],
+        "timeTaken": 20,
+        "difficulty": "Quick & Easy (under 30 mins)",
+        "image": "Fish Tacos.jpg"
+    },
+    {
+        "name": "Chicken Tikka Masala",
+        "cusine": "Indian",
+        "mealType": "Dinner",
+        "ingredients": ["Chicken", "Yogurt", "Tomato sauce", "Garam masala", "Cream"],
+        "timeTaken": 60,
+        "difficulty": "Intermediate",
+        "image": "Chicken Tikka Masala.jpg"
+    }
+]
+
+
+class EmptyRequest(BaseModel):
+    pass
+
+@router.post("/recipes", response_model=List[RecipeItem])
+async def get_recipes(_: EmptyRequest):
+    try:
+        return recipes
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

@@ -1,6 +1,24 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 
 import 'package:LILI/models/recipeItem.dart';
+import 'package:http/http.dart' as http;
+
+Future<List<RecipeItem>> fetchRecipes() async {
+  final response = await http.post(
+    Uri.parse('http://10.0.2.2:8000/user/recipes'),
+    headers: {'Content-Type': 'application/json'},
+    body: jsonEncode({}), // Sending an empty JSON body
+  );
+
+  if (response.statusCode == 200) {
+    final List<dynamic> jsonList = jsonDecode(response.body);
+    return jsonList.map((json) => RecipeItem.fromJson(json)).toList();
+  } else {
+    throw Exception('Failed to load recipes: ${response.statusCode}');
+  }
+}
 
 class Recipe extends StatefulWidget {
   final Set<RecipeItem> favoriteRecipes;
@@ -17,138 +35,22 @@ class Recipe extends StatefulWidget {
 }
 
 class _RecipeState extends State<Recipe> {
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
-
+  late Future<List<RecipeItem>> futureRecipes;
   final TextEditingController searchController = TextEditingController();
   String searchQuery = '';
   Set<String> selectedSubFilters = {};
 
-  // Keep track of favorite recipes by name
+  @override
+  void initState() {
+    super.initState();
+    futureRecipes = fetchRecipes();
+  }
 
-  final List<RecipeItem> recipes = [
-    RecipeItem(
-      name: 'Spaghetti Carbonara',
-      cusine: 'Italian',
-      mealType: 'Dinner',
-      ingredients: ['Spaghetti', 'Eggs', 'Parmesan cheese', 'Bacon'],
-      timeTaken: Duration(minutes: 30),
-      difficulty: 'Intermediate',
-      image: 'assets/recipes/Spaghetti Carbonara.jpg',
-    ),
-    RecipeItem(
-      name: 'Sushi Rolls',
-      cusine: 'Japanese',
-      mealType: 'Dinner',
-      ingredients: ['Sushi rice', 'Nori', 'Salmon', 'Avocado', 'Soy sauce'],
-      timeTaken: Duration(minutes: 45),
-      difficulty: 'Advanced/Gourmet',
-      image: 'assets/recipes/Sushi Rolls.jpg',
-    ),
-    RecipeItem(
-      name: 'Tacos',
-      cusine: 'Mexican',
-      mealType: 'Lunch',
-      ingredients: [
-        'Taco shells',
-        'Ground beef',
-        'Lettuce',
-        'Cheese',
-        'Sour cream',
-      ],
-      timeTaken: Duration(minutes: 25),
-      difficulty: 'Quick & Easy (under 30 mins)',
-      image: 'assets/recipes/tacos.jpg',
-    ),
-    RecipeItem(
-      name: 'Vegan Buddha Bowl',
-      cusine: 'Vegan',
-      mealType: 'Lunch',
-      ingredients: ['Quinoa', 'Chickpeas', 'Avocado', 'Spinach', 'Tahini'],
-      timeTaken: Duration(minutes: 30),
-      difficulty: 'Intermediate',
-      image: 'assets/recipes/Vegan Buddha Bowl.jpg',
-    ),
-    RecipeItem(
-      name: 'Chicken Alfredo',
-      cusine: 'Italian',
-      mealType: 'Dinner',
-      ingredients: [
-        'Fettuccine',
-        'Chicken breast',
-        'Heavy cream',
-        'Parmesan cheese',
-        'Garlic',
-      ],
-      timeTaken: Duration(minutes: 40),
-      difficulty: 'Intermediate',
-      image: 'assets/recipes/Chicken Alfredo.jpg',
-    ),
-    RecipeItem(
-      name: 'Pad Thai',
-      cusine: 'Thai',
-      mealType: 'Dinner',
-      ingredients: ['Rice noodles', 'Shrimp', 'Egg', 'Peanuts', 'Bean sprouts'],
-      timeTaken: Duration(minutes: 30),
-      difficulty: 'Intermediate',
-      image: 'assets/recipes/Pad Thai.jpg',
-    ),
-    RecipeItem(
-      name: 'Beef Wellington',
-      cusine: 'English',
-      mealType: 'Dinner',
-      ingredients: ['Beef tenderloin', 'Puff pastry', 'Mushrooms', 'Egg yolk'],
-      timeTaken: Duration(minutes: 120),
-      difficulty: 'Advanced/Gourmet',
-      image: 'assets/recipes/Beef Wellington.jpg',
-    ),
-    RecipeItem(
-      name: 'Falafel',
-      cusine: 'Middle Eastern',
-      mealType: 'Lunch',
-      ingredients: ['Chickpeas', 'Garlic', 'Cumin', 'Parsley', 'Tahini'],
-      timeTaken: Duration(minutes: 45),
-      difficulty: 'Intermediate',
-      image: 'assets/recipes/Falafel.jpg',
-    ),
-    RecipeItem(
-      name: 'Fish Tacos',
-      cusine: 'Mexican',
-      mealType: 'Lunch',
-      ingredients: [
-        'Fish fillets',
-        'Taco shells',
-        'Cabbage',
-        'Lime',
-        'Cilantro',
-      ],
-      timeTaken: Duration(minutes: 20),
-      difficulty: 'Quick & Easy (under 30 mins)',
-      image: 'assets/recipes/Fish Tacos.jpg',
-    ),
-    RecipeItem(
-      name: 'Chicken Tikka Masala',
-      cusine: 'Indian',
-      mealType: 'Dinner',
-      ingredients: [
-        'Chicken',
-        'Yogurt',
-        'Tomato sauce',
-        'Garam masala',
-        'Cream',
-      ],
-      timeTaken: Duration(minutes: 60),
-      difficulty: 'Intermediate',
-      image: 'assets/recipes/Chicken Tikka Masala.jpg',
-    ),
-  ];
+  @override
+  void dispose() {
+    searchController.dispose();
+    super.dispose();
+  }
 
   final Map<String, List<String>> filterOptions = {
     'Cuisine': [
@@ -203,53 +105,62 @@ class _RecipeState extends State<Recipe> {
     'Duration': ['Under 30 mins', '30-60 mins', 'Over 60 mins'],
   };
 
+  List<RecipeItem> filterRecipes(List<RecipeItem> recipes) {
+    return recipes.where((recipe) {
+      bool matches = true;
+
+      if (selectedSubFilters.isNotEmpty) {
+        // Filter by Cuisine
+        if (filterOptions['Cuisine']!.any(selectedSubFilters.contains)) {
+          matches &= selectedSubFilters.contains(recipe.cusine);
+        }
+
+        // Filter by Meal Type
+        if (filterOptions['Meal Type']!.any(selectedSubFilters.contains)) {
+          matches &= selectedSubFilters.contains(recipe.mealType);
+        }
+
+        // Filter by Difficulty
+        if (filterOptions['Difficulty']!.any(selectedSubFilters.contains)) {
+          matches &= selectedSubFilters.contains(recipe.difficulty);
+        }
+
+        // Filter by Duration
+        if (filterOptions['Duration']!.any(selectedSubFilters.contains)) {
+          bool match = false;
+          if (selectedSubFilters.contains('Under 30 mins') &&
+              recipe.timeTaken <= Duration(minutes: 30)) {
+            match = true;
+          }
+          if (selectedSubFilters.contains('30-60 mins') &&
+              recipe.timeTaken > Duration(minutes: 30) &&
+              recipe.timeTaken <= Duration(minutes: 60)) {
+            match = true;
+          }
+          if (selectedSubFilters.contains('Over 60 mins') &&
+              recipe.timeTaken > Duration(minutes: 60)) {
+            match = true;
+          }
+          matches &= match;
+        }
+      }
+
+      // Filter by search query
+      if (searchQuery.isNotEmpty) {
+        final lowerQuery = searchQuery.toLowerCase();
+        final nameMatch = recipe.name.toLowerCase().contains(lowerQuery);
+        final ingredientsMatch = recipe.ingredients.any(
+          (ingredient) => ingredient.toLowerCase().contains(lowerQuery),
+        );
+        matches &= (nameMatch || ingredientsMatch);
+      }
+
+      return matches;
+    }).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
-    List<RecipeItem> filteredRecipes =
-        recipes.where((recipe) {
-          bool matches = true;
-
-          if (selectedSubFilters.isNotEmpty) {
-            if (filterOptions['Cuisine']!.any(selectedSubFilters.contains)) {
-              matches &= selectedSubFilters.contains(recipe.cusine);
-            }
-
-            if (filterOptions['Meal Type']!.any(selectedSubFilters.contains)) {
-              matches &= selectedSubFilters.contains(recipe.mealType);
-            }
-
-            if (filterOptions['Difficulty']!.any(selectedSubFilters.contains)) {
-              matches &= selectedSubFilters.contains(recipe.difficulty);
-            }
-
-            if (filterOptions['Duration']!.any(selectedSubFilters.contains)) {
-              bool match = false;
-              if (selectedSubFilters.contains('Under 30 mins') &&
-                  recipe.timeTaken.inMinutes <= 30)
-                match = true;
-              if (selectedSubFilters.contains('30-60 mins') &&
-                  recipe.timeTaken.inMinutes > 30 &&
-                  recipe.timeTaken.inMinutes <= 60)
-                match = true;
-              if (selectedSubFilters.contains('Over 60 mins') &&
-                  recipe.timeTaken.inMinutes > 60)
-                match = true;
-              matches &= match;
-            }
-          }
-
-          if (searchQuery.isNotEmpty) {
-            final lowerQuery = searchQuery.toLowerCase();
-            final nameMatch = recipe.name.toLowerCase().contains(lowerQuery);
-            final ingredientsMatch = recipe.ingredients.any(
-              (ingredient) => ingredient.toLowerCase().contains(lowerQuery),
-            );
-            matches &= (nameMatch || ingredientsMatch);
-          }
-
-          return matches;
-        }).toList();
-
     return Scaffold(
       appBar: AppBar(
         surfaceTintColor: Colors.transparent,
@@ -264,7 +175,7 @@ class _RecipeState extends State<Recipe> {
         children: [
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
+              padding: const EdgeInsets.all(8),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -399,11 +310,13 @@ class _RecipeState extends State<Recipe> {
                                                                 );
                                                         return FilterChip(
                                                           label: Text(
-                                                            style: TextStyle(
-                                                              color:
-                                                                  Colors.white,
-                                                            ),
                                                             subFilter,
+                                                            style:
+                                                                const TextStyle(
+                                                                  color:
+                                                                      Colors
+                                                                          .white,
+                                                                ),
                                                           ),
                                                           selected: isSelected,
                                                           onSelected: (
@@ -424,11 +337,14 @@ class _RecipeState extends State<Recipe> {
                                                             });
                                                             setState(() {});
                                                           },
-                                                          selectedColor: Color(
-                                                            0xFF1F3354,
-                                                          ),
+                                                          selectedColor:
+                                                              const Color(
+                                                                0xFF1F3354,
+                                                              ),
                                                           backgroundColor:
-                                                              Color(0xFF3E5879),
+                                                              const Color(
+                                                                0xFF3E5879,
+                                                              ),
                                                         );
                                                       }).toList(),
                                                 ),
@@ -449,121 +365,136 @@ class _RecipeState extends State<Recipe> {
                     ],
                   ),
                   const SizedBox(height: 10),
-                  ListView.builder(
-                    physics: const NeverScrollableScrollPhysics(),
-                    shrinkWrap: true,
-                    itemCount: filteredRecipes.length,
-                    itemBuilder: (context, index) {
-                      final recipe = filteredRecipes[index];
-                      final isFavorite = widget.favoriteRecipes.contains(
-                        recipe,
-                      );
+                  FutureBuilder<List<RecipeItem>>(
+                    future: futureRecipes,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      } else if (snapshot.hasError) {
+                        return Center(child: Text('Error: ${snapshot.error}'));
+                      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                        return const Center(child: Text('No recipes found'));
+                      } else {
+                        final filteredRecipes = filterRecipes(snapshot.data!);
 
-                      return Card(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                          side: const BorderSide(
-                            color: Color(0xFF1F3354),
-                            width: 1,
-                          ),
-                        ),
-                        elevation: 8,
-                        shadowColor: const Color(0xFF1F3354),
-                        margin: const EdgeInsets.symmetric(vertical: 8),
-                        child: Container(
-                          padding: const EdgeInsets.all(12),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              ClipRRect(
+                        return ListView.builder(
+                          physics: const NeverScrollableScrollPhysics(),
+                          shrinkWrap: true,
+                          itemCount: filteredRecipes.length,
+                          itemBuilder: (context, index) {
+                            final recipe = filteredRecipes[index];
+                            final isFavorite = widget.favoriteRecipes.contains(
+                              recipe,
+                            );
+
+                            return Card(
+                              shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(20),
-                                child: Image.asset(
-                                  recipe.image,
-                                  width: 100,
-                                  height: 110,
-                                  fit: BoxFit.cover,
+                                side: const BorderSide(
+                                  color: Color(0xFF1F3354),
+                                  width: 1,
                                 ),
                               ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
+                              elevation: 8,
+                              shadowColor: const Color(0xFF1F3354),
+                              margin: const EdgeInsets.symmetric(vertical: 8),
+                              child: Container(
+                                padding: const EdgeInsets.all(12),
+                                child: Row(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(
-                                      recipe.name,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.w800,
-                                        fontSize: 18,
-                                        color: Color(0xFF1F3354),
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(20),
+                                      child: Image.asset(
+                                        recipe.image,
+                                        width: 100,
+                                        height: 110,
+                                        fit: BoxFit.cover,
                                       ),
                                     ),
-                                    Text(
-                                      recipe.cusine,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 16,
-                                        color: Color(0xFF1F3354),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            recipe.name,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w800,
+                                              fontSize: 18,
+                                              color: Color(0xFF1F3354),
+                                            ),
+                                          ),
+                                          Text(
+                                            recipe.cusine,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w600,
+                                              fontSize: 16,
+                                              color: Color(0xFF1F3354),
+                                            ),
+                                          ),
+                                          Text(
+                                            recipe.difficulty,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w400,
+                                              fontSize: 14,
+                                              color: Color(0xFF1F3354),
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
-                                    Text(
-                                      recipe.difficulty,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.w400,
-                                        fontSize: 14,
-                                        color: Color(0xFF1F3354),
+                                    const SizedBox(width: 6),
+                                    Container(
+                                      width: 60,
+                                      padding: const EdgeInsets.only(top: 4),
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          IconButton(
+                                            iconSize: 28,
+                                            padding: EdgeInsets.zero,
+                                            constraints: const BoxConstraints(),
+                                            icon: Icon(
+                                              isFavorite
+                                                  ? Icons.favorite
+                                                  : Icons.favorite_border,
+                                              color:
+                                                  isFavorite
+                                                      ? Colors.red
+                                                      : const Color(0xFF1F3354),
+                                            ),
+                                            onPressed: () {
+                                              widget.onFavoriteToggle(recipe);
+                                            },
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            '${recipe.timeTaken.inMinutes} min',
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w700,
+                                              fontSize: 16,
+                                              color: Color(0xFF1F3354),
+                                            ),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                        ],
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
-                              const SizedBox(width: 6),
-                              Container(
-                                width: 60,
-                                padding: const EdgeInsets.only(top: 4),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    IconButton(
-                                      iconSize: 28,
-                                      padding: EdgeInsets.zero,
-                                      constraints: const BoxConstraints(),
-                                      icon: Icon(
-                                        isFavorite
-                                            ? Icons.favorite
-                                            : Icons.favorite_border,
-                                        color:
-                                            isFavorite
-                                                ? Colors.red
-                                                : const Color(0xFF1F3354),
-                                      ),
-                                      onPressed: () {
-                                        widget.onFavoriteToggle(recipe);
-                                      },
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      '${recipe.timeTaken.inMinutes} min',
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.w700,
-                                        fontSize: 16,
-                                        color: Color(0xFF1F3354),
-                                      ),
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
+                            );
+                          },
+                        );
+                      }
                     },
                   ),
                 ],
               ),
             ),
           ),
-          //SizedBox(height: 20),
         ],
       ),
     );
