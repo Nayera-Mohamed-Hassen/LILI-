@@ -5,8 +5,7 @@ from difflib import get_close_matches
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from pymongo import MongoClient
-
-from app.mySQLConnection import insertUser, selectUser, insertAllergy, insertHouseHold, executeWriteQuery, selectHouseHold
+import app.mySQLConnection
 
 HouseHold_id = 1  # Default household ID, can be changed as needed
 user_id = 1  # Default user ID, can be changed as needed
@@ -464,15 +463,15 @@ class RecipeItem(BaseModel):
     image: str
 
 recipes = [
-    # {
-    #     "name": "Spaghetti Carbonara",
-    #     "cusine": "Italian",
-    #     "mealType": "Dinner",
-    #     "ingredients": ["Spaghetti", "Eggs", "Parmesan cheese", "Bacon"],
-    #     "timeTaken": 30,
-    #     "difficulty": "Intermediate",
-    #     "image": "Spaghetti Carbonara.jpg"
-    # },
+    {
+        "name": "Spaghetti Carbonara",
+        "cusine": "Italian",
+        "mealType": "Dinner",
+        "ingredients": ["Spaghetti", "Eggs", "Parmesan cheese", "Bacon"],
+        "timeTaken": 30,
+        "difficulty": "Intermediate",
+        "image": "Spaghetti Carbonara.jpg"
+    },
     {
         "name": "Sushi Rolls",
         "cusine": "Japanese",
@@ -566,3 +565,5 @@ async def get_recipes(_: EmptyRequest):
         return recipes
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+
