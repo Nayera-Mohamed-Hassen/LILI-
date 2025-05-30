@@ -1,15 +1,16 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
-
 import 'package:LILI/models/recipeItem.dart';
 import 'package:http/http.dart' as http;
+import 'package:LILI/user_session.dart';
 
 Future<List<RecipeItem>> fetchRecipes() async {
   final response = await http.post(
     Uri.parse('http://10.0.2.2:8000/user/recipes'),
     headers: {'Content-Type': 'application/json'},
-    body: jsonEncode({}), // Sending an empty JSON body
+    body: jsonEncode({
+      'user_id': UserSession().getUserId(),
+    }), // Sending an empty JSON body
   );
 
   if (response.statusCode == 200) {
@@ -128,17 +129,18 @@ class _RecipeState extends State<Recipe> {
         // Filter by Duration
         if (filterOptions['Duration']!.any(selectedSubFilters.contains)) {
           bool match = false;
-          if (selectedSubFilters.contains('Under 30 mins') &&
-              recipe.timeTaken <= Duration(minutes: 30)) {
+          // Parse the integer minutes from timeTaken string, e.g. "45 min"
+          final int minutes = int.tryParse(recipe.timeTaken.split(' ')[0]) ?? 0;
+
+          if (selectedSubFilters.contains('Under 30 mins') && minutes <= 30) {
             match = true;
           }
           if (selectedSubFilters.contains('30-60 mins') &&
-              recipe.timeTaken > Duration(minutes: 30) &&
-              recipe.timeTaken <= Duration(minutes: 60)) {
+              minutes > 30 &&
+              minutes <= 60) {
             match = true;
           }
-          if (selectedSubFilters.contains('Over 60 mins') &&
-              recipe.timeTaken > Duration(minutes: 60)) {
+          if (selectedSubFilters.contains('Over 60 mins') && minutes > 60) {
             match = true;
           }
           matches &= match;
@@ -383,6 +385,7 @@ class _RecipeState extends State<Recipe> {
                           itemCount: filteredRecipes.length,
                           itemBuilder: (context, index) {
                             final recipe = filteredRecipes[index];
+
                             final isFavorite = widget.favoriteRecipes.contains(
                               recipe,
                             );
@@ -405,13 +408,17 @@ class _RecipeState extends State<Recipe> {
                                   children: [
                                     ClipRRect(
                                       borderRadius: BorderRadius.circular(20),
-                                      child: Image.asset(
-                                        recipe.image,
+                                      child: Image.network(
+                                        'https://raw.githubusercontent.com/Nayera-Mohamed-Hassen/LILI-/main/FoodImages/${Uri.encodeComponent(recipe.image)}',
                                         width: 100,
                                         height: 110,
                                         fit: BoxFit.cover,
+                                        errorBuilder:
+                                            (context, error, stackTrace) =>
+                                                const Icon(Icons.broken_image),
                                       ),
                                     ),
+
                                     const SizedBox(width: 12),
                                     Expanded(
                                       child: Column(
@@ -421,16 +428,16 @@ class _RecipeState extends State<Recipe> {
                                           Text(
                                             recipe.name,
                                             style: const TextStyle(
-                                              fontWeight: FontWeight.w800,
-                                              fontSize: 18,
+                                              fontWeight: FontWeight.w600,
+                                              fontSize: 16,
                                               color: Color(0xFF1F3354),
                                             ),
                                           ),
                                           Text(
                                             recipe.cusine,
                                             style: const TextStyle(
-                                              fontWeight: FontWeight.w600,
-                                              fontSize: 16,
+                                              fontWeight: FontWeight.w500,
+                                              fontSize: 14,
                                               color: Color(0xFF1F3354),
                                             ),
                                           ),
@@ -446,9 +453,8 @@ class _RecipeState extends State<Recipe> {
                                       ),
                                     ),
                                     const SizedBox(width: 6),
-                                    Container(
+                                    SizedBox(
                                       width: 60,
-                                      padding: const EdgeInsets.only(top: 4),
                                       child: Column(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
@@ -465,16 +471,17 @@ class _RecipeState extends State<Recipe> {
                                                       ? Colors.red
                                                       : const Color(0xFF1F3354),
                                             ),
-                                            onPressed: () {
-                                              widget.onFavoriteToggle(recipe);
-                                            },
+                                            onPressed:
+                                                () => widget.onFavoriteToggle(
+                                                  recipe,
+                                                ),
                                           ),
-                                          const SizedBox(height: 4),
+                                          //const SizedBox(height: 2),
                                           Text(
-                                            '${recipe.timeTaken.inMinutes} min',
+                                            recipe.timeTaken,
                                             style: const TextStyle(
-                                              fontWeight: FontWeight.w700,
-                                              fontSize: 16,
+                                              fontWeight: FontWeight.w400,
+                                              fontSize: 14,
                                               color: Color(0xFF1F3354),
                                             ),
                                             textAlign: TextAlign.center,
@@ -490,6 +497,19 @@ class _RecipeState extends State<Recipe> {
                         );
                       }
                     },
+                  ),
+                  SizedBox(height: 20),
+                  Center(
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF1F3354),
+                        foregroundColor: Colors.white,
+                      ),
+                      onPressed: () {
+                        // Your load more logic
+                      },
+                      child: const Text("Load More"),
+                    ),
                   ),
                 ],
               ),

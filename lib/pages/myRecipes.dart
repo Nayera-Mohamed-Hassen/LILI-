@@ -124,7 +124,7 @@ class _MyRecipesPageState extends State<MyRecipesPage> {
                               children: [
                                 // Removed favorite IconButton here
                                 Text(
-                                  '${recipe.timeTaken.inMinutes} min',
+                                  recipe.timeTaken,
                                   style: const TextStyle(
                                     fontWeight: FontWeight.w700,
                                     fontSize: 16,

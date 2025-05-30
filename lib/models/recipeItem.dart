@@ -4,7 +4,7 @@ class RecipeItem {
   final String mealType;
   final List<String> ingredients;
   final List<String>? steps;
-  final Duration timeTaken;
+  final String timeTaken; // now String
   final String difficulty;
   final String image;
 
@@ -26,9 +26,9 @@ class RecipeItem {
       mealType: json['mealType'],
       ingredients: List<String>.from(json['ingredients']),
       steps: json['steps'] != null ? List<String>.from(json['steps']) : null,
-      timeTaken: Duration(minutes: json['timeTaken']),
+      timeTaken: json['timeTaken'],
       difficulty: json['difficulty'],
-      image: 'assets/recipes/${json['image']}', // prepend assets folder here
+      image: json['image'],
     );
   }
 
@@ -38,9 +38,9 @@ class RecipeItem {
     'mealType': mealType,
     'ingredients': ingredients,
     'steps': steps,
-    'timeTaken': timeTaken.inMinutes,
+    'timeTaken': timeTaken,
     'difficulty': difficulty,
-    'image': image.replaceFirst('assets/recipes/', ''),
+    'image': image,
   };
 
   @override

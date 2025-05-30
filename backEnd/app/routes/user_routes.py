@@ -5,7 +5,9 @@ from difflib import get_close_matches
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from pymongo import MongoClient
-import app.mySQLConnection
+from ..recipeAI import get_recipe_recommendations
+from ..mySQLConnection import selectUser, selectAllergy, insertUser, insertHouseHold, insertAllergy, executeWriteQuery
+
 
 HouseHold_id = 1  # Default household ID, can be changed as needed
 user_id = 1  # Default user ID, can be changed as needed
@@ -458,7 +460,7 @@ class RecipeItem(BaseModel):
     mealType: str
     ingredients: list[str]
     steps: Optional[list[str]] = None
-    timeTaken: int  # store duration as minutes (int)
+    timeTaken: str  # store duration as minutes (int)
     difficulty: str
     image: str
 
@@ -556,14 +558,16 @@ recipes = [
 ]
 
 
-class EmptyRequest(BaseModel):
-    pass
+class UserRequest(BaseModel):
+    user_id: int
+
 
 @router.post("/recipes", response_model=List[RecipeItem])
-async def get_recipes(_: EmptyRequest):
+async def get_recipes(request: UserRequest):
     try:
-        return recipes
+        user_id = request.user_id
+        recommended = get_recipe_recommendations(user_id)
+        return recommended
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
 
