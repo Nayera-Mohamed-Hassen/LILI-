@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 from app.mySQLConnection import selectUser, selectAllergy
 from fastapi import HTTPException
 
-def get_recipe_recommendations(user_id):
+def get_recipe_recommendations(user_id,count=1):
     # ---------- CONFIGURATION ----------
     
     load_dotenv()
@@ -172,7 +172,8 @@ def get_recipe_recommendations(user_id):
     recipes_df["AI_score"] = model.predict_proba(vectorizer.transform(recipes_df["ingredients"]))[:, 1]
     recipes_df["custom_score"] = recipes_df["ingredients"].apply(recipe_score)
     recipes_df["final_score"] = recipes_df["AI_score"] + recipes_df["custom_score"]
-    top_recs = recipes_df.sort_values("final_score", ascending=False).head(10)
+    #top_recs = recipes_df.sort_values("final_score", ascending=False).head(10*count)
+    top_recs = recipes_df.sort_values("final_score", ascending=False).iloc[(10*count)-10 : 10*count]
 
     # Format recommendations to match Flutter app expectations
     recommendations = []
@@ -214,13 +215,15 @@ def get_recipe_recommendations(user_id):
 
     mongo_client.close()
 
-    print([
+    print(
+        [
         {
             "name": r["name"],
-            "image": r["image"]
+            "timeTaken": r["timeTaken"]
         }
         for r in recommendations
-    ])
+    ]
+    )
 
     return [
         {

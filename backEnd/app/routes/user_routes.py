@@ -560,13 +560,18 @@ recipes = [
 
 class UserRequest(BaseModel):
     user_id: int
+    recipeCount: int
 
 
 @router.post("/recipes", response_model=List[RecipeItem])
 async def get_recipes(request: UserRequest):
     try:
         user_id = request.user_id
-        recommended = get_recipe_recommendations(user_id)
+        count = request.recipeCount
+        print(f"User ID: {user_id}, Recipe Count: {count}")
+        if count <= 0:
+            raise HTTPException(status_code=400, detail="Recipe count must be a positive integer")
+        recommended = get_recipe_recommendations(user_id,count)
         return recommended
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

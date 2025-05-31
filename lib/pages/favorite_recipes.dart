@@ -64,7 +64,6 @@ class FavoritesPage extends StatelessWidget {
                             borderRadius: BorderRadius.circular(20),
                             child: Image.network(
                               'https://raw.githubusercontent.com/Nayera-Mohamed-Hassen/LILI-/main/FoodImages/${Uri.encodeComponent(recipe.image)}',
-                              //'https://raw.githubusercontent.com/Nayera-Mohamed-Hassen/LILI-/main/FoodImages/assets/recipes/Arugula-Stuffed%20Leg%20of%20Lamb%20with%20Roasted%20Spring%20Vegetables.jpg',
                               width: 100,
                               height: 110,
                               fit: BoxFit.cover,

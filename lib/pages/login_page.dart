@@ -79,6 +79,7 @@ class _LoginPageState extends State<LoginPage> {
 
                     if (userId != 0) {
                       UserSession().setUserId(userId);
+                      UserSession().setRecipeCount(1);
                       Navigator.pushNamed(context, '/homepage');
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
