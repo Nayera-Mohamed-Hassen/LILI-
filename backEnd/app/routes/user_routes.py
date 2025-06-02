@@ -5,8 +5,9 @@ from difflib import get_close_matches
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from pymongo import MongoClient
+from ..recipeAI import get_recipe_recommendations
+from ..mySQLConnection import selectUser, selectAllergy, insertUser, insertHouseHold, insertAllergy, executeWriteQuery
 
-from app.mySQLConnection import insertUser, selectUser, insertAllergy, insertHouseHold, executeWriteQuery, selectHouseHold
 
 HouseHold_id = 1  # Default household ID, can be changed as needed
 user_id = 1  # Default user ID, can be changed as needed
@@ -459,20 +460,20 @@ class RecipeItem(BaseModel):
     mealType: str
     ingredients: list[str]
     steps: Optional[list[str]] = None
-    timeTaken: int  # store duration as minutes (int)
+    timeTaken: str  # store duration as minutes (int)
     difficulty: str
     image: str
 
 recipes = [
-    # {
-    #     "name": "Spaghetti Carbonara",
-    #     "cusine": "Italian",
-    #     "mealType": "Dinner",
-    #     "ingredients": ["Spaghetti", "Eggs", "Parmesan cheese", "Bacon"],
-    #     "timeTaken": 30,
-    #     "difficulty": "Intermediate",
-    #     "image": "Spaghetti Carbonara.jpg"
-    # },
+    {
+        "name": "Spaghetti Carbonara",
+        "cusine": "Italian",
+        "mealType": "Dinner",
+        "ingredients": ["Spaghetti", "Eggs", "Parmesan cheese", "Bacon"],
+        "timeTaken": 30,
+        "difficulty": "Intermediate",
+        "image": "Spaghetti Carbonara.jpg"
+    },
     {
         "name": "Sushi Rolls",
         "cusine": "Japanese",
@@ -557,12 +558,21 @@ recipes = [
 ]
 
 
-class EmptyRequest(BaseModel):
-    pass
+class UserRequest(BaseModel):
+    user_id: int
+    recipeCount: int
+
 
 @router.post("/recipes", response_model=List[RecipeItem])
-async def get_recipes(_: EmptyRequest):
+async def get_recipes(request: UserRequest):
     try:
-        return recipes
+        user_id = request.user_id
+        count = request.recipeCount
+        print(f"User ID: {user_id}, Recipe Count: {count}")
+        if count <= 0:
+            raise HTTPException(status_code=400, detail="Recipe count must be a positive integer")
+        recommended = get_recipe_recommendations(user_id,count)
+        return recommended
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+

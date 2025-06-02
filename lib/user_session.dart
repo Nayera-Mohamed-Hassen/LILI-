@@ -7,6 +7,7 @@ class UserSession {
 
   UserSession._internal();
 
+  int recipesCount = 1;
   int? userId = 0;
 
   void setUserId(int id) {
@@ -15,5 +16,17 @@ class UserSession {
 
   int? getUserId() {
     return userId;
+  }
+
+  void setRecipeCount(int count) {
+    recipesCount = count;
+  }
+
+  int getRecipeCount() {
+    return recipesCount;
+  }
+
+  void incrementRecipeCount() {
+    recipesCount += 1;
   }
 }

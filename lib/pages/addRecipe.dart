@@ -133,7 +133,7 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
         cusine: _selectedCuisine ?? '',
         mealType: _selectedMealType ?? '',
         ingredients: _ingredients,
-        timeTaken: _durationToDuration(_selectedDuration),
+        timeTaken: _selectedDuration ?? '',
         difficulty: _selectedDifficulty ?? '',
         image: _pickedImage?.path ?? '',
         steps: stepsList.isEmpty ? null : stepsList,

@@ -62,11 +62,14 @@ class FavoritesPage extends StatelessWidget {
                         children: [
                           ClipRRect(
                             borderRadius: BorderRadius.circular(20),
-                            child: Image.asset(
-                              recipe.image,
+                            child: Image.network(
+                              'https://raw.githubusercontent.com/Nayera-Mohamed-Hassen/LILI-/main/FoodImages/${Uri.encodeComponent(recipe.image)}',
                               width: 100,
-                              height: 100,
+                              height: 110,
                               fit: BoxFit.cover,
+                              errorBuilder:
+                                  (context, error, stackTrace) =>
+                                      const Icon(Icons.broken_image),
                             ),
                           ),
                           const SizedBox(width: 12),
@@ -77,16 +80,16 @@ class FavoritesPage extends StatelessWidget {
                                 Text(
                                   recipe.name,
                                   style: const TextStyle(
-                                    fontWeight: FontWeight.w800,
-                                    fontSize: 18,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 16,
                                     color: Color(0xFF1F3354),
                                   ),
                                 ),
                                 Text(
                                   recipe.cusine,
                                   style: const TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 14,
                                     color: Color(0xFF1F3354),
                                   ),
                                 ),
@@ -112,10 +115,10 @@ class FavoritesPage extends StatelessWidget {
                                 onPressed: () => onFavoriteToggle(recipe),
                               ),
                               Text(
-                                '${recipe.timeTaken.inMinutes} min',
+                                recipe.timeTaken,
                                 style: const TextStyle(
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 16,
+                                  fontWeight: FontWeight.w400,
+                                  fontSize: 14,
                                   color: Color(0xFF1F3354),
                                 ),
                               ),
