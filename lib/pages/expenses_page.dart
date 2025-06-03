@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'spent_page.dart';
-import 'income_page.dart';
 import 'dart:ui';
 import 'add_visa_page.dart';
+import 'spent_page.dart';
+import 'income_page.dart';
 
 class ExpensesPage extends StatefulWidget {
   @override
@@ -11,8 +11,6 @@ class ExpensesPage extends StatefulWidget {
 
 class _ExpensesPageState extends State<ExpensesPage> {
   double currentBalance = 2090.20;
-  double income = 2090.20;
-  double spent = 1290.00;
 
   List<Map<String, dynamic>> expenses = [
     {'icon': Icons.store, 'title': 'Grocery', 'time': '10 min ago', 'amount': 35.0},
@@ -31,19 +29,6 @@ class _ExpensesPageState extends State<ExpensesPage> {
       'fullNumber': '9876 5432 1098 7654',
     },
   ];
-
-  void _addSpentExpense(String category, double amount) {
-    setState(() {
-      spent += amount;
-      currentBalance -= amount;
-      expenses.insert(0, {
-        'icon': _getIconForCategory(category),
-        'title': category,
-        'time': 'Just now',
-        'amount': amount
-      });
-    });
-  }
 
   bool _isBalanceRevealed = false;
 
@@ -64,180 +49,287 @@ class _ExpensesPageState extends State<ExpensesPage> {
     }
   }
 
+  void _addExpense(String category, double amount) {
+    setState(() {
+      currentBalance -= amount;
+      expenses.insert(0, {
+        'icon': _getIconForCategory(category),
+        'title': category,
+        'time': 'Just now',
+        'amount': amount
+      });
+    });
+  }
+
+  void _addIncome(double amount) {
+    setState(() {
+      currentBalance += amount;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    final Color blue = Color(0xFF0B50FF);
-
     return Scaffold(
-
-      appBar: AppBar(
-        title: Text('Expenses Manager', style: TextStyle(color: Colors.white)),
-        backgroundColor: Color(0xFF1F3354),
-        iconTheme: const IconThemeData(color: Colors.white),
-      ),
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Current balance', style: TextStyle(fontWeight: FontWeight.bold)),
-              SizedBox(height: 5),
-              GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _isBalanceRevealed = !_isBalanceRevealed;
-                  });
-                },
-                child: Stack(
-                  alignment: Alignment.centerLeft,
-                  children: [
-                    Text(
-                      '\$ ${currentBalance.toStringAsFixed(2)}',
-                      style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
-                    ),
-                    if (!_isBalanceRevealed)
-                      Positioned.fill(
-                        child: ClipRect(
-                          child: BackdropFilter(
-                            filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
-                            child: Container(
-                              color: Colors.black.withOpacity(0),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              const Color(0xFF1F3354),
+              const Color(0xFF3E5879),
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Expenses Manager',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: 20),
+                Text(
+                  'Current balance',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                SizedBox(height: 5),
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _isBalanceRevealed = !_isBalanceRevealed;
+                    });
+                  },
+                  child: Stack(
+                    alignment: Alignment.centerLeft,
+                    children: [
+                      Text(
+                        '\$ ${currentBalance.toStringAsFixed(2)}',
+                        style: TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      if (!_isBalanceRevealed)
+                        Positioned.fill(
+                          child: ClipRect(
+                            child: BackdropFilter(
+                              filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
+                              child: Container(
+                                color: Colors.black.withOpacity(0),
+                              ),
                             ),
                           ),
                         ),
+                    ],
+                  ),
+                ),
+
+                SizedBox(height: 20),
+
+                // Income and Spent Buttons
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white.withOpacity(0.1),
+                          padding: EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            side: BorderSide(color: Colors.white24),
+                          ),
+                        ),
+                        onPressed: () async {
+                          final result = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => IncomePage(income: 0),
+                            ),
+                          );
+                          if (result != null && result is Map<String, dynamic>) {
+                            _addIncome(result['amount']);
+                          }
+                        },
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.add_circle_outline, color: Colors.white),
+                            SizedBox(width: 8),
+                            Text(
+                              'Income',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
+                    ),
+                    SizedBox(width: 16),
+                    Expanded(
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white.withOpacity(0.1),
+                          padding: EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            side: BorderSide(color: Colors.white24),
+                          ),
+                        ),
+                        onPressed: () async {
+                          final result = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => SpentPage(spent: 0),
+                            ),
+                          );
+                          if (result != null && result is Map<String, dynamic>) {
+                            _addExpense(result['category'], result['amount']);
+                          }
+                        },
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.remove_circle_outline, color: Colors.white),
+                            SizedBox(width: 8),
+                            Text(
+                              'Spent',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   ],
                 ),
-              ),
 
-              SizedBox(height: 20),
+                SizedBox(height: 30),
 
-              // Income vs Spent
-              Container(
-                decoration: BoxDecoration(
-                  color:  Color(0xFF1F3354),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                padding: EdgeInsets.symmetric(vertical: 20, horizontal: 20),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    GestureDetector(
-                      onTap: () async {
+                    Text(
+                      'Your cards',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.add, color: Colors.white),
+                      onPressed: () async {
                         final result = await Navigator.push(
                           context,
-                          MaterialPageRoute(
-                            builder: (_) => IncomePage(income: income),
-
-                          ),
+                          MaterialPageRoute(builder: (_) => AddVisaPage()),
                         );
                         if (result != null && result is Map<String, dynamic>) {
                           setState(() {
-                            income += result['amount'];
-                            currentBalance += result['amount'];
+                            cards.add(result);
                           });
                         }
                       },
-                      child: Column(
-                        children: [
-                          Text('Income ', style: TextStyle(color: Colors.white70,fontSize: 18,fontWeight: FontWeight.bold),),
-                          SizedBox(height: 8),
-
-                        ],
-                      ),
                     ),
+                  ],
+                ),
+                SizedBox(height: 10),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: cards.map((card) => Padding(
+                      padding: const EdgeInsets.only(right: 16),
+                      child: CardTile(
+                        color: card['color'],
+                        type: card['type'],
+                        fullNumber: card['fullNumber'],
+                      ),
+                    )).toList(),
+                  ),
+                ),
 
-                    Container(width: 1, height: 40, color: Colors.white24),
-                    GestureDetector(
-                      onTap: () async {
-                        final result = await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => SpentPage(spent: spent),
-
-                          ),
-                        );
-                        if (result != null && result is Map<String, dynamic>) {
-                          _addSpentExpense(result['category'], result['amount']);
-                        }
-                      },
-                      child: Column(
-                        children: [
-                          Text('Spent', style: TextStyle(color: Colors.white70,fontSize: 18,fontWeight: FontWeight.bold)),
-                          SizedBox(height: 8),
-
-                        ],
+                SizedBox(height: 30),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Recent Expenses',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ],
                 ),
-              ),
-              SizedBox(height: 30),
 
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('Your cards', style: TextStyle(fontWeight: FontWeight.bold)),
-                  IconButton(
-                    icon: Icon(Icons.add, color: Color(0xFF1F3354)),
-                    onPressed: () async {
-                      final result = await Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => AddVisaPage()),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: expenses.length,
+                    itemBuilder: (context, index) {
+                      final item = expenses[index];
+                      return Card(
+                        margin: EdgeInsets.symmetric(vertical: 8),
+                        color: Colors.white.withOpacity(0.1),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          side: BorderSide(color: Colors.white24),
+                        ),
+                        child: ListTile(
+                          leading: Container(
+                            padding: EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.white24,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Icon(
+                              item['icon'],
+                              color: Colors.white,
+                            ),
+                          ),
+                          title: Text(
+                            item['title'],
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          subtitle: Text(
+                            item['time'],
+                            style: TextStyle(color: Colors.white60),
+                          ),
+                          trailing: Text(
+                            '-\$${item['amount'].toStringAsFixed(2)}',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
                       );
-                      if (result != null && result is Map<String, dynamic>) {
-                        setState(() {
-                          cards.add(result);
-                        });
-                      }
                     },
                   ),
-                ],
-              ),
-              SizedBox(height: 10),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: cards
-                      .map((card) => Padding(
-                    padding: const EdgeInsets.only(right: 16),
-                    child: CardTile(
-                      color: card['color'],
-                      type: card['type'],
-                      fullNumber: card['fullNumber'],
-                    ),
-                  ))
-                      .toList(),
                 ),
-              ),
-
-              SizedBox(height: 30),
-              // Expenses title
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('Expenses', style: TextStyle(fontWeight: FontWeight.bold)),
-                ],
-              ),
-
-              // Expense list
-              Expanded(
-                child: ListView.builder(
-                  itemCount: expenses.length,
-                  itemBuilder: (context, index) {
-                    final item = expenses[index];
-                    return ExpenseTile(
-                      icon: item['icon'],
-                      title: item['title'],
-                      time: item['time'],
-                      amount: item['amount'],
-                    );
-                  },
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -248,13 +340,12 @@ class _ExpensesPageState extends State<ExpensesPage> {
 class CardTile extends StatefulWidget {
   final Color color;
   final String type;
-  final String fullNumber; // full card number
+  final String fullNumber;
 
   const CardTile({
     required this.color,
     required this.type,
     required this.fullNumber,
-
   });
 
   @override
@@ -274,7 +365,6 @@ class _CardTileState extends State<CardTile> {
     if (_isRevealed) {
       return widget.fullNumber;
     } else {
-      // Mask all but last 4 digits, preserve spaces
       final parts = widget.fullNumber.split(' ');
       for (int i = 0; i < parts.length - 1; i++) {
         parts[i] = '****';
@@ -289,79 +379,53 @@ class _CardTileState extends State<CardTile> {
       onTap: _toggleReveal,
       child: Container(
         width: 300,
-        height: 180,
         padding: EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: widget.color,
+          color: Colors.white.withOpacity(0.1),
           borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black26,
-              blurRadius: 8,
-              offset: Offset(0, 4),
-            ),
-          ],
+          border: Border.all(color: Colors.white24),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Card type
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  widget.type,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Icon(
+                  widget.type == 'VISA' ? Icons.credit_card : Icons.credit_card,
+                  color: Colors.white,
+                  size: 32,
+                ),
+              ],
+            ),
+            SizedBox(height: 30),
             Text(
-              widget.type,
+              _displayNumber,
               style: TextStyle(
                 color: Colors.white,
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
+                fontSize: 18,
                 letterSpacing: 2,
               ),
             ),
-            Spacer(),
-            Center(
-              child: Text(
-                _displayNumber,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 22,
-                  letterSpacing: 4,
-                  fontWeight: FontWeight.w500,
-                  fontFamily: 'Courier',
-                ),
-              ),
-            ),
-            Spacer(),
-            Align(
-              alignment: Alignment.bottomRight,
-              child: Icon(
-                _isRevealed ? Icons.visibility : Icons.visibility_off,
-                color: Colors.white70,
+            SizedBox(height: 20),
+            Text(
+              'Tap to reveal/hide',
+              style: TextStyle(
+                color: Colors.white60,
+                fontSize: 12,
               ),
             ),
           ],
         ),
       ),
-    );
-  }
-}
-
-class ExpenseTile extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String time;
-  final double amount;
-
-  const ExpenseTile({required this.icon, required this.title, required this.time, required this.amount});
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      leading: Container(
-        padding: EdgeInsets.all(10),
-        decoration: BoxDecoration(color: Colors.black12, borderRadius: BorderRadius.circular(10)),
-        child: Icon(icon, color: Colors.black87),
-      ),
-      title: Text(title, style: TextStyle(fontWeight: FontWeight.bold)),
-      subtitle: Text(time),
-      trailing: Text('\$${amount.toStringAsFixed(2)}', style: TextStyle(fontWeight: FontWeight.bold)),
     );
   }
 }
