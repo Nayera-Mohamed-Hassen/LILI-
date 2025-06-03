@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:LILI/pages/navbar.dart';
 import 'wave2.dart';
-import 'navbar.dart';
 
 class CookingStepsPage extends StatefulWidget {
   final String image;
@@ -16,6 +15,7 @@ class CookingStepsPage extends StatefulWidget {
 
 class _CookingStepsPageState extends State<CookingStepsPage> {
   late List<bool> stepChecked;
+  int currentStep = 0;
 
   @override
   void initState() {
@@ -26,96 +26,194 @@ class _CookingStepsPageState extends State<CookingStepsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        surfaceTintColor: Colors.transparent,
-        iconTheme: const IconThemeData(color: Colors.white),
-        backgroundColor: const Color(0xFF1F3354),
-        title: const Text(
-          'Start Cooking',
-          style: TextStyle(color: Colors.white),
-        ),
-      ),
-      body: Column(
-        children: [
-          Stack(
-            children: [
-              ClipPath(
-                clipper: WaveClipper(),
-                child: Container(height: 200, color: const Color(0xFF1F3354)),
-              ),
-              Column(
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            expandedHeight: 200,
+            pinned: true,
+            backgroundColor: const Color(0xFF1F3354),
+            flexibleSpace: FlexibleSpaceBar(
+              background: Stack(
+                fit: StackFit.expand,
                 children: [
-                  const SizedBox(height: 80),
-                  Center(
-                    child: ClipOval(
-                      child: Image.asset(
-                        widget.image,
-                        width: 150,
-                        height: 150,
-                        fit: BoxFit.cover,
+                  Image.network(
+                    'https://raw.githubusercontent.com/Nayera-Mohamed-Hassen/LILI-/main/FoodImages/${Uri.encodeComponent(widget.image)}',
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image),
+                  ),
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.transparent,
+                          Colors.black.withOpacity(0.7),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const Positioned(
+                    bottom: 16,
+                    left: 16,
+                    child: Text(
+                      'Let\'s Start Cooking!',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
                 ],
               ),
-            ],
-          ),
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: widget.steps.length,
-              itemBuilder: (context, index) {
-                final isChecked = stepChecked[index];
-                return CheckboxListTile(
-                  activeColor: const Color(0xFF1F3354),
-                  controlAffinity: ListTileControlAffinity.trailing,
-                  value: isChecked,
-                  onChanged: (value) {
-                    setState(() {
-                      stepChecked[index] = value!;
-                    });
-                  },
-                  title: AnimatedDefaultTextStyle(
-                    duration: const Duration(milliseconds: 200),
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: isChecked ? Colors.grey : Colors.black,
-                      decoration: isChecked ? TextDecoration.lineThrough : null,
-                    ),
-                    child: Text('${index + 1}. ${widget.steps[index]}'),
-                  ),
-                );
-              },
             ),
           ),
-
-          const SizedBox(height: 20),
-          Center(
-            child: ElevatedButton(
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Progress indicator
+                  LinearProgressIndicator(
+                    value: stepChecked.where((checked) => checked).length / widget.steps.length,
+                    backgroundColor: Colors.grey[200],
+                    color: const Color(0xFF1F3354),
+                    minHeight: 8,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '${stepChecked.where((checked) => checked).length}/${widget.steps.length} steps completed',
+                    style: TextStyle(
+                      color: Colors.grey[600],
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  
+                  // Steps list
+                  ...widget.steps.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final step = entry.value;
+                    final isChecked = stepChecked[index];
+                    
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 16),
+                      elevation: isChecked ? 1 : 3,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: BorderSide(
+                          color: isChecked ? Colors.green : const Color(0xFF1F3354),
+                          width: 1,
+                        ),
+                      ),
+                      child: InkWell(
+                        onTap: () {
+                          setState(() {
+                            stepChecked[index] = !stepChecked[index];
+                          });
+                        },
+                        borderRadius: BorderRadius.circular(12),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                width: 32,
+                                height: 32,
+                                decoration: BoxDecoration(
+                                  color: isChecked ? Colors.green : const Color(0xFF1F3354),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Center(
+                                  child: isChecked
+                                      ? const Icon(Icons.check, color: Colors.white, size: 20)
+                                      : Text(
+                                          '${index + 1}',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Text(
+                                  step,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: isChecked ? Colors.grey : Colors.black,
+                                    decoration: isChecked ? TextDecoration.lineThrough : null,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+      bottomNavigationBar: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, -5),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                stepChecked.every((checked) => checked)
+                    ? 'All steps completed! 🎉'
+                    : '${widget.steps.length - stepChecked.where((checked) => checked).length} steps remaining',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF1F3354),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 52,
-                  vertical: 12,
-                ),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(12),
                 ),
               ),
               onPressed: () {
-                Navigator.push(
+                Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(builder: (context) => Navbar()),
+                  (route) => false,
                 );
               },
               child: const Text(
-                'Done',
-                style: TextStyle(color: Colors.white, fontSize: 18),
+                'Finish Cooking',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: 30),
-        ],
+          ],
+        ),
       ),
     );
   }
