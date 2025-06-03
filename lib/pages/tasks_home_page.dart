@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
-import 'package:table_calendar/table_calendar.dart';
 import 'package:LILI/models/task.dart';
 import 'package:LILI/models/category_task.dart';
 
@@ -21,8 +20,6 @@ class _TasksHomePageState extends State<TasksHomePage> {
       title: 'Project UI',
       description: 'Create UI Design',
       dueDate: DateTime.parse('2022-01-17'),
-      priority: 'High',
-      progress: 0.3,
       assignedTo: 'Nayera',
       category: 'Design',
     ),
@@ -31,8 +28,6 @@ class _TasksHomePageState extends State<TasksHomePage> {
       title: '3D Assets',
       description: 'Model 3D assets',
       dueDate: DateTime.parse('2022-01-18'),
-      priority: 'Medium',
-      progress: 0.4,
       assignedTo: 'Nayera',
       category: 'Design',
     ),
@@ -41,8 +36,6 @@ class _TasksHomePageState extends State<TasksHomePage> {
       title: 'Kitchen Cleaning',
       description: 'Deep clean kitchen',
       dueDate: DateTime.parse('2022-01-19'),
-      priority: 'Low',
-      progress: 1.0,
       isCompleted: true,
       assignedTo: 'Ali',
       category: 'Chores',
@@ -52,8 +45,6 @@ class _TasksHomePageState extends State<TasksHomePage> {
       title: 'Grocery Shopping',
       description: 'Buy weekly groceries',
       dueDate: DateTime.parse('2022-01-20'),
-      priority: 'Medium',
-      progress: 0.0,
       assignedTo: 'Sara',
       category: 'Shopping',
     ),
@@ -73,8 +64,7 @@ class _TasksHomePageState extends State<TasksHomePage> {
         filtered = filtered.where((t) => t.isCompleted).toList();
         break;
       case 'In progress':
-        filtered =
-            filtered.where((t) => !t.isCompleted && t.progress < 1.0).toList();
+        filtered = filtered.where((t) => !t.isCompleted).toList();
         break;
       case 'Scheduled':
         filtered =
@@ -93,9 +83,7 @@ class _TasksHomePageState extends State<TasksHomePage> {
                     t.title.toLowerCase().contains(searchQuery) ||
                     t.description.toLowerCase().contains(searchQuery) ||
                     t.assignedTo.toLowerCase().contains(searchQuery) ||
-                    t.category.toLowerCase().contains(
-                      searchQuery,
-                    ), // ✅ Must be set properly
+                    t.category.toLowerCase().contains(searchQuery),
               )
               .toList();
     }
@@ -283,10 +271,10 @@ class _TasksHomePageState extends State<TasksHomePage> {
             trailing: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(
-                  '${(task.progress * 100).toInt()}%',
-                  style: TextStyle(color: Color(0xFFF5EFE7)),
-                ),
+                // Text(
+                //   '${(task.progress * 100).toInt()}%',
+                //   style: TextStyle(color: Color(0xFFF5EFE7)),
+                // ),
                 Text(
                   '${task.dueDate.day}/${task.dueDate.month}/${task.dueDate.year}',
                   style: TextStyle(color: Color(0xFFF5EFE7), fontSize: 12),
@@ -353,10 +341,10 @@ class _TasksHomePageState extends State<TasksHomePage> {
                                 task.description,
                                 style: TextStyle(color: Color(0xFFF5EFE7)),
                               ),
-                              trailing: Text(
-                                '${(task.progress * 100).toInt()}%',
-                                style: TextStyle(color: Color(0xFFF5EFE7)),
-                              ),
+                              // trailing: Text(
+                              //   '${(task.progress * 100).toInt()}%',
+                              //   style: TextStyle(color: Color(0xFFF5EFE7)),
+                              // ),
                             );
                           },
                         ),
@@ -391,9 +379,9 @@ class _TasksHomePageState extends State<TasksHomePage> {
       itemBuilder: (context, index) {
         final person = peopleMap.keys.elementAt(index);
         final personTasks = peopleMap[person]!;
-        final avgProgress =
-            personTasks.map((t) => t.progress).reduce((a, b) => a + b) /
-            personTasks.length;
+        // final avgProgress =
+        //     personTasks.map((t) => t.progress).reduce((a, b) => a + b) /
+        //     personTasks.length;
 
         return Card(
           color: Color(0xFF1F3354),
@@ -414,10 +402,10 @@ class _TasksHomePageState extends State<TasksHomePage> {
                 fontSize: 18,
               ),
             ),
-            subtitle: Text(
-              '${personTasks.length} tasks • ${(avgProgress * 100).toInt()}% done',
-              style: TextStyle(color: Color(0xFFF5EFE7)),
-            ),
+            // subtitle: Text(
+            //   '${personTasks.length} tasks • ${(avgProgress * 100).toInt()}% done',
+            //   style: TextStyle(color: Color(0xFFF5EFE7)),
+            // ),
             trailing: Icon(Icons.arrow_forward_ios, color: Color(0xFFF5EFE7)),
             onTap: () {
               // Optionally show a list of that person's tasks in a dialog
@@ -442,10 +430,10 @@ class _TasksHomePageState extends State<TasksHomePage> {
                               task.title,
                               style: TextStyle(color: Color(0xFFF5EFE7)),
                             ),
-                            subtitle: Text(
-                              '${task.progress * 100}%',
-                              style: TextStyle(color: Color(0xFFF5EFE7)),
-                            ),
+                            // subtitle: Text(
+                            //   '${task.progress * 100}%',
+                            //   style: TextStyle(color: Color(0xFFF5EFE7)),
+                            // ),
                           );
                         },
                       ),
