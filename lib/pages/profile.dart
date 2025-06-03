@@ -1,3 +1,4 @@
+import 'package:LILI/user_session.dart';
 import 'package:flutter/material.dart';
 import 'navbar.dart';
 import 'package:LILI/models/user.dart';
@@ -17,7 +18,7 @@ class _ProfilePageState extends State<ProfilePage> {
   final UserService _userService = UserService();
   bool _isLoading = true;
   String _error = '';
-  
+
   User user = User(
     name: "Loading...",
     email: "",
@@ -41,15 +42,18 @@ class _ProfilePageState extends State<ProfilePage> {
       });
 
       // TODO: Replace 1 with actual user ID from your auth system
-      final userData = await _userService.getUserProfile(1);
-      
+      final userData = await _userService.getUserProfile(
+        UserSession().getUserId(),
+      );
+
       setState(() {
         user = User(
           name: userData['name'] ?? '',
           email: userData['email'] ?? '',
           dob: userData['birthday'] ?? '',
           phone: userData['phone'] ?? '',
-          address: '', // Add address if available in your backend
+          address: '',
+          // Add address if available in your backend
           allergies: [], // Add allergies if available in your backend
         );
         _isLoading = false;
@@ -92,12 +96,13 @@ class _ProfilePageState extends State<ProfilePage> {
       updateUser(updatedUser);
     }
   }
+
   void showDetailSheet(
-      BuildContext context,
-      String title,
-      List<String> details, {
-        bool showCheckboxes = false,
-      }) {
+    BuildContext context,
+    String title,
+    List<String> details, {
+    bool showCheckboxes = false,
+  }) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -108,39 +113,40 @@ class _ProfilePageState extends State<ProfilePage> {
         List<bool> checked = List.generate(details.length, (index) => false);
 
         return StatefulBuilder(
-          builder: (context, setState) => Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
+          builder:
+              (context, setState) => Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    ...List.generate(details.length, (index) {
+                      return showCheckboxes
+                          ? CheckboxListTile(
+                            value: checked[index],
+                            title: Text(details[index]),
+                            controlAffinity: ListTileControlAffinity.leading,
+                            onChanged: (val) {
+                              setState(() {
+                                checked[index] = val!;
+                              });
+                            },
+                          )
+                          : ListTile(
+                            leading: const Icon(Icons.arrow_right),
+                            title: Text(details[index]),
+                          );
+                    }),
+                  ],
                 ),
-                const SizedBox(height: 10),
-                ...List.generate(details.length, (index) {
-                  return showCheckboxes
-                      ? CheckboxListTile(
-                    value: checked[index],
-                    title: Text(details[index]),
-                    controlAffinity: ListTileControlAffinity.leading,
-                    onChanged: (val) {
-                      setState(() {
-                        checked[index] = val!;
-                      });
-                    },
-                  )
-                      : ListTile(
-                    leading: const Icon(Icons.arrow_right),
-                    title: Text(details[index]),
-                  );
-                }),
-              ],
-            ),
-          ),
+              ),
         );
       },
     );
@@ -219,241 +225,255 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
       //backgroundColor: Color(0xFFF5F5F5),
       body: SafeArea(
-        child: _isLoading
-            ? Center(child: CircularProgressIndicator())
-            : _error.isNotEmpty
-                ? Center(child: Text(_error, style: TextStyle(color: Colors.red)))
+        child:
+            _isLoading
+                ? Center(child: CircularProgressIndicator())
+                : _error.isNotEmpty
+                ? Center(
+                  child: Text(_error, style: TextStyle(color: Colors.red)),
+                )
                 : Column(
-          children: [
-            Stack(
-              children: [
-                ClipPath(
-                  clipper: WaveClipper(),
-                  child: Container(height: 250, color: Color(0xFF213555)),
-                ),
-                Positioned(
-                  top: 100,
-                  left: 0,
-                  right: 0,
-                  child: Center(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Color(0xFF213555), width: 4),
-                      ),
-                      child: CircleAvatar(
-                        radius: 50,
-                        backgroundImage: user.profilePic != null && user.profilePic!.isNotEmpty
-                            ? NetworkImage(user.profilePic!)
-                            : AssetImage('assets/images/Hana.jpeg') as ImageProvider,
-                      ),
+                  children: [
+                    Stack(
+                      children: [
+                        ClipPath(
+                          clipper: WaveClipper(),
+                          child: Container(
+                            height: 250,
+                            color: Color(0xFF213555),
+                          ),
+                        ),
+                        Positioned(
+                          top: 100,
+                          left: 0,
+                          right: 0,
+                          child: Center(
+                            child: Container(
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: Color(0xFF213555),
+                                  width: 4,
+                                ),
+                              ),
+                              child: CircleAvatar(
+                                radius: 50,
+                                backgroundImage:
+                                    user.profilePic != null &&
+                                            user.profilePic!.isNotEmpty
+                                        ? NetworkImage(user.profilePic!)
+                                        : AssetImage('assets/images/Hana.jpeg')
+                                            as ImageProvider,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                ),
-              ],
-            ),
-            Container(
-              width: 291,
-              height: 130,
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              child: Stack(
-                children: [
-                  Positioned(
-                    left: 0,
-                    top: 0,
-                    child: Container(
-                      width: 110.86,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                    Container(
+                      width: 291,
+                      height: 130,
+                      padding: EdgeInsets.symmetric(horizontal: 16),
+                      child: Stack(
                         children: [
-                          Text(
-                            'Name',
-                            style: TextStyle(
-                              color: Color(0xFF1D2345),
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              fontFamily: 'Inter',
+                          Positioned(
+                            left: 0,
+                            top: 0,
+                            child: Container(
+                              width: 110.86,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Name',
+                                    style: TextStyle(
+                                      color: Color(0xFF1D2345),
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      fontFamily: 'Inter',
+                                    ),
+                                  ),
+                                  Text(
+                                    user.name,
+                                    style: TextStyle(
+                                      color: Color(0xFF3E5879),
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w400,
+                                      fontFamily: 'Inter',
+                                    ),
+                                  ),
+                                  SizedBox(height: 4),
+                                  Text(
+                                    'Date of Birth',
+                                    style: TextStyle(
+                                      color: Color(0xFF1D2345),
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      fontFamily: 'Inter',
+                                    ),
+                                  ),
+                                  Text(
+                                    user.dob,
+                                    style: TextStyle(
+                                      color: Color(0xFF3E5879),
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w400,
+                                      fontFamily: 'Inter',
+                                    ),
+                                  ),
+                                  SizedBox(height: 4),
+                                  Text(
+                                    'Phone',
+                                    style: TextStyle(
+                                      color: Color(0xFF1D2345),
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      fontFamily: 'Inter',
+                                    ),
+                                  ),
+                                  Text(
+                                    user.phone,
+                                    style: TextStyle(
+                                      color: Color(0xFF3E5879),
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w400,
+                                      fontFamily: 'Inter',
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                          Text(
-                            user.name,
-                            style: TextStyle(
-                              color: Color(0xFF3E5879),
-                              fontSize: 12,
-                              fontWeight: FontWeight.w400,
-                              fontFamily: 'Inter',
-                            ),
-                          ),
-                          SizedBox(height: 4),
-                          Text(
-                            'Date of Birth',
-                            style: TextStyle(
-                              color: Color(0xFF1D2345),
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              fontFamily: 'Inter',
-                            ),
-                          ),
-                          Text(
-                            user.dob,
-                            style: TextStyle(
-                              color: Color(0xFF3E5879),
-                              fontSize: 12,
-                              fontWeight: FontWeight.w400,
-                              fontFamily: 'Inter',
-                            ),
-                          ),
-                          SizedBox(height: 4),
-                          Text(
-                            'Phone',
-                            style: TextStyle(
-                              color: Color(0xFF1D2345),
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              fontFamily: 'Inter',
-                            ),
-                          ),
-                          Text(
-                            user.phone,
-                            style: TextStyle(
-                              color: Color(0xFF3E5879),
-                              fontSize: 12,
-                              fontWeight: FontWeight.w400,
-                              fontFamily: 'Inter',
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    left: 129.33,
-                    top: 0,
-                    child: Container(
-                      width: 161.67,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Email',
-                            style: TextStyle(
-                              color: Color(0xFF1D2345),
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              fontFamily: 'Inter',
-                            ),
-                          ),
-                          Text(
-                            user.email,
-                            style: TextStyle(
-                              color: Color(0xFF3E5879),
-                              fontSize: 12,
-                              fontWeight: FontWeight.w400,
-                              fontFamily: 'Inter',
-                            ),
-                          ),
-                          SizedBox(height: 4),
-                          Text(
-                            'Address',
-                            style: TextStyle(
-                              color: Color(0xFF1D2345),
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              fontFamily: 'Inter',
-                            ),
-                          ),
-                          SizedBox(
-                            width: 161.67,
-                            child: Text(
-                              user.address,
-                              style: TextStyle(
-                                color: Color(0xFF3E5879),
-                                fontSize: 12,
-                                fontWeight: FontWeight.w400,
-                                fontFamily: 'Inter',
+                          Positioned(
+                            left: 129.33,
+                            top: 0,
+                            child: Container(
+                              width: 161.67,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Email',
+                                    style: TextStyle(
+                                      color: Color(0xFF1D2345),
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      fontFamily: 'Inter',
+                                    ),
+                                  ),
+                                  Text(
+                                    user.email,
+                                    style: TextStyle(
+                                      color: Color(0xFF3E5879),
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w400,
+                                      fontFamily: 'Inter',
+                                    ),
+                                  ),
+                                  SizedBox(height: 4),
+                                  Text(
+                                    'Address',
+                                    style: TextStyle(
+                                      color: Color(0xFF1D2345),
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      fontFamily: 'Inter',
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    width: 161.67,
+                                    child: Text(
+                                      user.address,
+                                      style: TextStyle(
+                                        color: Color(0xFF3E5879),
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w400,
+                                        fontFamily: 'Inter',
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ),
                         ],
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(height: 10),
-            GestureDetector(
-              onTap: _navigateToMoreInfo,
-              child: Container(
-                padding: EdgeInsets.all(20),
-                decoration: BoxDecoration(color: Colors.transparent),
-                child: Column(
-                  children: [
-                    Text(
-                      "More Info",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF213555),
+                    SizedBox(height: 10),
+                    GestureDetector(
+                      onTap: _navigateToMoreInfo,
+                      child: Container(
+                        padding: EdgeInsets.all(20),
+                        decoration: BoxDecoration(color: Colors.transparent),
+                        child: Column(
+                          children: [
+                            Text(
+                              "More Info",
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF213555),
+                              ),
+                            ),
+                            Icon(
+                              Icons.arrow_downward,
+                              color: Color(0xFF213555),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                    Icon(Icons.arrow_downward, color: Color(0xFF213555)),
+                    SizedBox(height: 5),
+                    ElevatedButton.icon(
+                      onPressed: _navigateToEditProfile,
+                      icon: Icon(Icons.edit),
+                      label: Text("Edit Profile"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color(0xFF213555),
+                        foregroundColor: Colors.white,
+                        fixedSize: Size(260, 40),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 5),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        showDetailSheet(context, "House Code", [
+                          "Code: HJ223FA56",
+                          "Location: Main Home",
+                          "Owner: Farah",
+                        ], showCheckboxes: false);
+                      },
+                      icon: Icon(Icons.person_add),
+                      label: Text("Add User"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color(0xFF213555),
+                        foregroundColor: Colors.white,
+                        fixedSize: Size(260, 40),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 5),
+                    ElevatedButton.icon(
+                      onPressed: _navigateTosigning_page,
+                      icon: Icon(Icons.logout),
+                      label: Text("Log Out"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color(0xFFF2F2F2),
+                        foregroundColor: Colors.red,
+                        fixedSize: Size(260, 40),
+                        shape: RoundedRectangleBorder(
+                          side: const BorderSide(width: 1, color: Colors.red),
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
-              ),
-            ),
-            SizedBox(height: 5),
-            ElevatedButton.icon(
-              onPressed: _navigateToEditProfile,
-              icon: Icon(Icons.edit),
-              label: Text("Edit Profile"),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFF213555),
-                foregroundColor: Colors.white,
-                fixedSize: Size(260, 40),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-            ),
-            SizedBox(height: 5),
-            ElevatedButton.icon(
-              onPressed: () {
-                showDetailSheet(
-                  context,
-                  "House Code",
-                  ["Code: HJ223FA56", "Location: Main Home", "Owner: Farah"],
-                  showCheckboxes: false,
-                );
-              },
-              icon: Icon(Icons.person_add),
-              label: Text("Add User"),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFF213555),
-                foregroundColor: Colors.white,
-                fixedSize: Size(260, 40),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-            ),
-            SizedBox(height: 5),
-            ElevatedButton.icon(
-              onPressed: _navigateTosigning_page,
-              icon: Icon(Icons.logout),
-              label: Text("Log Out"),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFFF2F2F2),
-                foregroundColor: Colors.red,
-                fixedSize: Size(260, 40),
-                shape: RoundedRectangleBorder(
-                  side: const BorderSide(width: 1, color: Colors.red),
-                  borderRadius: BorderRadius.circular(5),
-                ),
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
