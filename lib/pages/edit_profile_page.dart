@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../../models/user.dart';
-import 'wave2.dart'; // Import the wave clipper here
 
 class EditProfilePage extends StatefulWidget {
   final User user;
@@ -41,111 +40,144 @@ class _EditProfilePageState extends State<EditProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Color(0xFF213555),
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              const Color(0xFF1F3354),
+              const Color(0xFF3E5879),
+            ],
+          ),
         ),
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Stack(
-              children: [
-                ClipPath(
-                  clipper: WaveClipper(),
-                  // Use WaveClipper for the wave-style clip
-                  child: Container(
-                    height: 250,
-                    width: double.infinity,
-                    color: Color(0xFF213555),
-                  ),
+        child: SafeArea(
+          child: CustomScrollView(
+            slivers: [
+              SliverAppBar(
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                pinned: true,
+                expandedHeight: 200,
+                leading: IconButton(
+                  icon: const Icon(Icons.arrow_back, color: Colors.white),
+                  onPressed: () => Navigator.pop(context),
                 ),
-                Positioned(
-                  top: 100, // Position the profile image correctly
-                  left: 0,
-                  right: 0,
-                  child: Center(
-                    child: GestureDetector(
-                      onTap: _pickImage,
-                      child: CircleAvatar(
-                        radius: 50,
-                        backgroundColor: Colors.grey[300],
-                        backgroundImage:
-                            _image != null
-                                ? FileImage(File(_image!.path))
-                                : null,
-                        child:
-                            _image == null
-                                ? Icon(
-                                  Icons.camera_alt,
-                                  size: 40,
-                                  color: Colors.white,
-                                )
-                                : null,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                children: [
-                  _buildTextField(nameController, "Name"),
-                  _buildTextField(emailController, "Email"),
-                  _buildTextField(phoneController, "Phone"),
-                  SizedBox(height: 30),
-                  Column(
+                flexibleSpace: FlexibleSpaceBar(
+                  background: Stack(
                     children: [
-                      ElevatedButton(
-                        onPressed: () {
-                          final updatedUser = widget.user.copyWith(
-                            name: nameController.text,
-                            email: emailController.text,
-                            phone: phoneController.text,
-                          );
-                          Navigator.pop(context, updatedUser);
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Color(0xFF3E5879),
-                          shape: RoundedRectangleBorder(
-                            side: const BorderSide(width: 1),
-                            borderRadius: BorderRadius.circular(5),
-                          ),
-                          fixedSize: Size(260, 40),
-                        ),
-                        child: Text(
-                          "Save Changes",
-                          style: TextStyle(fontSize: 18, color: Colors.white),
-                        ),
-                      ),
-                      SizedBox(height: 10),
-                      ElevatedButton(
-                        onPressed: () => Navigator.pop(context),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Color(0xFFF2F2F2),
-                          shape: RoundedRectangleBorder(
-                            side: const BorderSide(width: 1),
-                            borderRadius: BorderRadius.circular(5),
-                          ),
-                          fixedSize: Size(260, 40),
-                        ),
-                        child: Text(
-                          "Discard",
-                          style: TextStyle(
-                            fontSize: 18,
-                            color: Color(0xFF3E5879),
-                          ),
+                      Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            GestureDetector(
+                              onTap: _pickImage,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(color: Colors.white, width: 4),
+                                ),
+                                child: CircleAvatar(
+                                  radius: 50,
+                                  backgroundColor: Colors.white24,
+                                  backgroundImage: _image != null
+                                      ? FileImage(File(_image!.path))
+                                      : null,
+                                  child: _image == null
+                                      ? Column(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Icon(
+                                              Icons.camera_alt,
+                                              size: 32,
+                                              color: Colors.white,
+                                            ),
+                                            SizedBox(height: 4),
+                                            Text(
+                                              'Change',
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                          ],
+                                        )
+                                      : null,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'Edit Profile',
+                              style: const TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
-                ],
+                ),
               ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      _buildEditCard(),
+                      const SizedBox(height: 24),
+                      _buildActionButtons(),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEditCard() {
+    return Card(
+      elevation: 4,
+      shadowColor: Colors.black26,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Personal Information',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1F3354),
+              ),
+            ),
+            const SizedBox(height: 16),
+            _buildTextField(
+              controller: nameController,
+              label: 'Name',
+              icon: Icons.person_outline,
+            ),
+            const SizedBox(height: 16),
+            _buildTextField(
+              controller: emailController,
+              label: 'Email',
+              icon: Icons.email_outlined,
+            ),
+            const SizedBox(height: 16),
+            _buildTextField(
+              controller: phoneController,
+              label: 'Phone',
+              icon: Icons.phone_outlined,
             ),
           ],
         ),
@@ -153,23 +185,105 @@ class _EditProfilePageState extends State<EditProfilePage> {
     );
   }
 
-  Widget _buildTextField(
-    TextEditingController controller,
-    String label, {
-    int maxLines = 1,
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
   }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: TextField(
-        controller: controller,
-        maxLines: maxLines,
-        decoration: InputDecoration(
-          labelText: label,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-          filled: true,
-          fillColor: Colors.white,
-        ),
+    return TextField(
+      controller: controller,
+      style: const TextStyle(
+        fontSize: 16,
+        color: Color(0xFF1F3354),
       ),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: TextStyle(
+          color: Colors.grey[600],
+          fontSize: 14,
+        ),
+        prefixIcon: Container(
+          margin: const EdgeInsets.only(right: 12),
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: const Color(0xFF1F3354).withOpacity(0.1),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, color: const Color(0xFF1F3354)),
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey[300]!),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey[300]!),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFF1F3354)),
+        ),
+        filled: true,
+        fillColor: Colors.white,
+      ),
+    );
+  }
+
+  Widget _buildActionButtons() {
+    return Row(
+      children: [
+        Expanded(
+          child: ElevatedButton(
+            onPressed: () {
+              final updatedUser = widget.user.copyWith(
+                name: nameController.text,
+                email: emailController.text,
+                phone: phoneController.text,
+              );
+              Navigator.pop(context, updatedUser);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.white,
+              foregroundColor: const Color(0xFF1F3354),
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              elevation: 2,
+            ),
+            child: const Text(
+              'Save Changes',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: ElevatedButton(
+            onPressed: () => Navigator.pop(context),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.white24,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: const BorderSide(color: Colors.white38),
+              ),
+              elevation: 0,
+            ),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

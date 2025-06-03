@@ -139,7 +139,7 @@ class ReportDashboard extends StatelessWidget {
                   const ListTile(
                     leading: Icon(Icons.pie_chart),
                     title: Text("Spent: \$250"),
-                    subtitle: Text("You’re at 50% of your budget."),
+                    subtitle: Text("You're at 50% of your budget."),
                   ),
                   const ListTile(
                     leading: Icon(Icons.trending_up),
@@ -345,98 +345,95 @@ class ReportDashboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SizedBox.expand(
-        child: Stack(
-          children: [
-            Positioned.fill(
-              child: Image.asset(
-                'assets/backgrounds/homepage.png',
-                fit: BoxFit.cover,
-              ),
-            ),
-            Padding(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [const Color(0xFF1F3354), const Color(0xFF3E5879)],
+          ),
+        ),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            child: Padding(
               padding: const EdgeInsets.all(35),
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 40),
-                    Wrap(
-                      alignment: WrapAlignment.center,
-                      spacing: 16,
-                      runSpacing: 16,
-                      children: [
-                        buildCard(
-                          'Low Inventory',
-                          Icons.inventory_2,
-                          const Color(0xFF3E5879),
-                          '6 items',
-                          'Check milk, rice, oil...',
-                          onTap:
-                              () => showDetailSheet(context, 'Low Inventory', [
-                                'Milk - 1 day left',
-                                'Rice - Running low',
-                                'Cooking Oil - Refill soon',
-                              ]),
-                        ),
-                        buildCard(
-                          "Today's Tasks", // ✅ use double quotes
-                          Icons.check_circle,
-                          const Color(0xFF3E5879),
-                          '5 tasks',
-                          '2 overdue',
-                          onTap:
-                              () => showDetailSheet(context, "Today's Tasks", [
-                                // ✅ use double quotes
-                                'Clean kitchen',
-                                'Buy groceries',
-                                'Water plants',
-                                'Do laundry',
-                                'Call plumber',
-                              ], showCheckboxes: true),
-                        ),
-                        buildCard(
-                          'Meal Suggestions',
-                          Icons.restaurant,
-                          const Color(0xFF3E5879),
-                          '3 meals',
-                          'Based on fridge items',
-                          onTap:
-                              () =>
-                                  showDetailSheet(context, 'Suggested Meals', [
-                                    'Pasta with tomato sauce',
-                                    'Vegetable stir-fry',
-                                    'Egg & toast breakfast',
-                                  ]),
-                        ),
-                        buildCard(
-                          'Home Workout',
-                          Icons.fitness_center,
-                          const Color(0xFF3E5879),
-                          '3 exercises',
-                          '15 min, Cardio, Stretch',
-                          onTap:
-                              () => showDetailSheet(context, 'Home Workout', [
-                                '15 min Full Body Workout',
-                                '10 min Cardio Blast',
-                                '5 min Guided Stretch',
-                              ]),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 30),
-                    InkWell(
-                      borderRadius: BorderRadius.circular(20),
-                      onTap: () => showBudgetAnalysis(context),
-                      child: buildBudgetMeter(250, 500),
-                    ),
-                    const SizedBox(height: 30),
-                    buildSpendingChart(),
-                  ],
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 40),
+                  Wrap(
+                    alignment: WrapAlignment.center,
+                    spacing: 16,
+                    runSpacing: 16,
+                    children: [
+                      buildCard(
+                        'Low Inventory',
+                        Icons.inventory_2,
+                        Colors.white,
+                        '6 items',
+                        'Check milk, rice, oil...',
+                        onTap:
+                            () => showDetailSheet(context, 'Low Inventory', [
+                              'Milk - 1 day left',
+                              'Rice - Running low',
+                              'Cooking Oil - Refill soon',
+                            ]),
+                      ),
+                      buildCard(
+                        "Today's Tasks",
+                        Icons.check_circle,
+                        Colors.white,
+                        '5 tasks',
+                        '2 overdue',
+                        onTap:
+                            () => showDetailSheet(context, "Today's Tasks", [
+                              'Clean kitchen',
+                              'Buy groceries',
+                              'Water plants',
+                              'Do laundry',
+                              'Call plumber',
+                            ], showCheckboxes: true),
+                      ),
+                      buildCard(
+                        'Meal Suggestions',
+                        Icons.restaurant,
+                        Colors.white,
+                        '3 meals',
+                        'Based on fridge items',
+                        onTap:
+                            () => showDetailSheet(context, 'Suggested Meals', [
+                              'Pasta with tomato sauce',
+                              'Vegetable stir-fry',
+                              'Egg & toast breakfast',
+                            ]),
+                      ),
+                      buildCard(
+                        'Home Workout',
+                        Icons.fitness_center,
+                        Colors.white,
+                        '3 exercises',
+                        '15 min, Cardio, Stretch',
+                        onTap:
+                            () => showDetailSheet(context, 'Home Workout', [
+                              '15 min Full Body Workout',
+                              '10 min Cardio Blast',
+                              '5 min Guided Stretch',
+                            ]),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 30),
+                  InkWell(
+                    borderRadius: BorderRadius.circular(20),
+                    onTap: () => showBudgetAnalysis(context),
+                    child: buildBudgetMeter(250, 500),
+                  ),
+                  const SizedBox(height: 30),
+                  // buildSpendingChart(),
+                ],
               ),
             ),
-          ],
+          ),
         ),
       ),
     );

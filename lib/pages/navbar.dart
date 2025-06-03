@@ -39,7 +39,7 @@ class _NavbarState extends State<Navbar> {
         ],
         color: Color(0xFF1F3354),
         buttonBackgroundColor: Color(0xFF1F3354),
-        backgroundColor: Color(0xFFF2F2F2),
+        backgroundColor: Color(0xFF3E5879),
         animationCurve: Curves.easeInOut,
         animationDuration: Duration(milliseconds: 300),
         onTap: (index) {

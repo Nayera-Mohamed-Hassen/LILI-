@@ -24,10 +24,8 @@ class InitSetupPage extends StatefulWidget {
 }
 
 class _InitSetupPageState extends State<InitSetupPage> {
-  // final _diet = TextEditingController();
   final _weight = TextEditingController();
   final _height = TextEditingController();
-  final _illnessController = TextEditingController();
   final _alergiesController = TextEditingController();
   late ImagePicker _picker;
   XFile? _image;
@@ -35,13 +33,6 @@ class _InitSetupPageState extends State<InitSetupPage> {
   String? _selectedGender;
   String? _selectedDiet;
   late TextEditingController _dateController;
-
-  @override
-  void initState() {
-    super.initState();
-    _picker = ImagePicker();
-    _dateController = TextEditingController();
-  }
 
   final List<String> diets = [
     'Vegan',
@@ -57,6 +48,13 @@ class _InitSetupPageState extends State<InitSetupPage> {
   ];
   final List<String> genderOptions = ['Male', 'Female'];
 
+  @override
+  void initState() {
+    super.initState();
+    _picker = ImagePicker();
+    _dateController = TextEditingController();
+  }
+
   Future<void> _pickImage() async {
     final XFile? pickedImage = await _picker.pickImage(
       source: ImageSource.gallery,
@@ -69,150 +67,237 @@ class _InitSetupPageState extends State<InitSetupPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF2F2F2),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const SizedBox(height: 30),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'Set Up',
-                  style: TextStyle(
-                    color: const Color(0xFF213555),
-                    fontSize: 48,
-                    fontFamily: 'Roboto',
-                    fontWeight: FontWeight.w400,
-                    height: 1.2,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              GestureDetector(
-                onTap: _pickImage,
-                child: CircleAvatar(
-                  radius: 50,
-                  backgroundColor: Colors.grey[300],
-                  backgroundImage:
-                      _image != null ? FileImage(File(_image!.path)) : null,
-                  child:
-                      _image == null
-                          ? Icon(
-                            Icons.camera_alt,
-                            size: 40,
-                            color: Colors.white,
-                          )
-                          : null,
-                ),
-              ),
-              const SizedBox(height: 20),
-              _buildDatePickerField(context),
-              const SizedBox(height: 16),
-              _buildDropdownField('Gender', genderOptions, _selectedGender, (
-                value,
-              ) {
-                setState(() {
-                  _selectedGender = value;
-                });
-              }),
-              const SizedBox(height: 20),
-              _buildDropdownField('Diet', diets, _selectedDiet, (value) {
-                setState(() {
-                  _selectedDiet = value;
-                });
-              }),
-              const SizedBox(height: 20),
-              _buildTextField(_weight, 'Weight'),
-              const SizedBox(height: 20),
-              _buildTextField(_height, 'Height'),
-              const SizedBox(height: 20),
-              _buildTextField(_alergiesController, 'Allergies', maxLines: 4),
-              const SizedBox(height: 20),
-              _buildButton(
-                'Next',
-                onPressed: () async {
-                  final url = Uri.parse(
-                    'http://10.0.2.2:8000/user/signup',
-                  ); // update your URL
-
-                  final response = await http.post(
-                    url,
-                    headers: {"Content-Type": "application/json"},
-                    body: jsonEncode({
-                      "name": widget.name,
-                      "email": widget.email,
-                      "password": widget.password,
-                      "phone": widget.phone,
-                      "birthday": _dateController.text,
-                      "profile_pic": "", // add image upload support later
-                      "height": double.tryParse(_height.text),
-                      "weight": double.tryParse(_weight.text),
-                      "diet": _selectedDiet,
-                      "gender": _selectedGender,
-                      "house_id": 1,
-                      "allergy": _alergiesController.text,
-                    }),
-                  );
-
-                  if (response.statusCode == 200) {
-                    Navigator.pushNamed(context, '/hosting');
-                  } else {
-                    ScaffoldMessenger.of(
-                      context,
-                    ).showSnackBar(SnackBar(content: Text('Signup failed')));
-                  }
-                },
-              ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              const Color(0xFF1F3354),
+              const Color(0xFF3E5879),
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildButton(
-    String text, {
-    required VoidCallback onPressed,
-    Size? size,
-  }) {
-    final fixedSize = size ?? const Size(430, 60);
-
-    return SizedBox(
-      width: fixedSize.width,
-      height: fixedSize.height,
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF3E5879),
-          shape: RoundedRectangleBorder(
-            side: const BorderSide(width: 1),
-            borderRadius: BorderRadius.circular(5),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back, color: Colors.white),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                  const SizedBox(height: 32),
+                  const Text(
+                    'Complete\nYour Profile',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 40,
+                      fontWeight: FontWeight.bold,
+                      height: 1.2,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Add your details to personalize your experience',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 16,
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  Center(
+                    child: GestureDetector(
+                      onTap: _pickImage,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 4),
+                        ),
+                        child: CircleAvatar(
+                          radius: 50,
+                          backgroundColor: Colors.white24,
+                          backgroundImage: _image != null
+                              ? FileImage(File(_image!.path))
+                              : null,
+                          child: _image == null
+                              ? Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: const [
+                                    Icon(
+                                      Icons.camera_alt,
+                                      size: 32,
+                                      color: Colors.white,
+                                    ),
+                                    SizedBox(height: 4),
+                                    Text(
+                                      'Add Photo',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              : null,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  _buildDateField(context),
+                  const SizedBox(height: 24),
+                  _buildDropdownField(
+                    'Gender',
+                    genderOptions,
+                    _selectedGender,
+                    Icons.person_outline,
+                    (value) {
+                      setState(() {
+                        _selectedGender = value;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 24),
+                  _buildDropdownField(
+                    'Diet Preference',
+                    diets,
+                    _selectedDiet,
+                    Icons.restaurant_menu,
+                    (value) {
+                      setState(() {
+                        _selectedDiet = value;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 24),
+                  _buildTextField(
+                    controller: _height,
+                    label: 'Height (cm)',
+                    icon: Icons.height,
+                    keyboardType: TextInputType.number,
+                  ),
+                  const SizedBox(height: 24),
+                  _buildTextField(
+                    controller: _weight,
+                    label: 'Weight (kg)',
+                    icon: Icons.monitor_weight,
+                    keyboardType: TextInputType.number,
+                  ),
+                  const SizedBox(height: 24),
+                  _buildTextField(
+                    controller: _alergiesController,
+                    label: 'Allergies',
+                    icon: Icons.warning_amber_rounded,
+                    maxLines: 3,
+                    hint: 'Enter any allergies, separated by commas',
+                  ),
+                  const SizedBox(height: 32),
+                  _buildFinishButton(),
+                ],
+              ),
+            ),
           ),
         ),
-        child: Text(
-          text,
-          style: const TextStyle(color: Colors.white, fontSize: 18),
+      ),
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    String? hint,
+    int maxLines = 1,
+    TextInputType? keyboardType,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white12,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white24),
+      ),
+      child: TextField(
+        controller: controller,
+        maxLines: maxLines,
+        keyboardType: keyboardType,
+        style: const TextStyle(color: Colors.white),
+        decoration: InputDecoration(
+          labelText: label,
+          hintText: hint,
+          hintStyle: const TextStyle(color: Colors.white38, fontSize: 14),
+          labelStyle: const TextStyle(color: Colors.white70),
+          prefixIcon: Container(
+            margin: const EdgeInsets.only(left: 12, right: 8),
+            child: Icon(icon, color: Colors.white70),
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide.none,
+          ),
+          filled: true,
+          fillColor: Colors.transparent,
         ),
       ),
     );
   }
 
-  Widget _buildTextField(
-    TextEditingController controller,
-    String label, {
-    int maxLines = 1,
-  }) {
-    return TextField(
-      controller: controller,
-      maxLines: maxLines,
-      decoration: InputDecoration(
-        labelText: label,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-        filled: true,
-        fillColor: Colors.white,
+  Widget _buildDateField(BuildContext context) {
+    return GestureDetector(
+      onTap: () async {
+        final DateTime? picked = await showDatePicker(
+          context: context,
+          initialDate: _selectedDate ?? DateTime.now(),
+          firstDate: DateTime(1900),
+          lastDate: DateTime.now(),
+          builder: (context, child) {
+            return Theme(
+              data: Theme.of(context).copyWith(
+                colorScheme: const ColorScheme.dark(
+                  primary: Colors.white,
+                  onPrimary: Color(0xFF1F3354),
+                  surface: Color(0xFF1F3354),
+                  onSurface: Colors.white,
+                ),
+              ),
+              child: child!,
+            );
+          },
+        );
+        if (picked != null) {
+          setState(() {
+            _selectedDate = picked;
+            _dateController.text = DateFormat('yyyy-MM-dd').format(picked);
+          });
+        }
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white12,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.white24),
+        ),
+        child: TextField(
+          controller: _dateController,
+          enabled: false,
+          style: const TextStyle(color: Colors.white),
+          decoration: InputDecoration(
+            labelText: 'Date of Birth',
+            labelStyle: const TextStyle(color: Colors.white70),
+            prefixIcon: Container(
+              margin: const EdgeInsets.only(left: 12, right: 8),
+              child: const Icon(Icons.calendar_today, color: Colors.white70),
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide.none,
+            ),
+            filled: true,
+            fillColor: Colors.transparent,
+          ),
+        ),
       ),
     );
   }
@@ -221,64 +306,117 @@ class _InitSetupPageState extends State<InitSetupPage> {
     String label,
     List<String> items,
     String? selectedValue,
+    IconData icon,
     void Function(String?) onChanged,
   ) {
-    return DropdownButtonFormField<String>(
-      value: selectedValue,
-      decoration: InputDecoration(
-        labelText: label,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-        filled: true,
-        fillColor: Colors.white,
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white12,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white24),
       ),
-      items:
-          items.map((item) {
-            return DropdownMenuItem(value: item, child: Text(item));
-          }).toList(),
-      onChanged: onChanged,
+      child: DropdownButtonFormField<String>(
+        value: selectedValue,
+        dropdownColor: const Color(0xFF1F3354),
+        style: const TextStyle(color: Colors.white),
+        decoration: InputDecoration(
+          labelText: label,
+          labelStyle: const TextStyle(color: Colors.white70),
+          prefixIcon: Container(
+            margin: const EdgeInsets.only(left: 12, right: 8),
+            child: Icon(icon, color: Colors.white70),
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide.none,
+          ),
+          filled: true,
+          fillColor: Colors.transparent,
+        ),
+        items: items.map((item) {
+          return DropdownMenuItem(
+            value: item,
+            child: Text(
+              item,
+              style: const TextStyle(color: Colors.white),
+            ),
+          );
+        }).toList(),
+        onChanged: onChanged,
+      ),
+    );
+  }
+
+  Widget _buildFinishButton() {
+    return SizedBox(
+      width: double.infinity,
+      height: 56,
+      child: ElevatedButton(
+        onPressed: _handleFinish,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.white,
+          foregroundColor: const Color(0xFF1F3354),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          elevation: 0,
+        ),
+        child: const Text(
+          'Finish Setup',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _handleFinish() async {
+    try {
+      final url = Uri.parse('http://10.0.2.2:8000/user/signup');
+      final response = await http.post(
+        url,
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({
+          "name": widget.name,
+          "email": widget.email,
+          "password": widget.password,
+          "phone": widget.phone,
+          "birthday": _dateController.text,
+          "profile_pic": "", // TODO: Implement image upload
+          "height": double.tryParse(_height.text),
+          "weight": double.tryParse(_weight.text),
+          "diet": _selectedDiet,
+          "gender": _selectedGender,
+          "house_id": 1,
+          "allergy": _alergiesController.text,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        Navigator.pushNamed(context, '/hosting');
+      } else {
+        _showError('Signup failed. Please try again.');
+      }
+    } catch (e) {
+      _showError('Connection error. Please check your internet connection.');
+    }
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+      ),
     );
   }
 
   @override
   void dispose() {
-    _dateController.dispose(); // Don't forget to dispose the controller
+    _dateController.dispose();
     super.dispose();
-  }
-
-  Widget _buildDatePickerField(BuildContext context) {
-    return GestureDetector(
-      onTap: () async {
-        final pickedDate = await showDatePicker(
-          context: context,
-          initialDate: DateTime.now(),
-          firstDate: DateTime(1900),
-          lastDate: DateTime(2100),
-        );
-        if (pickedDate != null) {
-          setState(() {
-            _selectedDate = pickedDate;
-            // Update the controller with the formatted date
-            _dateController.text = DateFormat(
-              'yyyy-MM-dd',
-            ).format(_selectedDate!);
-          });
-        }
-      },
-      child: AbsorbPointer(
-        child: TextField(
-          controller: _dateController, // Bind the controller
-          decoration: InputDecoration(
-            labelText: 'Birthdate',
-            hintText:
-                _selectedDate != null
-                    ? DateFormat('yyyy-MM-dd').format(_selectedDate!)
-                    : 'Select date',
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-            filled: true,
-            fillColor: Colors.white,
-          ),
-        ),
-      ),
-    );
   }
 }

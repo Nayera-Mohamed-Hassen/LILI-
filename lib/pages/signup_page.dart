@@ -1,8 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:LILI/pages/google_sign_in_sevice.dart';
 import 'package:http/http.dart' as http;
-
 import 'init_setup_page.dart';
 
 class SignUpPage extends StatefulWidget {
@@ -18,146 +16,246 @@ class _SignUpPageState extends State<SignUpPage> {
   final _phoneNumber = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  bool _isPasswordVisible = false;
+  bool _isConfirmPasswordVisible = false;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        leading: BackButton(),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
-      backgroundColor: const Color(0xFFF2F2F2),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const SizedBox(height: 30),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'Sign Up',
-                  style: TextStyle(
-                    color: const Color(0xFF213555),
-                    fontSize: 48,
-                    fontFamily: 'Roboto',
-                    fontWeight: FontWeight.w400,
-                    height: 1.2,
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 20),
-              _buildTextField(_name, 'Name'),
-              const SizedBox(height: 20),
-              _buildTextField(_email, 'Email'),
-              const SizedBox(height: 20),
-              _buildTextField(_phoneNumber, 'Phone Number'),
-              const SizedBox(height: 20),
-              _buildTextField(_passwordController, 'Password'),
-              const SizedBox(height: 20),
-              _buildTextField(_confirmPasswordController, 'Confirm Password'),
-
-              const SizedBox(height: 30),
-              _buildButton(
-                'Next',
-                onPressed: () {
-                  if (_name.text.isEmpty ||
-                      _email.text.isEmpty ||
-                      _phoneNumber.text.isEmpty ||
-                      _passwordController.text.isEmpty ||
-                      _confirmPasswordController.text.isEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Please fill in all fields')),
-                    );
-                  } else {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder:
-                            (context) => InitSetupPage(
-                              name: _name.text,
-                              email: _email.text,
-                              password: _passwordController.text,
-                              phone: _phoneNumber.text,
-                            ),
-                      ),
-                    );
-                  }
-                },
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton.icon(
-                onPressed: () async {
-                  final userCredential =
-                      await GoogleSignInService.signInWithGoogle();
-                  if (userCredential != null) {
-                    Navigator.pushNamed(context, '/hosting');
-                  }
-                },
-                icon: const Icon(Icons.login, color: Colors.white),
-                label: const Text(
-                  'Sign in with Google',
-                  style: TextStyle(color: Colors.white, fontSize: 16),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.redAccent,
-                  minimumSize: const Size(430, 60),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(5),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              const Color(0xFF1F3354),
+              const Color(0xFF3E5879),
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildButton(
-    String text, {
-    required VoidCallback onPressed,
-    Size? size,
-  }) {
-    final fixedSize = size ?? const Size(430, 60);
-
-    return SizedBox(
-      width: fixedSize.width,
-      height: fixedSize.height,
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF3E5879),
-          shape: RoundedRectangleBorder(
-            side: const BorderSide(width: 1),
-            borderRadius: BorderRadius.circular(5),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back, color: Colors.white),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                  const SizedBox(height: 32),
+                  const Text(
+                    'Create\nAccount',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 40,
+                      fontWeight: FontWeight.bold,
+                      height: 1.2,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Sign up to get started',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 16,
+                    ),
+                  ),
+                  const SizedBox(height: 48),
+                  _buildTextField(
+                    controller: _name,
+                    label: 'Full Name',
+                    icon: Icons.person_outline,
+                  ),
+                  const SizedBox(height: 24),
+                  _buildTextField(
+                    controller: _email,
+                    label: 'Email',
+                    icon: Icons.email_outlined,
+                  ),
+                  const SizedBox(height: 24),
+                  _buildTextField(
+                    controller: _phoneNumber,
+                    label: 'Phone Number',
+                    icon: Icons.phone_outlined,
+                  ),
+                  const SizedBox(height: 24),
+                  _buildTextField(
+                    controller: _passwordController,
+                    label: 'Password',
+                    icon: Icons.lock_outline,
+                    isPassword: true,
+                    isPasswordVisible: _isPasswordVisible,
+                    onTogglePassword: () {
+                      setState(() {
+                        _isPasswordVisible = !_isPasswordVisible;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 24),
+                  _buildTextField(
+                    controller: _confirmPasswordController,
+                    label: 'Confirm Password',
+                    icon: Icons.lock_outline,
+                    isPassword: true,
+                    isPasswordVisible: _isConfirmPasswordVisible,
+                    onTogglePassword: () {
+                      setState(() {
+                        _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 32),
+                  _buildNextButton(),
+                  const SizedBox(height: 24),
+                  Center(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text(
+                          "Already have an account? ",
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 14,
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pushNamed(context, '/login');
+                          },
+                          style: TextButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            minimumSize: const Size(0, 0),
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          child: const Text(
+                            'Login here',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
-        child: Text(
-          text,
-          style: const TextStyle(color: Colors.white, fontSize: 18),
+      ),
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    bool isPassword = false,
+    bool? isPasswordVisible,
+    VoidCallback? onTogglePassword,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white12,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white24),
+      ),
+      child: TextField(
+        controller: controller,
+        style: const TextStyle(color: Colors.white),
+        obscureText: isPassword && !(isPasswordVisible ?? false),
+        decoration: InputDecoration(
+          labelText: label,
+          labelStyle: const TextStyle(color: Colors.white70),
+          prefixIcon: Container(
+            margin: const EdgeInsets.only(left: 12, right: 8),
+            child: Icon(icon, color: Colors.white70),
+          ),
+          suffixIcon: isPassword
+              ? IconButton(
+                  icon: Icon(
+                    (isPasswordVisible ?? false)
+                        ? Icons.visibility_outlined
+                        : Icons.visibility_off_outlined,
+                    color: Colors.white70,
+                  ),
+                  onPressed: onTogglePassword,
+                )
+              : null,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide.none,
+          ),
+          filled: true,
+          fillColor: Colors.transparent,
         ),
       ),
     );
   }
 
-  Widget _buildTextField(
-    TextEditingController controller,
-    String label, {
-    int maxLines = 1,
-  }) {
-    return TextField(
-      controller: controller,
-      maxLines: maxLines,
-      decoration: InputDecoration(
-        labelText: label,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-        filled: true,
-        fillColor: Colors.white,
+  Widget _buildNextButton() {
+    return SizedBox(
+      width: double.infinity,
+      height: 56,
+      child: ElevatedButton(
+        onPressed: _handleNext,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.white,
+          foregroundColor: const Color(0xFF1F3354),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          elevation: 0,
+        ),
+        child: const Text(
+          'Next',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _handleNext() {
+    if (_name.text.isEmpty ||
+        _email.text.isEmpty ||
+        _phoneNumber.text.isEmpty ||
+        _passwordController.text.isEmpty ||
+        _confirmPasswordController.text.isEmpty) {
+      _showError('Please fill in all fields');
+      return;
+    }
+
+    if (_passwordController.text != _confirmPasswordController.text) {
+      _showError('Passwords do not match');
+      return;
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => InitSetupPage(
+          name: _name.text,
+          email: _email.text,
+          password: _passwordController.text,
+          phone: _phoneNumber.text,
+        ),
+      ),
+    );
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
       ),
     );
   }

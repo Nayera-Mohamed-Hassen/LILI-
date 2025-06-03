@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:http/http.dart' as http;
-import 'package:http/http.dart' as http;
 import '../user_session.dart';
 import 'add_new_itemInventory_page.dart'; // Page to create new item
 import 'package:LILI/pages/create_new_categoryInventory_page.dart'; // Page to create new category
@@ -157,303 +156,488 @@ class _InventoryPageState extends State<InventoryPage> {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Inventory Manager', style: TextStyle(color: Colors.white)),
-        backgroundColor: Color(0xFF1F3354),
-        iconTheme: const IconThemeData(color: Colors.white),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              const Color(0xFF1F3354),
+              const Color(0xFF3E5879),
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              _buildHeader(),
+              _buildSearch(),
+              _buildFilterChips(),
+              Expanded(
+                child: _buildInventoryList(groupedItems),
+              ),
+            ],
+          ),
+        ),
       ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(8),
+      floatingActionButton: _buildFloatingActionButton(),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Inventory',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Text(
+                '${allItems.length} items',
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 16,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSearch() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white12,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.white24),
+        ),
+        child: TextField(
+          style: TextStyle(color: Colors.white),
+          decoration: InputDecoration(
+            hintText: 'Search items...',
+            hintStyle: TextStyle(color: Colors.white60),
+            prefixIcon: Icon(Icons.search, color: Colors.white60),
+            border: InputBorder.none,
+            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          ),
+          onChanged: (value) {
+            setState(() {
+              searchQuery = value.toLowerCase();
+            });
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFilterChips() {
+    return Container(
+      height: 40,
+      child: ListView.separated(
+        padding: EdgeInsets.symmetric(horizontal: 16),
+        scrollDirection: Axis.horizontal,
+        itemCount: categories.length,
+        separatorBuilder: (_, __) => SizedBox(width: 8),
+        itemBuilder: (context, i) {
+          final category = categories[i];
+          return FilterChip(
+            label: Text(category, style: TextStyle(color: Colors.white)),
+            selected: _selectedIndex == i,
+            onSelected: (selected) => setState(() => _selectedIndex = i),
+            backgroundColor: Colors.white12,
+            selectedColor: Colors.white24,
+            checkmarkColor: Colors.white,
+            side: BorderSide(color: Colors.white24),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildInventoryList(Map<String, List<InventoryItem>> groupedItems) {
+    if (groupedItems.isEmpty) {
+      return Center(
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            TextField(
-              decoration: InputDecoration(
-                hintText: 'Search...',
-                prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(28),
-                ),
-                contentPadding: EdgeInsets.symmetric(
-                  vertical: 15,
-                  horizontal: 20,
-                ),
-                filled: true,
-                fillColor: Colors.grey[200],
-              ),
-              onChanged: (value) {
-                setState(() {
-                  searchQuery = value;
-                });
-              },
+            Icon(Icons.inventory_2_outlined, size: 64, color: Colors.white38),
+            SizedBox(height: 16),
+            Text(
+              'No items found',
+              style: TextStyle(color: Colors.white70, fontSize: 18),
             ),
-            SizedBox(height: 15),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children:
-                    categories.map((cat) {
-                      int index = categories.indexOf(cat);
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        child: ActionChip(
-                          label: Text(
-                            cat,
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFFF2F2F2),
-                            ),
-                          ),
-                          backgroundColor:
-                              _selectedIndex == index
-                                  ? Color(0xFF1F3354)
-                                  : Color(0xFF3E5879),
-                          onPressed: () {
-                            setState(() {
-                              _selectedIndex = index;
-                            });
-                          },
+          ],
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: EdgeInsets.all(16),
+      itemCount: groupedItems.length,
+      itemBuilder: (context, index) {
+        final category = groupedItems.keys.elementAt(index);
+        final items = groupedItems[category]!;
+        
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: EdgeInsets.symmetric(vertical: 8),
+              child: Text(
+                category,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            ...items.map((item) => _buildItemCard(item)),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildItemCard(InventoryItem item) {
+    final daysLeft = calculateDaysLeft(item.expiryDate);
+    final bool isLowStock = item.quantity <= 1;
+    final bool isExpiringSoon = daysLeft != null && daysLeft <= 7;
+
+    return Card(
+      margin: EdgeInsets.only(bottom: 12),
+      color: Colors.white.withOpacity(0.1),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: Colors.white24),
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: () => _showItemDetails(item),
+        child: Padding(
+          padding: EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  if (item.image != null)
+                    Container(
+                      width: 48,
+                      height: 48,
+                      margin: EdgeInsets.only(right: 16),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        image: DecorationImage(
+                          image: AssetImage(item.image!),
+                          fit: BoxFit.cover,
                         ),
-                      );
-                    }).toList(),
-              ),
-            ),
-            SizedBox(height: 15),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children:
-                  groupedItems.entries.map((entry) {
-                    return Column(
+                      ),
+                    )
+                  else
+                    Container(
+                      width: 48,
+                      height: 48,
+                      margin: EdgeInsets.only(right: 16),
+                      decoration: BoxDecoration(
+                        color: Colors.white24,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(Icons.inventory_2, color: Colors.white),
+                    ),
+                  Expanded(
+                    child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Padding(
-                          padding: EdgeInsets.symmetric(vertical: 8),
-                          child: Text(
-                            entry.key,
+                        Text(
+                          item.name,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        SizedBox(height: 4),
+                        Row(
+                          children: [
+                            if (isLowStock)
+                              Container(
+                                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                margin: EdgeInsets.only(right: 8),
+                                decoration: BoxDecoration(
+                                  color: Colors.red.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  'Low Stock',
+                                  style: TextStyle(color: Colors.red[300], fontSize: 12),
+                                ),
+                              ),
+                            if (isExpiringSoon)
+                              Container(
+                                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: Colors.orange.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  'Expiring Soon',
+                                  style: TextStyle(color: Colors.orange[300], fontSize: 12),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Row(
+                        children: [
+                          IconButton(
+                            icon: Icon(Icons.remove, color: Colors.white70),
+                            onPressed: () async {
+                              if (item.quantity > 0) {
+                                setState(() => item.quantity--);
+                                try {
+                                  await updateItemQuantity(
+                                    item.name,
+                                    item.quantity,
+                                    UserSession().getUserId(),
+                                  );
+                                } catch (e) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text('Failed to update quantity: $e')),
+                                  );
+                                }
+                              }
+                            },
+                          ),
+                          Text(
+                            '${item.quantity}',
                             style: TextStyle(
-                              color: Color(0xFF1F3354),
+                              color: Colors.white,
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                        ),
-                        ...entry.value.map(
-                          (item) => Card(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20),
-                              side: const BorderSide(
-                                color: Color(0xFF1F3354),
-                                width: 1,
-                              ),
-                            ),
-                            elevation: 8,
-                            shadowColor: const Color(0xFF1F3354),
-                            margin: const EdgeInsets.symmetric(vertical: 8),
-                            child: ListTile(
-                              leading:
-                                  item.image != null
-                                      ? Image.asset(
-                                        item.image!,
-                                        width: 40,
-                                        height: 40,
-                                        fit: BoxFit.cover,
-                                      )
-                                      : CircleAvatar(
-                                        backgroundColor: Colors.grey[300],
-                                        child: Icon(
-                                          Icons.image_not_supported,
-                                          color: Color(0xFF1F3354),
-                                        ),
-                                      ),
-                              title: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Text(
-                                        item.name,
-                                        style: TextStyle(
-                                          color: Color(0xFF1F3354),
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      if (item.quantity <= 1) ...[
-                                        SizedBox(width: 6),
-                                        Container(
-                                          width: 10,
-                                          height: 10,
-                                          decoration: BoxDecoration(
-                                            color: Colors.red,
-                                            shape: BoxShape.circle,
-                                          ),
-                                        ),
-                                      ],
-                                    ],
-                                  ),
-                                  if (item.expiryDate != null) ...[
-                                    SizedBox(height: 4),
-                                    Row(
-                                      children: [
-                                        Icon(
-                                          Icons.schedule,
-                                          size: 14,
-                                          color: Color(0xFF3E5879),
-                                        ),
-                                        SizedBox(width: 4),
-                                        Text(
-                                          '${calculateDaysLeft(item.expiryDate)} days left',
-                                          style: TextStyle(
-                                            color: Color(0xFF3E5879),
-                                            fontSize: 12,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ],
-                              ),
-                              subtitle: Row(
-                                children: [
-                                  IconButton(
-                                    icon: Icon(
-                                      Icons.remove,
-                                      color: Color(0xFF1F3354),
-                                    ),
-                                    onPressed: () async {
-                                      if (item.quantity > 0) {
-                                        setState(() {
-                                          item.quantity--;
-                                        });
-                                        try {
-                                          await updateItemQuantity(
-                                            item.name,
-                                            item.quantity,
-                                            UserSession().getUserId(),
-                                          );
-                                        } catch (e) {
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                'Failed to update quantity: $e',
-                                              ),
-                                            ),
-                                          );
-                                        }
-                                      }
-                                    },
-                                  ),
-                                  Text(
-                                    '${item.quantity}',
-                                    style: TextStyle(
-                                      color: Color(0xFF1F3354),
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  IconButton(
-                                    icon: Icon(
-                                      Icons.add,
-                                      color: Color(0xFF1F3354),
-                                    ),
-                                    onPressed: () async {
-                                      setState(() {
-                                        item.quantity++;
-                                      });
-                                      try {
-                                        await updateItemQuantity(
-                                          item.name,
-                                          item.quantity,
-                                          UserSession().getUserId(),
-                                        );
-                                      } catch (e) {
-                                        ScaffoldMessenger.of(
-                                          context,
-                                        ).showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                              'Failed to update quantity: $e',
-                                            ),
-                                          ),
-                                        );
-                                      }
-                                    },
-                                  ),
-                                ],
-                              ),
-                              trailing: IconButton(
-                                icon: Icon(
-                                  Icons.delete,
-                                  color: Color(0xFF1F3354),
-                                ),
-                                onPressed: () async {
-                                  try {
-                                    await deleteItemFromBackend(
-                                      item.name,
-                                      UserSession().getUserId(),
-                                      item.expiryDate,
-                                    ); // Call API
-                                    setState(() {
-                                      allItems.remove(item); // Remove from UI
-                                    });
-                                  } catch (e) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text('Failed to delete: $e'),
-                                      ),
-                                    );
-                                  }
-                                },
-                              ),
-                            ),
+                          IconButton(
+                            icon: Icon(Icons.add, color: Colors.white70),
+                            onPressed: () async {
+                              setState(() => item.quantity++);
+                              try {
+                                await updateItemQuantity(
+                                  item.name,
+                                  item.quantity,
+                                  UserSession().getUserId(),
+                                );
+                              } catch (e) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Failed to update quantity: $e')),
+                                );
+                              }
+                            },
+                          ),
+                        ],
+                      ),
+                      if (daysLeft != null)
+                        Text(
+                          '$daysLeft days left',
+                          style: TextStyle(
+                            color: Colors.white60,
+                            fontSize: 12,
                           ),
                         ),
-                      ],
-                    );
-                  }).toList(),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showItemDetails(InventoryItem item) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: BoxDecoration(
+          color: Color(0xFF1F3354),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              margin: EdgeInsets.symmetric(vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.white24,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            Padding(
+              padding: EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item.name,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: 16),
+                  _buildDetailRow(Icons.category_outlined, item.category),
+                  SizedBox(height: 12),
+                  _buildDetailRow(
+                    Icons.inventory_2_outlined,
+                    'Quantity: ${item.quantity}',
+                  ),
+                  if (item.expiryDate != null) ...[
+                    SizedBox(height: 12),
+                    _buildDetailRow(
+                      Icons.event_outlined,
+                      'Expires in ${calculateDaysLeft(item.expiryDate)} days',
+                    ),
+                  ],
+                  SizedBox(height: 24),
+                  ElevatedButton(
+                    onPressed: () async {
+                      try {
+                        await deleteItemFromBackend(
+                          item.name,
+                          UserSession().getUserId(),
+                          item.expiryDate,
+                        );
+                        setState(() {
+                          allItems.remove(item);
+                        });
+                        Navigator.pop(context);
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Failed to delete: $e')),
+                        );
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red.withOpacity(0.3),
+                      padding: EdgeInsets.symmetric(vertical: 16),
+                      minimumSize: Size(double.infinity, 48),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: Text(
+                      'Delete Item',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
       ),
-      floatingActionButton: PopupMenuButton<String>(
-        onSelected: (value) async {
-          if (value == 'Item') {
-            final newItem = await Navigator.push<InventoryItem>(
-              context,
-              MaterialPageRoute(builder: (context) => CreateNewItemPage()),
-            );
-            if (newItem != null) {
-              _addNewItem(newItem);
-            }
-          } else if (value == 'category') {
-            final newCategory = await Navigator.push<String>(
-              context,
-              MaterialPageRoute(builder: (context) => AddNewCategoryPage()),
-            );
-            if (newCategory != null && newCategory.isNotEmpty) {
-              _addNewCategory(newCategory);
-            }
-          }
-        },
-        offset: Offset(0, -100),
-        color: Color(0xFFF2F2F2),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-        icon: FloatingActionButton(
-          backgroundColor: Color(0xFF1F3354),
-          child: Icon(Icons.add, size: 30, color: Color(0xFFF2F2F2)),
-          onPressed: null,
+    );
+  }
+
+  Widget _buildDetailRow(IconData icon, String text) {
+    return Row(
+      children: [
+        Icon(icon, color: Colors.white60, size: 20),
+        SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            text,
+            style: TextStyle(color: Colors.white70),
+          ),
         ),
-        itemBuilder:
-            (BuildContext context) => [
-              PopupMenuItem<String>(
-                value: 'Item',
-                child: Text('Create New Item'),
-              ),
-              PopupMenuItem<String>(
-                value: 'category',
-                child: Text('Create New Category'),
+      ],
+    );
+  }
+
+  Widget _buildFloatingActionButton() {
+    return PopupMenuButton<String>(
+      onSelected: (value) async {
+        if (value == 'Item') {
+          final newItem = await Navigator.push<InventoryItem>(
+            context,
+            MaterialPageRoute(builder: (context) => CreateNewItemPage()),
+          );
+          if (newItem != null) {
+            _addNewItem(newItem);
+          }
+        } else if (value == 'category') {
+          final newCategory = await Navigator.push<String>(
+            context,
+            MaterialPageRoute(builder: (context) => AddNewCategoryPage()),
+          );
+          if (newCategory != null && newCategory.isNotEmpty) {
+            _addNewCategory(newCategory);
+          }
+        }
+      },
+      offset: Offset(0, -100),
+      color: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      icon: FloatingActionButton(
+        backgroundColor: Colors.white,
+        child: Icon(Icons.add, size: 30, color: Color(0xFF1F3354)),
+        onPressed: null,
+      ),
+      itemBuilder: (context) => [
+        PopupMenuItem<String>(
+          value: 'Item',
+          child: Row(
+            children: [
+              Icon(Icons.inventory_2_outlined, color: Color(0xFF1F3354)),
+              SizedBox(width: 12),
+              Text(
+                'Add New Item',
+                style: TextStyle(color: Color(0xFF1F3354)),
               ),
             ],
-      ),
+          ),
+        ),
+        PopupMenuItem<String>(
+          value: 'category',
+          child: Row(
+            children: [
+              Icon(Icons.category_outlined, color: Color(0xFF1F3354)),
+              SizedBox(width: 12),
+              Text(
+                'Add New Category',
+                style: TextStyle(color: Color(0xFF1F3354)),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

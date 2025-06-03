@@ -22,10 +22,11 @@ class OnBoarding extends StatelessWidget {
       onFinish: () {
         Navigator.pushNamed(
           context,
-          '/signing',
+          '/login',
         ); // or whatever your route name is
       },
-      controllerColor: Color(0xFF3E5879), // Active dot color
+      controllerColor: Color(0xFF3E5879),
+      // Active dot color
       // indicatorColor: Colors.grey, // Inactive dot color
       skipTextButton: const Text(
         'Skip',

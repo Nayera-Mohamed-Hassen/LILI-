@@ -19,97 +19,97 @@ class _MainMenuPageState extends State<MainMenuPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Beige background
-      body: Center(
-        child: Stack(
-          children: [
-            /********** this menu item is not needed but don't remove it ***********/
-            /********** as it affects the GIFs ***********/
-            Menuitem(
-              onPressed: () {
-                Navigator.pushNamed(context, '/task home');
-              },
-              text: "",
-              image: "assets/images/tasks.gif",
-            ),
-
-            /********** this is the end of the none needed item *********/
-            Positioned.fill(
-              child: Image.asset(
-                'assets/backgrounds/homepage.png',
-                alignment: Alignment.center,
-                fit: BoxFit.cover,
-              ),
-            ),
-            Column(
-              children: [
-                SizedBox(height: 50, width: MediaQuery.of(context).size.width),
-                SizedBox(
-                  width: MediaQuery.of(context).size.width - 50,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    // Aligns the icon to the right
-                    children: [
-                      Icon(
-                        Icons.notifications,
-                        color: Color(0xFFF2F2F2),
-                        size: 40,
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 20),
-                Container(
-                  decoration: BoxDecoration(
-                    color: Color(0xFFF2F2F2),
-                    borderRadius: BorderRadius.circular(230),
-                  ),
-                ),
-
-                SizedBox(height: 40),
-                Expanded(
-                  child: SingleChildScrollView(
-                    child: Column(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              const Color(0xFF1F3354),
+              const Color(0xFF3E5879),
+            ],
+          ),
+        ),
+        child: Center(
+          child: Stack(
+            children: [
+              Column(
+                children: [
+                  SizedBox(height: 50, width: MediaQuery.of(context).size.width),
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width - 50,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        Menuitem(
-                          onPressed: () {
-                            Navigator.pushNamed(context, '/task home');
-                          },
-                          text: "View Tasks",
-                          image: "assets/images/tasks.gif",
-                        ),
-
-                        Menuitem(
-                          onPressed: () {
-                            Navigator.pushNamed(context, '/Recipe');
-                          },
-                          text: "Suggests Recipe",
-                          image: "assets/images/food.gif",
-                        ),
-
-                        Menuitem(
-                          onPressed: () {
-                            Navigator.pushNamed(context, '/inventory');
-                          },
-                          text: "Show Inventory",
-                          image: "assets/images/inventory.gif",
-                        ),
-
-                        Menuitem(
-                          onPressed: () {
-                            Navigator.pushNamed(context, '/Expenses ');
-                          },
-                          text: "Track Expenses",
-                          image: "assets/images/money.gif",
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white24,
+                            border: Border.all(color: Colors.white38),
+                          ),
+                          child: const Icon(
+                            Icons.notifications,
+                            color: Colors.white,
+                            size: 28,
+                          ),
                         ),
                       ],
                     ),
                   ),
-                ),
-                SizedBox(height: 30),
-              ],
-            ),
-          ],
+                  SizedBox(height: 20),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white24,
+                      borderRadius: BorderRadius.circular(230),
+                    ),
+                  ),
+
+                  SizedBox(height: 40),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          Menuitem(
+                            onPressed: () {
+                              Navigator.pushNamed(context, '/task home');
+                            },
+                            text: "View Tasks",
+                            image: "assets/images/tasks.gif",
+                          ),
+
+                          Menuitem(
+                            onPressed: () {
+                              Navigator.pushNamed(context, '/Recipe');
+                            },
+                            text: "Suggests Recipe",
+                            image: "assets/images/food.gif",
+                          ),
+
+                          Menuitem(
+                            onPressed: () {
+                              Navigator.pushNamed(context, '/inventory');
+                            },
+                            text: "Show Inventory",
+                            image: "assets/images/inventory.gif",
+                          ),
+
+                          Menuitem(
+                            onPressed: () {
+                              Navigator.pushNamed(context, '/Expenses ');
+                            },
+                            text: "Track Expenses",
+                            image: "assets/images/money.gif",
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 30),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

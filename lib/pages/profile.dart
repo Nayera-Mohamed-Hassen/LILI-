@@ -1,3 +1,4 @@
+import 'package:LILI/pages/login_page.dart';
 import 'package:flutter/material.dart';
 import '../user_session.dart';
 import 'navbar.dart';
@@ -18,7 +19,7 @@ class _ProfilePageState extends State<ProfilePage> {
   final UserService _userService = UserService();
   bool _isLoading = true;
   String _error = '';
-  
+
   User user = User(
     name: "Loading...",
     email: "",
@@ -41,20 +42,29 @@ class _ProfilePageState extends State<ProfilePage> {
       });
 
       // TODO: Replace 1 with actual user ID from your auth system
-      final userData = await _userService.getUserProfile(UserSession().getUserId());
-      
+      final userData = await _userService.getUserProfile(
+        UserSession().getUserId(),
+      );
+
       // Debug print to see what data we're receiving
       print('Received user data: $userData');
-      
+
       setState(() {
         user = User(
           name: userData['name'] ?? '',
           email: userData['email'] ?? '',
           dob: userData['user_birthday'] ?? '',
           phone: userData['phone'] ?? '',
-          allergies: [], // Add allergies if available in your backend
-          height: userData['height'] != null ? double.parse(userData['height'].toString()) : null,
-          weight: userData['weight'] != null ? double.parse(userData['weight'].toString()) : null,
+          allergies: [],
+          // Add allergies if available in your backend
+          height:
+              userData['height'] != null
+                  ? double.parse(userData['height'].toString())
+                  : null,
+          weight:
+              userData['weight'] != null
+                  ? double.parse(userData['weight'].toString())
+                  : null,
         );
         _isLoading = false;
       });
@@ -97,12 +107,13 @@ class _ProfilePageState extends State<ProfilePage> {
       updateUser(updatedUser);
     }
   }
+
   void showDetailSheet(
-      BuildContext context,
-      String title,
-      List<String> details, {
-        bool showCheckboxes = false,
-      }) {
+    BuildContext context,
+    String title,
+    List<String> details, {
+    bool showCheckboxes = false,
+  }) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -113,39 +124,40 @@ class _ProfilePageState extends State<ProfilePage> {
         List<bool> checked = List.generate(details.length, (index) => false);
 
         return StatefulBuilder(
-          builder: (context, setState) => Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
+          builder:
+              (context, setState) => Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    ...List.generate(details.length, (index) {
+                      return showCheckboxes
+                          ? CheckboxListTile(
+                            value: checked[index],
+                            title: Text(details[index]),
+                            controlAffinity: ListTileControlAffinity.leading,
+                            onChanged: (val) {
+                              setState(() {
+                                checked[index] = val!;
+                              });
+                            },
+                          )
+                          : ListTile(
+                            leading: const Icon(Icons.arrow_right),
+                            title: Text(details[index]),
+                          );
+                    }),
+                  ],
                 ),
-                const SizedBox(height: 10),
-                ...List.generate(details.length, (index) {
-                  return showCheckboxes
-                      ? CheckboxListTile(
-                    value: checked[index],
-                    title: Text(details[index]),
-                    controlAffinity: ListTileControlAffinity.leading,
-                    onChanged: (val) {
-                      setState(() {
-                        checked[index] = val!;
-                      });
-                    },
-                  )
-                      : ListTile(
-                    leading: const Icon(Icons.arrow_right),
-                    title: Text(details[index]),
-                  );
-                }),
-              ],
-            ),
-          ),
+              ),
         );
       },
     );
@@ -168,8 +180,18 @@ class _ProfilePageState extends State<ProfilePage> {
             TextButton(
               child: Text("Logout"),
               onPressed: () {
+                // Clear the user session
+                UserSession().setUserId(0);
+                UserSession().setRecipeCount(1);
+
+                // Close the dialog
                 Navigator.of(context).pop();
-                print("User logged out");
+
+                // Navigate to the signing page and remove all previous routes
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (context) => LoginPage()),
+                  (Route<dynamic> route) => false,
+                );
               },
             ),
           ],
@@ -181,301 +203,386 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Color(0xFF213555),
-        elevation: 0,
-        automaticallyImplyLeading: false,
-        actions: [
-          GestureDetector(
-            onTapDown: (details) {
-              showMenu(
-                context: context,
-                position: RelativeRect.fromLTRB(
-                  details.globalPosition.dx,
-                  details.globalPosition.dy,
-                  0,
-                  0,
-                ),
-                items: [
-                  PopupMenuItem(
-                    child: ListTile(
-                      leading: Icon(
-                        Icons.notification_important,
-                        color: Color(0xFF3E5879),
-                      ),
-                      title: Text('Project UI is due today.'),
-                    ),
-                  ),
-                  PopupMenuItem(
-                    child: ListTile(
-                      leading: Icon(Icons.new_releases, color: Colors.orange),
-                      title: Text('New task assigned.'),
-                    ),
-                  ),
-                ],
-              );
-            },
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Icon(Icons.notifications, color: Colors.white),
-            ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [const Color(0xFF1F3354), const Color(0xFF3E5879)],
           ),
-        ],
+        ),
+        child: SafeArea(
+          child:
+              _isLoading
+                  ? const Center(
+                    child: CircularProgressIndicator(color: Colors.white),
+                  )
+                  : _error.isNotEmpty
+                  ? Center(
+                    child: Text(
+                      _error,
+                      style: const TextStyle(color: Colors.red),
+                    ),
+                  )
+                  : CustomScrollView(
+                    slivers: [
+                      SliverAppBar(
+                        backgroundColor: Colors.transparent,
+                        elevation: 0,
+                        pinned: true,
+                        expandedHeight: 200,
+                        flexibleSpace: FlexibleSpaceBar(
+                          background: Stack(
+                            children: [
+                              Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                          color: Colors.white,
+                                          width: 4,
+                                        ),
+                                      ),
+                                      child: CircleAvatar(
+                                        radius: 50,
+                                        backgroundColor: Colors.white24,
+                                        child: Text(
+                                          user.name.isNotEmpty
+                                              ? user.name[0].toUpperCase()
+                                              : '?',
+                                          style: const TextStyle(
+                                            fontSize: 40,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      user.name,
+                                      style: const TextStyle(
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Positioned(
+                                top: 8,
+                                right: 8,
+                                child: GestureDetector(
+                                  onTapDown: (details) {
+                                    showMenu(
+                                      context: context,
+                                      position: RelativeRect.fromLTRB(
+                                        details.globalPosition.dx,
+                                        details.globalPosition.dy,
+                                        0,
+                                        0,
+                                      ),
+                                      items: [
+                                        PopupMenuItem(
+                                          child: _buildNotificationItem(
+                                            icon: Icons.notification_important,
+                                            color: const Color(0xFF3E5879),
+                                            title: 'Project UI is due today',
+                                            subtitle: '2 hours remaining',
+                                          ),
+                                        ),
+                                        PopupMenuItem(
+                                          child: _buildNotificationItem(
+                                            icon: Icons.new_releases,
+                                            color: Colors.orange,
+                                            title: 'New task assigned',
+                                            subtitle: 'Check your tasks list',
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: Colors.white24,
+                                      border: Border.all(color: Colors.white38),
+                                    ),
+                                    child: Stack(
+                                      children: [
+                                        const Icon(
+                                          Icons.notifications,
+                                          color: Colors.white,
+                                          size: 28,
+                                        ),
+                                        Positioned(
+                                          right: 0,
+                                          top: 0,
+                                          child: Container(
+                                            padding: const EdgeInsets.all(4),
+                                            decoration: const BoxDecoration(
+                                              color: Colors.red,
+                                              shape: BoxShape.circle,
+                                            ),
+                                            constraints: const BoxConstraints(
+                                              minWidth: 12,
+                                              minHeight: 12,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            children: [
+                              _buildInfoCard(),
+                              const SizedBox(height: 24),
+                              _buildActionButtons(),
+                              const SizedBox(height: 24),
+                              _buildSettingsSection(),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+        ),
       ),
-      //backgroundColor: Color(0xFFF5F5F5),
-      body: SafeArea(
-        child: _isLoading
-            ? Center(child: CircularProgressIndicator())
-            : _error.isNotEmpty
-                ? Center(child: Text(_error, style: TextStyle(color: Colors.red)))
-                : Column(
+    );
+  }
+
+  Widget _buildNotificationItem({
+    required IconData icon,
+    required Color color,
+    required String title,
+    required String subtitle,
+  }) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.1),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, color: color),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
+              Text(
+                subtitle,
+                style: TextStyle(color: Colors.grey[600], fontSize: 12),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildInfoCard() {
+    return Card(
+      elevation: 4,
+      shadowColor: Colors.black26,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
           children: [
-            Stack(
-              children: [
-                ClipPath(
-                  clipper: WaveClipper(),
-                  child: Container(height: 250, color: Color(0xFF213555)),
-                ),
-                Positioned(
-                  top: 100,
-                  left: 0,
-                  right: 0,
-                  child: Center(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Color(0xFF213555), width: 4),
-                      ),
-                      child: CircleAvatar(
-                        radius: 50,
-                        backgroundImage: user.profilePic != null && user.profilePic!.isNotEmpty
-                            ? NetworkImage(user.profilePic!)
-                            : AssetImage('assets/images/Hana.jpeg') as ImageProvider,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            Container(
-              width: 291,
-              height: 130,
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              child: Stack(
-                children: [
-                  Positioned(
-                    left: 0,
-                    top: 0,
-                    child: Container(
-                      width: 110.86,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Name',
-                            style: TextStyle(
-                              color: Color(0xFF1D2345),
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              fontFamily: 'Inter',
-                            ),
-                          ),
-                          Text(
-                            user.name,
-                            style: TextStyle(
-                              color: Color(0xFF3E5879),
-                              fontSize: 12,
-                              fontWeight: FontWeight.w400,
-                              fontFamily: 'Inter',
-                            ),
-                          ),
-                          SizedBox(height: 4),
-                          Text(
-                            'Date of Birth',
-                            style: TextStyle(
-                              color: Color(0xFF1D2345),
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              fontFamily: 'Inter',
-                            ),
-                          ),
-                          Text(
-                            user.dob,
-                            style: TextStyle(
-                              color: Color(0xFF3E5879),
-                              fontSize: 12,
-                              fontWeight: FontWeight.w400,
-                              fontFamily: 'Inter',
-                            ),
-                          ),
-                          SizedBox(height: 4),
-                          Text(
-                            'Phone',
-                            style: TextStyle(
-                              color: Color(0xFF1D2345),
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              fontFamily: 'Inter',
-                            ),
-                          ),
-                          Text(
-                            user.phone,
-                            style: TextStyle(
-                              color: Color(0xFF3E5879),
-                              fontSize: 12,
-                              fontWeight: FontWeight.w400,
-                              fontFamily: 'Inter',
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    left: 129.33,
-                    top: 0,
-                    child: Container(
-                      width: 161.67,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Email',
-                            style: TextStyle(
-                              color: Color(0xFF1D2345),
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              fontFamily: 'Inter',
-                            ),
-                          ),
-                          Text(
-                            user.email,
-                            style: TextStyle(
-                              color: Color(0xFF3E5879),
-                              fontSize: 12,
-                              fontWeight: FontWeight.w400,
-                              fontFamily: 'Inter',
-                            ),
-                          ),
-                          SizedBox(height: 4),
-                          Text(
-                            'Height',
-                            style: TextStyle(
-                              color: Color(0xFF1D2345),
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              fontFamily: 'Inter',
-                            ),
-                          ),
-                          Text(
-                            user.height != null ? '${user.height} cm' : 'Not set',
-                            style: TextStyle(
-                              color: Color(0xFF3E5879),
-                              fontSize: 12,
-                              fontWeight: FontWeight.w400,
-                              fontFamily: 'Inter',
-                            ),
-                          ),
-                          SizedBox(height: 4),
-                          Text(
-                            'Weight',
-                            style: TextStyle(
-                              color: Color(0xFF1D2345),
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              fontFamily: 'Inter',
-                            ),
-                          ),
-                          Text(
-                            user.weight != null ? '${user.weight} kg' : 'Not set',
-                            style: TextStyle(
-                              color: Color(0xFF3E5879),
-                              fontSize: 12,
-                              fontWeight: FontWeight.w400,
-                              fontFamily: 'Inter',
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
+            _buildInfoRow(Icons.email, 'Email', user.email),
+            const Divider(height: 24),
+            _buildInfoRow(Icons.phone, 'Phone', user.phone),
+            const Divider(height: 24),
+            _buildInfoRow(Icons.cake, 'Birthday', user.dob),
+            if (user.height != null) ...[
+              const Divider(height: 24),
+              _buildInfoRow(Icons.height, 'Height', '${user.height} cm'),
+            ],
+            if (user.weight != null) ...[
+              const Divider(height: 24),
+              _buildInfoRow(
+                Icons.monitor_weight,
+                'Weight',
+                '${user.weight} kg',
               ),
-            ),
-            SizedBox(height: 10),
-            GestureDetector(
-              onTap: _navigateToMoreInfo,
-              child: Container(
-                padding: EdgeInsets.all(20),
-                decoration: BoxDecoration(color: Colors.transparent),
-                child: Column(
-                  children: [
-                    Text(
-                      "More Info",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF213555),
-                      ),
-                    ),
-                    Icon(Icons.arrow_downward, color: Color(0xFF213555)),
-                  ],
-                ),
-              ),
-            ),
-            SizedBox(height: 5),
-            ElevatedButton.icon(
-              onPressed: _navigateToEditProfile,
-              icon: Icon(Icons.edit),
-              label: Text("Edit Profile"),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFF213555),
-                foregroundColor: Colors.white,
-                fixedSize: Size(260, 40),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-            ),
-            SizedBox(height: 5),
-            ElevatedButton.icon(
-              onPressed: () {
-                showDetailSheet(
-                  context,
-                  "House Code",
-                  ["Code: HJ223FA56", "Location: Main Home", "Owner: Farah"],
-                  showCheckboxes: false,
-                );
-              },
-              icon: Icon(Icons.person_add),
-              label: Text("Add User"),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFF213555),
-                foregroundColor: Colors.white,
-                fixedSize: Size(260, 40),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-            ),
-            SizedBox(height: 5),
-            ElevatedButton.icon(
-              onPressed: _navigateTosigning_page,
-              icon: Icon(Icons.logout),
-              label: Text("Log Out"),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFFF2F2F2),
-                foregroundColor: Colors.red,
-                fixedSize: Size(260, 40),
-                shape: RoundedRectangleBorder(
-                  side: const BorderSide(width: 1, color: Colors.red),
-                  borderRadius: BorderRadius.circular(5),
-                ),
-              ),
-            ),
+            ],
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildInfoRow(IconData icon, String label, String value) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: const Color(0xFF1F3354).withOpacity(0.1),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, color: const Color(0xFF1F3354)),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: TextStyle(color: Colors.grey[600], fontSize: 12),
+              ),
+              Text(
+                value.isNotEmpty ? value : 'Not set',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActionButtons() {
+    return Row(
+      children: [
+        Expanded(
+          child: _buildActionButton(
+            'Edit Profile',
+            Icons.edit,
+            _navigateToEditProfile,
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: _buildActionButton(
+            'More Info',
+            Icons.info_outline,
+            _navigateToMoreInfo,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActionButton(
+    String label,
+    IconData icon,
+    VoidCallback onPressed,
+  ) {
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.white,
+        foregroundColor: const Color(0xFF1F3354),
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+      onPressed: onPressed,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [Icon(icon), const SizedBox(width: 8), Text(label)],
+      ),
+    );
+  }
+
+  Widget _buildSettingsSection() {
+    return Card(
+      elevation: 4,
+      shadowColor: Colors.black26,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Column(
+        children: [
+          _buildSettingsTile(
+            'Add User',
+            Icons.person_add,
+            onTap: () {
+              showDetailSheet(context, "House Code", [
+                "Code: HJ223FA56",
+                "Location: Main Home",
+                "Owner: Farah",
+              ], showCheckboxes: false);
+            },
+          ),
+          const Divider(height: 1),
+          _buildSettingsTile(
+            'Notifications',
+            Icons.notifications_none,
+            onTap: () {
+              // Handle notifications settings
+            },
+          ),
+          const Divider(height: 1),
+          _buildSettingsTile(
+            'Privacy',
+            Icons.lock_outline,
+            onTap: () {
+              // Handle privacy settings
+            },
+          ),
+          const Divider(height: 1),
+          _buildSettingsTile(
+            'Help & Support',
+            Icons.help_outline,
+            onTap: () {
+              // Handle help and support
+            },
+          ),
+          const Divider(height: 1),
+          _buildSettingsTile(
+            'Logout',
+            Icons.logout,
+            isDestructive: true,
+            onTap: _showLogoutDialog,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSettingsTile(
+    String title,
+    IconData icon, {
+    bool isDestructive = false,
+    required VoidCallback onTap,
+  }) {
+    final color = isDestructive ? Colors.red : const Color(0xFF1F3354);
+
+    return ListTile(
+      leading: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.1),
+          shape: BoxShape.circle,
+        ),
+        child: Icon(icon, color: color),
+      ),
+      title: Text(
+        title,
+        style: TextStyle(color: color, fontWeight: FontWeight.w500),
+      ),
+      trailing: const Icon(Icons.chevron_right),
+      onTap: onTap,
     );
   }
 }
