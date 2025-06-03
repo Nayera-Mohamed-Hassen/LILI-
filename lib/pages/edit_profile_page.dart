@@ -6,6 +6,7 @@ import 'wave2.dart'; // Import the wave clipper here
 
 class EditProfilePage extends StatefulWidget {
   final User user;
+
   EditProfilePage({required this.user});
 
   @override
@@ -16,7 +17,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
   late TextEditingController nameController;
   late TextEditingController emailController;
   late TextEditingController phoneController;
-  late TextEditingController addressController;
   late ImagePicker _picker;
   XFile? _image;
 
@@ -30,7 +30,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
   }
 
   Future<void> _pickImage() async {
-    final XFile? pickedImage = await _picker.pickImage(source: ImageSource.gallery);
+    final XFile? pickedImage = await _picker.pickImage(
+      source: ImageSource.gallery,
+    );
     setState(() {
       _image = pickedImage;
     });
@@ -53,7 +55,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
             Stack(
               children: [
                 ClipPath(
-                  clipper: WaveClipper(), // Use WaveClipper for the wave-style clip
+                  clipper: WaveClipper(),
+                  // Use WaveClipper for the wave-style clip
                   child: Container(
                     height: 250,
                     width: double.infinity,
@@ -70,12 +73,18 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       child: CircleAvatar(
                         radius: 50,
                         backgroundColor: Colors.grey[300],
-                        backgroundImage: _image != null
-                            ? FileImage(File(_image!.path))
-                            : null,
-                        child: _image == null
-                            ? Icon(Icons.camera_alt, size: 40, color: Colors.white)
-                            : null,
+                        backgroundImage:
+                            _image != null
+                                ? FileImage(File(_image!.path))
+                                : null,
+                        child:
+                            _image == null
+                                ? Icon(
+                                  Icons.camera_alt,
+                                  size: 40,
+                                  color: Colors.white,
+                                )
+                                : null,
                       ),
                     ),
                   ),
@@ -89,7 +98,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   _buildTextField(nameController, "Name"),
                   _buildTextField(emailController, "Email"),
                   _buildTextField(phoneController, "Phone"),
-                  _buildTextField(addressController, "Address", maxLines: 3),
                   SizedBox(height: 30),
                   Column(
                     children: [
@@ -103,30 +111,37 @@ class _EditProfilePageState extends State<EditProfilePage> {
                           Navigator.pop(context, updatedUser);
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor:  Color(0xFF3E5879),
+                          backgroundColor: Color(0xFF3E5879),
                           shape: RoundedRectangleBorder(
                             side: const BorderSide(width: 1),
                             borderRadius: BorderRadius.circular(5),
                           ),
                           fixedSize: Size(260, 40),
                         ),
-                        child: Text("Save Changes", style: TextStyle(fontSize: 18, color: Colors.white)),
+                        child: Text(
+                          "Save Changes",
+                          style: TextStyle(fontSize: 18, color: Colors.white),
+                        ),
                       ),
                       SizedBox(height: 10),
                       ElevatedButton(
                         onPressed: () => Navigator.pop(context),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor:  Color(0xFFF2F2F2),
+                          backgroundColor: Color(0xFFF2F2F2),
                           shape: RoundedRectangleBorder(
                             side: const BorderSide(width: 1),
                             borderRadius: BorderRadius.circular(5),
                           ),
                           fixedSize: Size(260, 40),
                         ),
-                        child: Text("Discard", style: TextStyle(fontSize: 18, color: Color(0xFF3E5879))),
+                        child: Text(
+                          "Discard",
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: Color(0xFF3E5879),
+                          ),
+                        ),
                       ),
-
-
                     ],
                   ),
                 ],
@@ -139,10 +154,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
   }
 
   Widget _buildTextField(
-      TextEditingController controller,
-      String label, {
-        int maxLines = 1,
-      }) {
+    TextEditingController controller,
+    String label, {
+    int maxLines = 1,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: TextField(
