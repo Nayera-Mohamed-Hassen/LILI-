@@ -5,6 +5,7 @@ import 'package:LILI/pages/more_info_page.dart';
 import 'package:LILI/pages/edit_profile_page.dart';
 import 'package:LILI/pages/wave2.dart'; // <-- Import WaveClipper here
 import 'package:LILI/pages/signing_page.dart';
+import 'package:LILI/services/user_service.dart';
 
 class ProfilePage extends StatefulWidget {
   @override
@@ -13,23 +14,53 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   int _currentIndex = 3;
-
-  final List<Widget> _pages = [
-    Center(child: Text('Home Page Content')),
-    Center(child: Text('Main Menu Content')),
-    Center(child: Text('Emergency Content')),
-    Center(child: Text('Profile Content')),
-  ];
-
+  final UserService _userService = UserService();
+  bool _isLoading = true;
+  String _error = '';
+  
   User user = User(
-    name: "Farah",
-    email: "farah@home.com",
-    dob: "Mar 25, 2006",
-    phone: "+91 956232134",
-    address:
-        "99, Haji Abduakar Chawl, Dharavi Cross Rd, Kutti Wadi, Dharavi, Maharashtra",
-    allergies: ["shrimp", "strawberries"],
+    name: "Loading...",
+    email: "",
+    dob: "",
+    phone: "",
+    address: "",
+    allergies: [],
   );
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserProfile();
+  }
+
+  Future<void> _loadUserProfile() async {
+    try {
+      setState(() {
+        _isLoading = true;
+        _error = '';
+      });
+
+      // TODO: Replace 1 with actual user ID from your auth system
+      final userData = await _userService.getUserProfile(1);
+      
+      setState(() {
+        user = User(
+          name: userData['name'] ?? '',
+          email: userData['email'] ?? '',
+          dob: userData['birthday'] ?? '',
+          phone: userData['phone'] ?? '',
+          address: '', // Add address if available in your backend
+          allergies: [], // Add allergies if available in your backend
+        );
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _error = 'Failed to load profile: $e';
+        _isLoading = false;
+      });
+    }
+  }
 
   void updateUser(User updatedUser) {
     setState(() {
@@ -188,7 +219,11 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
       //backgroundColor: Color(0xFFF5F5F5),
       body: SafeArea(
-        child: Column(
+        child: _isLoading
+            ? Center(child: CircularProgressIndicator())
+            : _error.isNotEmpty
+                ? Center(child: Text(_error, style: TextStyle(color: Colors.red)))
+                : Column(
           children: [
             Stack(
               children: [
@@ -208,7 +243,9 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                       child: CircleAvatar(
                         radius: 50,
-                        backgroundImage: AssetImage('assets/images/Hana.jpeg'),
+                        backgroundImage: user.profilePic != null && user.profilePic!.isNotEmpty
+                            ? NetworkImage(user.profilePic!)
+                            : AssetImage('assets/images/Hana.jpeg') as ImageProvider,
                       ),
                     ),
                   ),

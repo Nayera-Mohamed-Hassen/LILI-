@@ -576,3 +576,43 @@ async def get_recipes(request: UserRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
+class UpdateProfilePicture(BaseModel):
+    user_id: int
+    profile_pic: str
+
+@router.put("/update-profile-picture")
+async def update_profile_picture(data: UpdateProfilePicture):
+    try:
+        query = f'UPDATE user_tbl SET user_profilePic = "{data.profile_pic}" WHERE user_Id = {data.user_id}'
+        success = executeWriteQuery(query=query)
+        
+        if not success:
+            raise HTTPException(status_code=500, detail="Failed to update profile picture")
+            
+        return {"message": "Profile picture updated successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/profile/{user_id}")
+async def get_user_profile(user_id: int):
+    try:
+        result = selectUser(id=user_id)
+        if not result:
+            raise HTTPException(status_code=404, detail="User not found")
+            
+        user_data = result[0]
+        return {
+            "user_id": user_data["user_Id"],
+            "name": user_data["user_Name"],
+            "email": user_data["user_email"],
+            "phone": user_data["user_phone"],
+            "profile_pic": user_data["user_profilePic"],
+            "height": user_data["user_Height"],
+            "weight": user_data["user_weight"],
+            "diet": user_data["user_diet"],
+            "gender": user_data["user_gender"]
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+

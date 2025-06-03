@@ -1,11 +1,11 @@
 class User {
-  String name;
-  String email;
-  String dob;
-  String phone;
-  String address;
-  List<String> allergies;
-  String? profileImagePath;
+  final String name;
+  final String email;
+  final String dob;
+  final String phone;
+  final String address;
+  final List<String> allergies;
+  final String? profilePic;
 
   User({
     required this.name,
@@ -14,7 +14,7 @@ class User {
     required this.phone,
     required this.address,
     required this.allergies,
-    this.profileImagePath,
+    this.profilePic,
   });
 
   User copyWith({
@@ -24,7 +24,7 @@ class User {
     String? phone,
     String? address,
     List<String>? allergies,
-    String? profileImagePath,
+    String? profilePic,
   }) {
     return User(
       name: name ?? this.name,
@@ -33,7 +33,7 @@ class User {
       phone: phone ?? this.phone,
       address: address ?? this.address,
       allergies: allergies ?? this.allergies,
-      profileImagePath: profileImagePath ?? this.profileImagePath,
+      profilePic: profilePic ?? this.profilePic,
     );
   }
 }
