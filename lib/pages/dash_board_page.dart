@@ -1,64 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/percent_indicator.dart';
+import 'package:fl_chart/fl_chart.dart';
 
 class ReportDashboard extends StatelessWidget {
   const ReportDashboard({super.key});
 
-  // Widget buildCard(
-  //   String title,
-  //   IconData icon,
-  //   Color color,
-  //   String value,
-  //   String subtitle,
-  // ) {
-  //   return SizedBox(
-  //     width: 160,
-  //     height: 160, // 👈 Set a fixed height too!
-  //     child: Card(
-  //       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-  //       elevation: 4,
-  //       child: Container(
-  //         padding: const EdgeInsets.all(16),
-  //         decoration: BoxDecoration(
-  //           borderRadius: BorderRadius.circular(20),
-  //           color: color.withOpacity(0.4),
-  //         ),
-  //         child: Column(
-  //           crossAxisAlignment: CrossAxisAlignment.start,
-  //           mainAxisAlignment:
-  //               MainAxisAlignment.spaceBetween, // 👈 Even spacing
-  //           children: [
-  //             Icon(icon, size: 28, color: color),
-  //             Text(
-  //               value,
-  //               style: TextStyle(
-  //                 fontSize: 20,
-  //                 fontWeight: FontWeight.bold,
-  //                 color: color,
-  //               ),
-  //             ),
-  //             Column(
-  //               crossAxisAlignment: CrossAxisAlignment.start,
-  //               children: [
-  //                 Text(
-  //                   title,
-  //                   style: const TextStyle(
-  //                     fontSize: 14,
-  //                     fontWeight: FontWeight.w500,
-  //                   ),
-  //                 ),
-  //                 Text(
-  //                   subtitle,
-  //                   style: const TextStyle(fontSize: 12, color: Colors.grey),
-  //                 ),
-  //               ],
-  //             ),
-  //           ],
-  //         ),
-  //       ),
-  //     ),
-  //   );
-  // }
   Widget buildCard(
     String title,
     IconData icon,
@@ -72,7 +18,7 @@ class ReportDashboard extends StatelessWidget {
       borderRadius: BorderRadius.circular(20),
       child: SizedBox(
         width: 162,
-        height: 190, // 🔧 Fixed height added
+        height: 190,
         child: Card(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
@@ -86,8 +32,7 @@ class ReportDashboard extends StatelessWidget {
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment:
-                  MainAxisAlignment.spaceBetween, // 👈 Balanced layout
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Icon(icon, size: 30, color: color),
                 Text(
@@ -172,6 +117,49 @@ class ReportDashboard extends StatelessWidget {
     );
   }
 
+  void showBudgetAnalysis(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder:
+          (_) => Padding(
+            padding: const EdgeInsets.all(16),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    "Detailed Budget Analysis",
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 12),
+                  const ListTile(
+                    leading: Icon(Icons.pie_chart),
+                    title: Text("Spent: \$250"),
+                    subtitle: Text("You’re at 50% of your budget."),
+                  ),
+                  const ListTile(
+                    leading: Icon(Icons.trending_up),
+                    title: Text("Spending Trend"),
+                    subtitle: Text("This week: +\$50 compared to last week"),
+                  ),
+                  const ListTile(
+                    leading: Icon(Icons.lightbulb),
+                    title: Text("Tip"),
+                    subtitle: Text("Cut back on non-essential groceries."),
+                  ),
+                  const SizedBox(height: 16),
+                  buildSpendingChart(), // ✅ Add the bar chart here
+                ],
+              ),
+            ),
+          ),
+    );
+  }
+
   Widget buildBudgetMeter(double spent, double budget) {
     double percent = (spent / budget).clamp(0.0, 1.0);
     String level = getLevel(percent);
@@ -251,6 +239,92 @@ class ReportDashboard extends StatelessWidget {
     );
   }
 
+  Widget buildSpendingChart() {
+    final categories = {
+      'Food': 200.0,
+      'Cleaning': 100.0,
+      'Utilities': 150.0,
+      'Transport': 80.0,
+      'Entertainment': 60.0,
+    };
+
+    final maxValue = categories.values.reduce((a, b) => a > b ? a : b);
+
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      elevation: 4,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Most Spent Categories",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              height: 200,
+              child: BarChart(
+                BarChartData(
+                  alignment: BarChartAlignment.spaceAround,
+                  maxY: maxValue + 50,
+                  barTouchData: BarTouchData(enabled: false),
+                  titlesData: FlTitlesData(
+                    bottomTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        getTitlesWidget: (value, meta) {
+                          final label = categories.keys.elementAt(
+                            value.toInt(),
+                          );
+                          return Padding(
+                            padding: const EdgeInsets.only(top: 8),
+                            child: Text(
+                              label,
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    leftTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        reservedSize: 40,
+                      ),
+                    ),
+                    topTitles: AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
+                    rightTitles: AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
+                  ),
+                  borderData: FlBorderData(show: false),
+                  barGroups: List.generate(categories.length, (index) {
+                    final category = categories.entries.elementAt(index);
+                    final isHighest = category.value == maxValue;
+                    return BarChartGroupData(
+                      x: index,
+                      barRods: [
+                        BarChartRodData(
+                          toY: category.value,
+                          color: isHighest ? Colors.red : Colors.blueGrey,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ],
+                    );
+                  }),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   String getLevel(double percent) {
     if (percent < 0.5) return "On Track";
     if (percent < 0.8) return "Caution";
@@ -260,11 +334,11 @@ class ReportDashboard extends StatelessWidget {
   Color getLevelColor(String level) {
     switch (level) {
       case "On Track":
-        return const Color(0xFF6BCB77); // Green
+        return const Color(0xFF6BCB77);
       case "Caution":
-        return const Color(0xFF3E5879); // Yellow
+        return const Color(0xFF3E5879);
       default:
-        return const Color(0xFFE26D5A); // Red
+        return const Color(0xFFE26D5A);
     }
   }
 
@@ -281,24 +355,21 @@ class ReportDashboard extends StatelessWidget {
               ),
             ),
             Padding(
-              padding: EdgeInsets.all(35),
+              padding: const EdgeInsets.all(35),
               child: SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 40),
                     Wrap(
-                      alignment:
-                          WrapAlignment
-                              .center, // 👈 This centers the items horizontally
-
+                      alignment: WrapAlignment.center,
                       spacing: 16,
                       runSpacing: 16,
                       children: [
                         buildCard(
                           'Low Inventory',
                           Icons.inventory_2,
-                          Color(0xFF3E5879),
+                          const Color(0xFF3E5879),
                           '6 items',
                           'Check milk, rice, oil...',
                           onTap:
@@ -309,13 +380,14 @@ class ReportDashboard extends StatelessWidget {
                               ]),
                         ),
                         buildCard(
-                          'Today\'s Tasks',
+                          "Today's Tasks", // ✅ use double quotes
                           Icons.check_circle,
-                          Color(0xFF3E5879),
+                          const Color(0xFF3E5879),
                           '5 tasks',
                           '2 overdue',
                           onTap:
-                              () => showDetailSheet(context, 'Today\'s Tasks', [
+                              () => showDetailSheet(context, "Today's Tasks", [
+                                // ✅ use double quotes
                                 'Clean kitchen',
                                 'Buy groceries',
                                 'Water plants',
@@ -326,7 +398,7 @@ class ReportDashboard extends StatelessWidget {
                         buildCard(
                           'Meal Suggestions',
                           Icons.restaurant,
-                          Color(0xFF3E5879),
+                          const Color(0xFF3E5879),
                           '3 meals',
                           'Based on fridge items',
                           onTap:
@@ -337,11 +409,10 @@ class ReportDashboard extends StatelessWidget {
                                     'Egg & toast breakfast',
                                   ]),
                         ),
-
                         buildCard(
                           'Home Workout',
                           Icons.fitness_center,
-                          Color(0xFF3E5879),
+                          const Color(0xFF3E5879),
                           '3 exercises',
                           '15 min, Cardio, Stretch',
                           onTap:
@@ -354,11 +425,13 @@ class ReportDashboard extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 30),
-                    buildBudgetMeter(
-                      250,
-                      500,
-                    ), // ← 👈 budget visualization here
+                    InkWell(
+                      borderRadius: BorderRadius.circular(20),
+                      onTap: () => showBudgetAnalysis(context),
+                      child: buildBudgetMeter(250, 500),
+                    ),
                     const SizedBox(height: 30),
+                    buildSpendingChart(),
                   ],
                 ),
               ),
