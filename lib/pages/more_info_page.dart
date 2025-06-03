@@ -94,7 +94,6 @@ class _MoreInfoPageState extends State<MoreInfoPage> {
                   _infoBlock("Email", widget.user.email),
                   _infoBlock("Phone", widget.user.phone),
                   _infoBlock("Date of Birth", widget.user.dob),
-                  _infoBlock("Address", widget.user.address),
                   _infoBlock("Allergies", widget.user.allergies.join(", ")),
                 ],
               ),

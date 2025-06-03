@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../user_session.dart';
 import 'navbar.dart';
 import 'package:LILI/models/user.dart';
 import 'package:LILI/pages/more_info_page.dart';
@@ -23,7 +24,6 @@ class _ProfilePageState extends State<ProfilePage> {
     email: "",
     dob: "",
     phone: "",
-    address: "",
     allergies: [],
   );
 
@@ -41,20 +41,25 @@ class _ProfilePageState extends State<ProfilePage> {
       });
 
       // TODO: Replace 1 with actual user ID from your auth system
-      final userData = await _userService.getUserProfile(1);
+      final userData = await _userService.getUserProfile(UserSession().getUserId());
+      
+      // Debug print to see what data we're receiving
+      print('Received user data: $userData');
       
       setState(() {
         user = User(
           name: userData['name'] ?? '',
           email: userData['email'] ?? '',
-          dob: userData['birthday'] ?? '',
+          dob: userData['user_birthday'] ?? '',
           phone: userData['phone'] ?? '',
-          address: '', // Add address if available in your backend
           allergies: [], // Add allergies if available in your backend
+          height: userData['height'] != null ? double.parse(userData['height'].toString()) : null,
+          weight: userData['weight'] != null ? double.parse(userData['weight'].toString()) : null,
         );
         _isLoading = false;
       });
     } catch (e) {
+      print('Error loading profile: $e'); // Debug print for errors
       setState(() {
         _error = 'Failed to load profile: $e';
         _isLoading = false;
@@ -354,7 +359,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           ),
                           SizedBox(height: 4),
                           Text(
-                            'Address',
+                            'Height',
                             style: TextStyle(
                               color: Color(0xFF1D2345),
                               fontSize: 14,
@@ -362,16 +367,32 @@ class _ProfilePageState extends State<ProfilePage> {
                               fontFamily: 'Inter',
                             ),
                           ),
-                          SizedBox(
-                            width: 161.67,
-                            child: Text(
-                              user.address,
-                              style: TextStyle(
-                                color: Color(0xFF3E5879),
-                                fontSize: 12,
-                                fontWeight: FontWeight.w400,
-                                fontFamily: 'Inter',
-                              ),
+                          Text(
+                            user.height != null ? '${user.height} cm' : 'Not set',
+                            style: TextStyle(
+                              color: Color(0xFF3E5879),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w400,
+                              fontFamily: 'Inter',
+                            ),
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            'Weight',
+                            style: TextStyle(
+                              color: Color(0xFF1D2345),
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              fontFamily: 'Inter',
+                            ),
+                          ),
+                          Text(
+                            user.weight != null ? '${user.weight} kg' : 'Not set',
+                            style: TextStyle(
+                              color: Color(0xFF3E5879),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w400,
+                              fontFamily: 'Inter',
                             ),
                           ),
                         ],

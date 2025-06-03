@@ -5,7 +5,7 @@ class UserService {
   // For Android Emulator, use 10.0.2.2 instead of localhost
   static const String baseUrl = 'http://10.0.2.2:8000/user';
 
-  Future<Map<String, dynamic>> getUserProfile(int userId) async {
+  Future<Map<String, dynamic>> getUserProfile(int? userId) async {
     try {
       final url = Uri.parse('$baseUrl/profile/$userId');
       print('Attempting to connect to: $url'); // Debug print

@@ -611,7 +611,8 @@ async def get_user_profile(user_id: int):
             "height": user_data["user_Height"],
             "weight": user_data["user_weight"],
             "diet": user_data["user_diet"],
-            "gender": user_data["user_gender"]
+            "gender": user_data["user_gender"],
+            "user_birthday": user_data["user_birthday"]
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

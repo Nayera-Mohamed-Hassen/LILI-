@@ -26,7 +26,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
     nameController = TextEditingController(text: widget.user.name);
     emailController = TextEditingController(text: widget.user.email);
     phoneController = TextEditingController(text: widget.user.phone);
-    addressController = TextEditingController(text: widget.user.address);
     _picker = ImagePicker();
   }
 
@@ -100,7 +99,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
                             name: nameController.text,
                             email: emailController.text,
                             phone: phoneController.text,
-                            address: addressController.text,
                           );
                           Navigator.pop(context, updatedUser);
                         },
