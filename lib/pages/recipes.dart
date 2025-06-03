@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:LILI/models/recipeItem.dart';
 import 'package:http/http.dart' as http;
 import 'package:LILI/user_session.dart';
+import 'wave2.dart';
 
 Future<List<RecipeItem>> fetchRecipes(int page) async {
   print('Fetching recipes for page: $page'); // Debug print
@@ -338,133 +339,156 @@ class _RecipeState extends State<Recipe> {
 
   Widget _buildRecipeCard(RecipeItem recipe) {
     final isFavorite = widget.favoriteRecipes.contains(recipe);
-    return Card(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-        side: const BorderSide(color: Color(0xFF1F3354), width: 1),
-      ),
-      elevation: 8,
-      shadowColor: const Color(0xFF1F3354),
-      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(20),
-                  child: Image.network(
-                    'https://raw.githubusercontent.com/Nayera-Mohamed-Hassen/LILI-/main/FoodImages/${Uri.encodeComponent(recipe.image)}',
-                    width: 100,
-                    height: 110,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) =>
-                        const Icon(Icons.broken_image),
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => RecipePage(
+              recipe: {
+                'name': recipe.name,
+                'cusine': recipe.cusine,
+                'mealType': recipe.mealType,
+                'ingredients': recipe.ingredients.toList(),
+                'available_ingredients': recipe.availableIngredients.toList(),
+                'missing_ingredients': recipe.missingIngredients.toList(),
+                'steps': recipe.steps?.toList() ?? [],
+                'timeTaken': recipe.timeTaken,
+                'difficulty': recipe.difficulty,
+                'image': recipe.image,
+              },
+            ),
+          ),
+        );
+      },
+      child: Card(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: const BorderSide(color: Color(0xFF1F3354), width: 1),
+        ),
+        elevation: 8,
+        shadowColor: const Color(0xFF1F3354),
+        margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
+                    child: Image.network(
+                      'https://raw.githubusercontent.com/Nayera-Mohamed-Hassen/LILI-/main/FoodImages/${Uri.encodeComponent(recipe.image)}',
+                      width: 100,
+                      height: 110,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) =>
+                          const Icon(Icons.broken_image),
+                    ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        recipe.name,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 16,
-                          color: Color(0xFF1F3354),
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        recipe.cusine,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w500,
-                          fontSize: 14,
-                          color: Color(0xFF1F3354),
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.timer_outlined,
-                            size: 16,
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          recipe.name,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
                             color: Color(0xFF1F3354),
                           ),
-                          const SizedBox(width: 4),
-                          Text(
-                            recipe.timeTaken,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w400,
-                              fontSize: 14,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          recipe.cusine,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w500,
+                            fontSize: 14,
+                            color: Color(0xFF1F3354),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.timer_outlined,
+                              size: 16,
                               color: Color(0xFF1F3354),
                             ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                IconButton(
-                  icon: Icon(
-                    isFavorite ? Icons.favorite : Icons.favorite_border,
-                    color: isFavorite ? Colors.red : Colors.grey,
-                  ),
-                  onPressed: () => widget.onFavoriteToggle(recipe),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
-              decoration: BoxDecoration(
-                color: const Color(0xFF1F3354).withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.restaurant_menu,
-                        size: 16,
-                        color: Color(0xFF1F3354),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        'Difficulty:',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: const Color(0xFF1F3354).withOpacity(0.8),
+                            const SizedBox(width: 4),
+                            Text(
+                              recipe.timeTaken,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w400,
+                                fontSize: 14,
+                                color: Color(0xFF1F3354),
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF1F3354),
-                      borderRadius: BorderRadius.circular(12),
+                  IconButton(
+                    icon: Icon(
+                      isFavorite ? Icons.favorite : Icons.favorite_border,
+                      color: isFavorite ? Colors.red : Colors.grey,
                     ),
-                    child: Text(
-                      recipe.difficulty,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
+                    onPressed: () => widget.onFavoriteToggle(recipe),
                   ),
                 ],
               ),
-            ),
-          ],
+              const SizedBox(height: 8),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1F3354).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.restaurant_menu,
+                          size: 16,
+                          color: Color(0xFF1F3354),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Difficulty:',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: const Color(0xFF1F3354).withOpacity(0.8),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1F3354),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        recipe.difficulty,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

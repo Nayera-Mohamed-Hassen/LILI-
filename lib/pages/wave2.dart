@@ -39,167 +39,343 @@ class WaveClipper extends CustomClipper<Path> {
 }
 
 class RecipePage extends StatelessWidget {
+  final Map<String, dynamic> recipe;
+
+  const RecipePage({Key? key, required this.recipe}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
-    final Map<String, Object> recipe = {
-      'name': 'Pad Thai',
-      'cusine': 'Thai',
-      'mealType': 'Main Course',
-      'ingredients': [
-        '200g rice noodles',
-        '150g chicken breast (or shrimp)',
-        '1 egg',
-        '2 tbsp soy sauce',
-        '1 tbsp fish sauce',
-        '1 tsp sugar',
-        '1/4 cup chopped peanuts',
-        '1 lime (cut into wedges)',
-        'Fresh cilantro (chopped)',
-        '2 tbsp vegetable oil',
-        '1 garlic clove (minced)',
-        '1/4 cup bean sprouts',
-        '1/4 cup green onions (chopped)',
-      ],
-      'steps': [
-        'Boil the rice noodles according to the package instructions.',
-        'In a pan, cook chicken until golden.',
-        'Add egg, scramble, then mix with meat.',
-        'Add garlic and stir until fragrant.',
-        'Add cooked noodles, sauces, and sugar. Mix well.',
-        'Stir in peanuts, green onions, and sprouts.',
-        'Serve garnished with cilantro and lime wedges.',
-      ],
-      'timeTaken': Duration(minutes: 25),
-      'difficulty': 'Medium',
-      'image': 'assets/recipes/Pad Thai.jpg',
-    };
-
-    final List<String> ingredients = recipe['ingredients'] as List<String>;
-    final List<String> steps = recipe['steps'] as List<String>;
-    final Duration timeTaken = recipe['timeTaken'] as Duration;
+    final List<String> ingredients = List<String>.from(recipe['ingredients'] ?? []);
+    final List<String> availableIngredients = List<String>.from(recipe['available_ingredients'] ?? []);
+    final List<String> missingIngredients = List<String>.from(recipe['missing_ingredients'] ?? []);
+    final List<String> steps = List<String>.from(recipe['steps'] ?? []);
+    final String timeTaken = recipe['timeTaken'] as String;
 
     return Scaffold(
-      appBar: AppBar(
-        surfaceTintColor: Colors.transparent,
-        backgroundColor: const Color(0xFF1F3354),
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white),
-        title: const Text('Recipe Page', style: TextStyle(color: Colors.white)),
-      ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Stack(
-            children: [
-              ClipPath(
-                clipper: WaveClipper(),
-                child: Container(height: 200, color: const Color(0xFF1F3354)),
-              ),
-              Column(
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            expandedHeight: 300,
+            pinned: true,
+            backgroundColor: const Color(0xFF1F3354),
+            flexibleSpace: FlexibleSpaceBar(
+              background: Stack(
+                fit: StackFit.expand,
                 children: [
-                  SizedBox(height: 80),
-                  Center(
-                    child: ClipOval(
-                      child: Image.asset(
-                        recipe['image'] as String,
-                        width: 150,
-                        height: 150,
-                        fit: BoxFit.cover,
+                  Image.network(
+                    'https://raw.githubusercontent.com/Nayera-Mohamed-Hassen/LILI-/main/FoodImages/${Uri.encodeComponent(recipe['image'])}',
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image),
+                  ),
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.transparent,
+                          Colors.black.withOpacity(0.7),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    bottom: 16,
+                    left: 16,
+                    right: 16,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          recipe['name'] as String,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                recipe['cusine'] as String,
+                                style: const TextStyle(color: Colors.white),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                recipe['mealType'] as String,
+                                style: const TextStyle(color: Colors.white),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Recipe Info Cards
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Card(
+                          elevation: 2,
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              children: [
+                                const Icon(Icons.timer, color: Color(0xFF1F3354)),
+                                const SizedBox(height: 8),
+                                Text(
+                                  timeTaken,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const Text('Time'),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: Card(
+                          elevation: 2,
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              children: [
+                                const Icon(
+                                  Icons.restaurant_menu,
+                                  color: Color(0xFF1F3354),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  recipe['difficulty'] as String,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const Text('Difficulty'),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Ingredients Section
+                  const Text(
+                    'Ingredients',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1F3354),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // All Ingredients List
+                  ...ingredients.map((ingredient) => Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Row(
+                      children: [
+                        Icon(
+                          availableIngredients.contains(ingredient) 
+                              ? Icons.check_circle 
+                              : Icons.shopping_cart,
+                          color: availableIngredients.contains(ingredient)
+                              ? Colors.green
+                              : Colors.orange,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            ingredient,
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                        ),
+                      ],
+                    ),
+                  )),
+
+                  const SizedBox(height: 24),
+
+                  // Steps Section
+                  const Text(
+                    'Cooking Steps',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1F3354),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  ...steps.asMap().entries.map(
+                    (entry) => Card(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF1F3354),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                '${entry.key + 1}',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                entry.value,
+                                style: const TextStyle(fontSize: 16),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ],
               ),
-            ],
-          ),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    recipe['name'] as String,
-                    style: const TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    '${recipe['cusine']} | ${recipe['mealType']}',
-                    style: const TextStyle(fontSize: 18, color: Colors.grey),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Difficulty: ${recipe['difficulty']}',
-                    style: const TextStyle(fontSize: 18),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Time: ${timeTaken.inMinutes} minutes',
-                    style: const TextStyle(fontSize: 18),
-                  ),
-                  const SizedBox(height: 20),
-                  const Text(
-                    'Ingredients',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  ...ingredients.map((ingredient) => Text('- $ingredient')),
-                  const SizedBox(height: 20),
-                  const Text(
-                    'Steps',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  ...steps.asMap().entries.map(
-                    (entry) => Padding(
-                      padding: const EdgeInsets.only(bottom: 8.0),
-                      child: Text('${entry.key + 1}. ${entry.value}'),
-                    ),
-                  ),
-                ],
-              ),
             ),
           ),
-          const SizedBox(height: 20),
-          Center(
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF1F3354),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 52,
-                  vertical: 12,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-              ),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder:
-                        (context) => CookingStepsPage(
-                          image: recipe['image'] as String,
-                          steps: steps,
-                        ),
-                  ),
-                );
-              },
-              child: const Text(
-                'Start Cooking',
-                style: TextStyle(color: Colors.white, fontSize: 18),
-              ),
-            ),
-          ),
-          const SizedBox(height: 30),
         ],
+      ),
+      bottomNavigationBar: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, -5),
+            ),
+          ],
+        ),
+        child: ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF1F3354),
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => CookingStepsPage(
+                  image: recipe['image'] as String,
+                  steps: steps,
+                ),
+              ),
+            );
+          },
+          child: const Text(
+            'Start Cooking',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
       ),
     );
   }
 }
 
-void main() => runApp(MaterialApp(home: RecipePage()));
+void main() => runApp(
+  MaterialApp(
+    home: RecipePage(
+      recipe: {
+        'name': 'Pad Thai',
+        'cusine': 'Thai',
+        'mealType': 'Main Course',
+        'ingredients': [
+          '200g rice noodles',
+          '150g chicken breast (or shrimp)',
+          '1 egg',
+          '2 tbsp soy sauce',
+          '1 tbsp fish sauce',
+          '1 tsp sugar',
+          '1/4 cup chopped peanuts',
+          '1 lime (cut into wedges)',
+          'Fresh cilantro (chopped)',
+          '2 tbsp vegetable oil',
+          '1 garlic clove (minced)',
+          '1/4 cup bean sprouts',
+          '1/4 cup green onions (chopped)',
+        ],
+        'steps': [
+          'Boil the rice noodles according to the package instructions.',
+          'In a pan, cook chicken until golden.',
+          'Add egg, scramble, then mix with meat.',
+          'Add garlic and stir until fragrant.',
+          'Add cooked noodles, sauces, and sugar. Mix well.',
+          'Stir in peanuts, green onions, and sprouts.',
+          'Serve garnished with cilantro and lime wedges.',
+        ],
+        'timeTaken': '25 minutes',
+        'difficulty': 'Medium',
+        'image': 'Pad Thai.jpg',
+        'available_ingredients': [
+          '200g rice noodles',
+          '150g chicken breast (or shrimp)',
+          '1 egg',
+          '2 tbsp soy sauce',
+          '1 tbsp fish sauce',
+          '1 tsp sugar',
+          '1/4 cup chopped peanuts',
+          '1 lime (cut into wedges)',
+          'Fresh cilantro (chopped)',
+          '2 tbsp vegetable oil',
+          '1 garlic clove (minced)',
+          '1/4 cup bean sprouts',
+          '1/4 cup green onions (chopped)',
+        ],
+        'missing_ingredients': [],
+      },
+    ),
+  ),
+);

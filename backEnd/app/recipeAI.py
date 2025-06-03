@@ -13,6 +13,7 @@ from app.mySQLConnection import selectUser, selectAllergy
 from fastapi import HTTPException
 import re
 from functools import lru_cache
+import logging
 
 # Cache for processed recipes
 _recipe_cache = None
@@ -159,7 +160,7 @@ def get_recipe_recommendations(user_id, count=1):
                 raise HTTPException(status_code=404, detail="House ID not found for user")
             house_id = house_result[0]["house_Id"]
         except Exception as e:
-            print(f"Error fetching house ID: {e}")
+            logging.error(f"Error fetching house ID: {e}")
             raise
         
         # Fetch and clean household inventory items
@@ -176,7 +177,7 @@ def get_recipe_recommendations(user_id, count=1):
                         if cleaned_item in INGREDIENT_MAPPING:
                             available_ingredients.add(INGREDIENT_MAPPING[cleaned_item])
             except Exception as e:
-                print(f"Error processing inventory item: {e}")
+                logging.error(f"Error processing inventory item: {e}")
                 continue
         
         # ---------- LOAD RECIPES ----------
@@ -242,7 +243,7 @@ def get_recipe_recommendations(user_id, count=1):
                     })
                     
                 except Exception as e:
-                    print(f"Error processing recipe {recipe.get('Title', 'Unknown')}: {e}")
+                    logging.error(f"Error processing recipe {recipe.get('Title', 'Unknown')}: {e}")
                     continue
             
             # Create DataFrame and calculate scores
@@ -256,9 +257,6 @@ def get_recipe_recommendations(user_id, count=1):
             start_idx = (count - 1) * 10
             end_idx = min(start_idx + 10, len(recipes_df))
             
-            print("\n=== Recipe Recommendations Debug Info ===")
-            print(f"Retrieving recipes {start_idx + 1} to {end_idx}")
-            
             recommendations = []
             for _, row in recipes_df.iloc[start_idx:end_idx].iterrows():
                 try:
@@ -267,20 +265,6 @@ def get_recipe_recommendations(user_id, count=1):
                     missing_ingredients_list = row["missing_ingredients"]
                     all_ingredients = available_ingredients_list + missing_ingredients_list
                     
-                    # Print debug information for each recipe
-                    print(f"\nRecipe: {row['recipe']}")
-                    print(f"Total Ingredients: {len(all_ingredients)} (excluding water/ice)")
-                    print(f"Coverage Score: {row['ingredients_coverage']:.2%}")
-                    print(f"Recipe Score: {row['recipe_score']:.2f}")
-                    print("Available Ingredients:", ", ".join(available_ingredients_list))
-                    print("Missing Ingredients:", ", ".join(missing_ingredients_list))
-                    
-                    # Split instructions into steps if they're not already a list
-                    if isinstance(row["instructions"], str):
-                        instructions_list = [step.strip() for step in row["instructions"].split(".") if step.strip()]
-                    else:
-                        instructions_list = row["instructions"] if isinstance(row["instructions"], list) else []
-                    
                     recommendations.append({
                         "name": str(row["recipe"]),
                         "cusine": str(row["category"]),
@@ -288,25 +272,24 @@ def get_recipe_recommendations(user_id, count=1):
                         "ingredients": all_ingredients,
                         "available_ingredients": available_ingredients_list,
                         "missing_ingredients": missing_ingredients_list,
-                        "steps": instructions_list,
+                        "steps": row["instructions"].split(".") if isinstance(row["instructions"], str) else row["instructions"],
                         "timeTaken": str(row["cooking_time"]),
                         "difficulty": str(row["difficulty"]),
                         "image": f"{row['image_name']}.jpg"
                     })
                 except Exception as e:
-                    print(f"Error formatting recipe {row.get('recipe', 'Unknown')}: {e}")
+                    logging.error(f"Error formatting recipe {row.get('recipe', 'Unknown')}: {e}")
                     continue
             
-            print("\n=== End of Debug Info ===\n")
             mongo_client.close()
             return recommendations
             
         except Exception as e:
-            print(f"Error loading recipes: {e}")
+            logging.error(f"Error loading recipes: {e}")
             raise
             
     except Exception as e:
-        print(f"Error in recipe recommendations: {e}")
+        logging.error(f"Error in recipe recommendations: {e}")
         raise
 
 # Example of how to call the update function
