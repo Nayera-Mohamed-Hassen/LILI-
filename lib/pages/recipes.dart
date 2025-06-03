@@ -4,19 +4,23 @@ import 'package:LILI/models/recipeItem.dart';
 import 'package:http/http.dart' as http;
 import 'package:LILI/user_session.dart';
 
-Future<List<RecipeItem>> fetchRecipes() async {
+Future<List<RecipeItem>> fetchRecipes(int page) async {
+  print('Fetching recipes for page: $page'); // Debug print
   final response = await http.post(
     Uri.parse('http://10.0.2.2:8000/user/recipes'),
     headers: {'Content-Type': 'application/json'},
     body: jsonEncode({
       'user_id': UserSession().getUserId(),
-      'recipeCount': UserSession().getRecipeCount(),
+      'recipeCount': page,
     }),
   );
 
   if (response.statusCode == 200) {
-    UserSession().incrementRecipeCount();
     final List<dynamic> jsonList = jsonDecode(response.body);
+    print('Received ${jsonList.length} recipes'); // Debug print
+    if (jsonList.isNotEmpty) {
+      print('First recipe: ${jsonList.first}'); // Debug print
+    }
     return jsonList.map((json) => RecipeItem.fromJson(json)).toList();
   } else {
     throw Exception('Failed to load recipes: ${response.statusCode}');
@@ -41,6 +45,7 @@ class _RecipeState extends State<Recipe> {
   List<RecipeItem> _allRecipes = [];
   bool _isLoading = false;
   bool _hasMore = true;
+  int _currentPage = 1;
   final TextEditingController searchController = TextEditingController();
   String searchQuery = '';
   Set<String> selectedSubFilters = {};
@@ -49,7 +54,7 @@ class _RecipeState extends State<Recipe> {
   @override
   void initState() {
     super.initState();
-    UserSession().setRecipeCount(1);
+    _currentPage = 1;
     _loadInitialRecipes();
     _scrollController.addListener(_scrollListener);
   }
@@ -62,19 +67,28 @@ class _RecipeState extends State<Recipe> {
   }
 
   Future<void> _loadInitialRecipes() async {
-    setState(() => _isLoading = true);
+    if (_isLoading) return;
+    
+    setState(() {
+      _isLoading = true;
+      _currentPage = 1;
+    });
+
     try {
-      final recipes = await fetchRecipes();
+      final recipes = await fetchRecipes(_currentPage);
       setState(() {
         _allRecipes = recipes;
         _isLoading = false;
-        _hasMore = recipes.isNotEmpty;
+        _hasMore = recipes.length >= 10;
       });
     } catch (e) {
-      setState(() => _isLoading = false);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error: $e')));
+      setState(() {
+        _isLoading = false;
+        _hasMore = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
     }
   }
 
@@ -82,26 +96,41 @@ class _RecipeState extends State<Recipe> {
     if (_isLoading || !_hasMore) return;
 
     setState(() => _isLoading = true);
-
     try {
-      final newRecipes = await fetchRecipes();
+      _currentPage++;
+      print('Loading more recipes, page: $_currentPage'); // Debug print
+      final newRecipes = await fetchRecipes(_currentPage);
+      
+      // Remove duplicates based on recipe name
+      final existingNames = _allRecipes.map((r) => r.name).toSet();
+      final uniqueNewRecipes = newRecipes.where((r) => !existingNames.contains(r.name)).toList();
+      
+      print('Received ${uniqueNewRecipes.length} new unique recipes'); // Debug print
+      
       setState(() {
-        _allRecipes.addAll(newRecipes);
+        _allRecipes.addAll(uniqueNewRecipes);
         _isLoading = false;
-        _hasMore = newRecipes.isNotEmpty;
+        _hasMore = uniqueNewRecipes.length >= 10;
       });
     } catch (e) {
-      setState(() => _isLoading = false);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error: $e')));
+      setState(() {
+        _isLoading = false;
+        _hasMore = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
     }
   }
 
   void _scrollListener() {
-    if (_scrollController.offset >=
-            _scrollController.position.maxScrollExtent &&
-        !_scrollController.position.outOfRange) {
+    if (!_scrollController.hasClients) return;
+    
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    final currentScroll = _scrollController.offset;
+    const threshold = 200.0; // Load more when within 200 pixels of the bottom
+    
+    if (maxScroll - currentScroll <= threshold) {
       _loadMoreRecipes();
     }
   }
@@ -319,77 +348,118 @@ class _RecipeState extends State<Recipe> {
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
       child: Container(
         padding: const EdgeInsets.all(12),
-        child: Row(
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(20),
-              child: Image.network(
-                'https://raw.githubusercontent.com/Nayera-Mohamed-Hassen/LILI-/main/FoodImages/${Uri.encodeComponent(recipe.image)}',
-                width: 100,
-                height: 110,
-                fit: BoxFit.cover,
-                errorBuilder:
-                    (context, error, stackTrace) =>
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: Image.network(
+                    'https://raw.githubusercontent.com/Nayera-Mohamed-Hassen/LILI-/main/FoodImages/${Uri.encodeComponent(recipe.image)}',
+                    width: 100,
+                    height: 110,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) =>
                         const Icon(Icons.broken_image),
-              ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        recipe.name,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 16,
+                          color: Color(0xFF1F3354),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        recipe.cusine,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 14,
+                          color: Color(0xFF1F3354),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.timer_outlined,
+                            size: 16,
+                            color: Color(0xFF1F3354),
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            recipe.timeTaken,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w400,
+                              fontSize: 14,
+                              color: Color(0xFF1F3354),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  icon: Icon(
+                    isFavorite ? Icons.favorite : Icons.favorite_border,
+                    color: isFavorite ? Colors.red : Colors.grey,
+                  ),
+                  onPressed: () => widget.onFavoriteToggle(recipe),
+                ),
+              ],
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    recipe.name,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 16,
-                      color: Color(0xFF1F3354),
-                    ),
-                  ),
-                  Text(
-                    recipe.cusine,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w500,
-                      fontSize: 14,
-                      color: Color(0xFF1F3354),
-                    ),
-                  ),
-                  Text(
-                    recipe.difficulty,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w400,
-                      fontSize: 14,
-                      color: Color(0xFF1F3354),
-                    ),
-                  ),
-                ],
+            const SizedBox(height: 8),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1F3354).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
               ),
-            ),
-            const SizedBox(width: 6),
-            SizedBox(
-              width: 60,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  IconButton(
-                    iconSize: 28,
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    icon: Icon(
-                      isFavorite ? Icons.favorite : Icons.favorite_border,
-                      color: isFavorite ? Colors.red : const Color(0xFF1F3354),
-                    ),
-                    onPressed: () => widget.onFavoriteToggle(recipe),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.restaurant_menu,
+                        size: 16,
+                        color: Color(0xFF1F3354),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Difficulty:',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: const Color(0xFF1F3354).withOpacity(0.8),
+                        ),
+                      ),
+                    ],
                   ),
-                  Text(
-                    recipe.timeTaken,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w400,
-                      fontSize: 14,
-                      color: Color(0xFF1F3354),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1F3354),
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    textAlign: TextAlign.center,
+                    child: Text(
+                      recipe.difficulty,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                   ),
                 ],
               ),

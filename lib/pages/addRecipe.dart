@@ -137,6 +137,9 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
         difficulty: _selectedDifficulty ?? '',
         image: _pickedImage?.path ?? '',
         steps: stepsList.isEmpty ? null : stepsList,
+        availableIngredients: [],
+        missingIngredients: [],
+        ingredientsCoverage: '',
       );
 
       Navigator.pop(context, newRecipe);

@@ -11,236 +11,303 @@ from pymongo import MongoClient
 from dotenv import load_dotenv
 from app.mySQLConnection import selectUser, selectAllergy
 from fastapi import HTTPException
+import re
+from functools import lru_cache
 
-def get_recipe_recommendations(user_id,count=1):
-    # ---------- CONFIGURATION ----------
+# Cache for processed recipes
+_recipe_cache = None
+_processed_ingredients_cache = {}
+
+# Ingredients to ignore in matching
+IGNORED_INGREDIENTS = {'water', 'ice', 'ice water', 'hot water', 'cold water', 'warm water', 'tap water'}
+
+# Ingredient variations mapping
+INGREDIENT_VARIATIONS = {
+    # Chicken variations
+    'chicken wings': ['chicken wingettes', 'wingettes', 'chicken wing', 'wings', 'wing'],
+    'chicken breast': ['chicken breasts', 'chicken breast fillet', 'chicken fillet', 'chicken fillets'],
+    'chicken thigh': ['chicken thighs', 'thigh', 'thighs'],
+    'chicken drumstick': ['chicken drumsticks', 'drumstick', 'drumsticks'],
     
-    load_dotenv()
-    MONGO_URI = os.getenv("MONGO_URI")
-    MYSQL_CONFIG = {
-        "host": os.getenv("MYSQL_HOST"),
-        "port": os.getenv("MYSQL_PORT"),
-        "user": os.getenv("MYSQL_USER"),
-        "password": os.getenv("MYSQL_PASSWORD"),
-        "database": os.getenv("MYSQL_DATABASE")
+    # Basic ingredients
+    'sugar': ['white sugar', 'granulated sugar', 'caster sugar', 'regular sugar'],
+    'brown sugar': ['dark brown sugar', 'light brown sugar', 'demerara sugar'],
+    'vinegar': ['white vinegar', 'distilled vinegar', 'rice vinegar', 'balsamic vinegar', 'red wine vinegar'],
+    'soy sauce': ['light soy sauce', 'dark soy sauce', 'soya sauce'],
+    
+    # Common meat variations
+    'beef': ['ground beef', 'minced beef', 'beef mince'],
+    'pork': ['ground pork', 'minced pork', 'pork mince'],
+    'lamb': ['ground lamb', 'minced lamb', 'lamb mince'],
+    
+    # Common vegetables
+    'onion': ['onions', 'brown onion', 'yellow onion', 'white onion'],
+    'garlic': ['garlic cloves', 'garlic clove', 'fresh garlic'],
+    'tomato': ['tomatoes', 'fresh tomato', 'fresh tomatoes'],
+    'potato': ['potatoes', 'white potato', 'yellow potato'],
+    'carrot': ['carrots', 'fresh carrot', 'fresh carrots'],
+    
+    # Common pantry items
+    'flour': ['all purpose flour', 'plain flour', 'all-purpose flour'],
+    'oil': ['vegetable oil', 'cooking oil', 'canola oil', 'olive oil'],
+    'salt': ['table salt', 'sea salt', 'kosher salt'],
+    'pepper': ['black pepper', 'ground pepper', 'ground black pepper'],
+    
+    # Dairy and alternatives
+    'milk': ['whole milk', 'full cream milk', 'dairy milk'],
+    'cream': ['heavy cream', 'whipping cream', 'thickened cream'],
+    'butter': ['unsalted butter', 'salted butter'],
+    'cheese': ['cheddar cheese', 'grated cheese', 'shredded cheese']
+}
+
+# Create reverse mapping for faster lookup
+INGREDIENT_MAPPING = {}
+for standard, variations in INGREDIENT_VARIATIONS.items():
+    for variant in variations:
+        INGREDIENT_MAPPING[variant] = standard
+    INGREDIENT_MAPPING[standard] = standard
+
+@lru_cache(maxsize=1000)
+def clean_ingredient(ingredient):
+    """Clean ingredient text with caching for better performance."""
+    # Convert to lowercase
+    ingredient = ingredient.lower()
+    
+    # Remove fractional measurements (e.g., 1/2, 3/4)
+    ingredient = re.sub(r'\d+/\d+', '', ingredient)
+    ingredient = re.sub(r'\d*\.?\d+', '', ingredient)
+    ingredient = re.sub(r'\b\d+\b', '', ingredient)
+
+    # Use pre-compiled regex patterns for better performance
+    patterns = {
+        'measurements': r'\b(cup|cups|tablespoon|tablespoons|teaspoon|teaspoons|tsp|tbsp|pound|pounds|ounce|ounces|gram|grams|lb|oz|g|kg|slice|slices|piece|pieces|whole|half|quarter|package|can|bottle|jar|container|bunch|pinch|dash|splash|inch|inches|cm|mm|ml|quart|gallon|stick|sticks)\b',
+        'descriptive': r'\b(large|small|medium|fresh|dried|ground|powdered|room temperature|chilled|frozen|melted|softened|chopped|diced|minced|crushed|grated|shredded|peeled|seeded|cored|stemmed|hulled|ripe|unripe|mature|young|baby|cooked|raw|prepared|processed|optional|to taste|or more|if desired|if needed|as needed|plus|extra|additional|more|rated|scant|ly|by|crumbled|shaved|sliced|diced|unsalted|salted|sweet|sour|bitter|thawed|frozen|chilled|heated)\b',
+        'instructions': r'rinsed and drained|coarse stems discarded|including juice|halved|quartered|sliced|divided|separated|at room temperature|for garnish|for serving|if',
+        'prepositions': r'\b(and|or|with|without|for|to|from|in|on|at)\b',
+        'phrases': r'about|approximately|around|roughly|plus more for|plus extra for|such as|like|similar to',
+        'packaging': r'\b(pack|packet|box|tin|carton|fluid|fl|solid|net)\b',
+        'single_letters': r'\s+[a-zA-Z]\s+'
     }
+    
+    # Apply all patterns in a single pass
+    combined_pattern = '|'.join(patterns.values())
+    ingredient = re.sub(combined_pattern, ' ', ingredient)
+    
+    # Final cleanup
+    ingredient = re.sub(r'[^\w\s-]', '', ingredient)
+    ingredient = ' '.join(word for word in ingredient.split() if len(word) > 1)
+    ingredient = ingredient.strip()
+    
+    # Standardize ingredient name using the mapping
+    return INGREDIENT_MAPPING.get(ingredient, ingredient)
 
-    # Get the directory where this script is located
-    SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-    PREFS_FILE = os.path.join(SCRIPT_DIR,"..","data" ,"user_preferences.json")
-    RECIPES_JSON = os.path.join(SCRIPT_DIR,"..", "data", "recipes.json")
+def are_ingredients_similar(ing1, ing2):
+    """Check if two ingredients are similar or variations of each other."""
+    # Clean both ingredients
+    clean_ing1 = clean_ingredient(ing1)
+    clean_ing2 = clean_ingredient(ing2)
+    
+    # Direct match after cleaning
+    if clean_ing1 == clean_ing2:
+        return True
+    
+    # Check if they map to the same standard ingredient
+    standard1 = INGREDIENT_MAPPING.get(clean_ing1)
+    standard2 = INGREDIENT_MAPPING.get(clean_ing2)
+    
+    if standard1 and standard2 and standard1 == standard2:
+        return True
+    
+    return False
 
-    # ---------- LOAD INVENTORY FROM MONGODB ----------
-    mongo_client = MongoClient(MONGO_URI)
-    MONGO_DB = "lili"
-    mongo_db = mongo_client[MONGO_DB]
-    inventory_col = mongo_db["inventory"]
+def calculate_recipe_score(row):
+    """Calculate a weighted score for recipe ranking."""
+    # Get the number of ingredients (excluding ignored ones)
+    total_ingredients = len([ing for ing in row["ingredients"] if ing not in IGNORED_INGREDIENTS])
+    
+    # Calculate the coverage score (excluding ignored ingredients)
+    available = len([ing for ing in row["available_ingredients"] if ing not in IGNORED_INGREDIENTS])
+    coverage_score = available / total_ingredients if total_ingredients > 0 else 0
+    
+    # Weight factors
+    complexity_weight = 0.4  # Favor more complex recipes
+    coverage_weight = 0.6    # Still consider available ingredients
+    
+    # Complexity score (normalized by typical recipe size)
+    complexity_score = min(total_ingredients / 5, 1.0)  # Normalize against a 5-ingredient baseline
+    
+    # Combined score
+    return (complexity_weight * complexity_score) + (coverage_weight * coverage_score)
 
+def get_recipe_recommendations(user_id, count=1):
+    """Get recipe recommendations with optimized performance."""
     try:
-        house_result = selectUser(f'SELECT house_Id FROM user_tbl WHERE user_Id = "{user_id}"')
-        if not house_result:
-            raise HTTPException(status_code=404, detail="House ID not found for user")
-
-        house_id = house_result[0]["house_Id"]
-
-    except Exception as e:
-        print(f"Error fetching house ID: {e}")
-        raise
-
-    # Fetch household inventory
-    household_items = list(inventory_col.find({"house_id": house_id}))
-    available_ingredients = []
-    for item in household_items:
-        expiry = datetime.fromisoformat(item["expiry_date"])
-        if expiry >= datetime.now():
-            available_ingredients.append(item["name"].lower())
-
-    # ---------- LOAD USER ALLERGIES FROM MYSQL ----------
-    user_allergies = selectAllergy(id=user_id)
-    if user_allergies is None:
-        raise HTTPException(status_code=404, detail="Error fetching allergies for user")
-    user_allergies = [a["allergy_name"].lower() for a in user_allergies] if user_allergies else []
-
-    # ---------- USER PREFERENCES FUNCTIONS ----------
-    def ensure_prefs_file_exists():
-        """Create the preferences file if it doesn't exist"""
-        if not os.path.exists(PREFS_FILE):
-            os.makedirs(os.path.dirname(PREFS_FILE), exist_ok=True)
-            with open(PREFS_FILE, 'w') as f:
-                json.dump({}, f)
-
-    def load_user_preferences(user_id):
-        """Load user preferences, creating file if needed"""
-        ensure_prefs_file_exists()
+        # ---------- CONFIGURATION ----------
+        load_dotenv()
+        MONGO_URI = os.getenv("MONGO_URI")
+        
+        SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+        RECIPES_JSON = os.path.join(SCRIPT_DIR, "..", "data", "recipes.json")
+        
+        # ---------- LOAD INVENTORY FROM MONGODB ----------
+        mongo_client = MongoClient(MONGO_URI)
+        inventory_col = mongo_client["lili"]["inventory"]
+        
         try:
-            with open(PREFS_FILE, "r") as f:
-                data = json.load(f)
-            return data.get(str(user_id), {}).get("preferences", {})
+            house_result = selectUser(f'SELECT house_Id FROM user_tbl WHERE user_Id = "{user_id}"')
+            if not house_result:
+                raise HTTPException(status_code=404, detail="House ID not found for user")
+            house_id = house_result[0]["house_Id"]
         except Exception as e:
-            print(f"Error loading preferences: {e}")
-            return {}
-
-    # Load initial preferences
-    user_prefs = load_user_preferences(user_id)
-    for ing in available_ingredients:
-        user_prefs.setdefault(ing, 0)
-
-    # ---------- LOAD RECIPES FROM JSON ----------
-    try:
-        with open(RECIPES_JSON, "r") as f:
-            recipes_data = json.load(f)
+            print(f"Error fetching house ID: {e}")
+            raise
+        
+        # Fetch and clean household inventory items
+        household_items = list(inventory_col.find({"house_id": house_id}))
+        available_ingredients = set()  # Using set for O(1) lookups
+        for item in household_items:
+            try:
+                expiry = datetime.fromisoformat(item["expiry_date"])
+                if expiry >= datetime.now():
+                    cleaned_item = clean_ingredient(item["name"])
+                    if cleaned_item and cleaned_item not in IGNORED_INGREDIENTS:
+                        available_ingredients.add(cleaned_item)
+                        # Add standard form if it exists
+                        if cleaned_item in INGREDIENT_MAPPING:
+                            available_ingredients.add(INGREDIENT_MAPPING[cleaned_item])
+            except Exception as e:
+                print(f"Error processing inventory item: {e}")
+                continue
+        
+        # ---------- LOAD RECIPES ----------
+        try:
+            with open(RECIPES_JSON, "r") as f:
+                recipes_data = json.load(f)
+            
+            recipes_list = []
+            for recipe in recipes_data:
+                try:
+                    # Process ingredients
+                    raw_ingredients = []
+                    if isinstance(recipe["Cleaned_Ingredients"], str):
+                        raw_ingredients = [ing.strip(" '[]\"") for ing in recipe["Cleaned_Ingredients"].split(",")]
+                    elif isinstance(recipe["Cleaned_Ingredients"], list):
+                        raw_ingredients = recipe["Cleaned_Ingredients"]
+                    
+                    # Clean ingredients and handle variations
+                    cleaned_ingredients = set()
+                    for raw_ing in raw_ingredients:
+                        if raw_ing:
+                            cleaned_ing = clean_ingredient(raw_ing)
+                            if cleaned_ing and cleaned_ing not in IGNORED_INGREDIENTS:
+                                cleaned_ingredients.add(cleaned_ing)
+                                # Add standard form if it exists
+                                if cleaned_ing in INGREDIENT_MAPPING:
+                                    cleaned_ingredients.add(INGREDIENT_MAPPING[cleaned_ing])
+                    
+                    if not cleaned_ingredients:
+                        continue
+                    
+                    # Calculate available and missing ingredients using similarity matching
+                    available_recipe_ingredients = set()
+                    missing_ingredients = set()
+                    
+                    for recipe_ing in cleaned_ingredients:
+                        found = False
+                        for inventory_ing in available_ingredients:
+                            if are_ingredients_similar(recipe_ing, inventory_ing):
+                                available_recipe_ingredients.add(recipe_ing)
+                                found = True
+                                break
+                        if not found:
+                            missing_ingredients.add(recipe_ing)
+                    
+                    # Calculate coverage
+                    ingredients_coverage = len(available_recipe_ingredients) / len(cleaned_ingredients)
+                    
+                    recipes_list.append({
+                        "recipe": recipe["Title"],
+                        "ingredients": list(cleaned_ingredients),
+                        "available_ingredients": list(available_recipe_ingredients),
+                        "missing_ingredients": list(missing_ingredients),
+                        "ingredients_coverage": ingredients_coverage,
+                        "category": recipe.get("Cuisine", "Unclassified"),
+                        "instructions": recipe["Instructions"],
+                        "cooking_time": recipe["timeTaken"],
+                        "servings": None,
+                        "diet": recipe.get("Diet", ""),
+                        "difficulty": recipe.get("Difficulty", ""),
+                        "meal_type": recipe.get("Meal Type", ""),
+                        "image_name": recipe["Image_Name"]
+                    })
+                    
+                except Exception as e:
+                    print(f"Error processing recipe {recipe.get('Title', 'Unknown')}: {e}")
+                    continue
+            
+            # Create DataFrame and calculate scores
+            recipes_df = pd.DataFrame(recipes_list)
+            recipes_df["recipe_score"] = recipes_df.apply(calculate_recipe_score, axis=1)
+            
+            # Sort by the new recipe score
+            recipes_df = recipes_df.sort_values("recipe_score", ascending=False)
+            
+            # Get recommendations
+            start_idx = (count - 1) * 10
+            end_idx = min(start_idx + 10, len(recipes_df))
+            
+            print("\n=== Recipe Recommendations Debug Info ===")
+            print(f"Retrieving recipes {start_idx + 1} to {end_idx}")
+            
+            recommendations = []
+            for _, row in recipes_df.iloc[start_idx:end_idx].iterrows():
+                try:
+                    # Format ingredients lists
+                    available_ingredients_list = row["available_ingredients"]
+                    missing_ingredients_list = row["missing_ingredients"]
+                    all_ingredients = available_ingredients_list + missing_ingredients_list
+                    
+                    # Print debug information for each recipe
+                    print(f"\nRecipe: {row['recipe']}")
+                    print(f"Total Ingredients: {len(all_ingredients)} (excluding water/ice)")
+                    print(f"Coverage Score: {row['ingredients_coverage']:.2%}")
+                    print(f"Recipe Score: {row['recipe_score']:.2f}")
+                    print("Available Ingredients:", ", ".join(available_ingredients_list))
+                    print("Missing Ingredients:", ", ".join(missing_ingredients_list))
+                    
+                    # Split instructions into steps if they're not already a list
+                    if isinstance(row["instructions"], str):
+                        instructions_list = [step.strip() for step in row["instructions"].split(".") if step.strip()]
+                    else:
+                        instructions_list = row["instructions"] if isinstance(row["instructions"], list) else []
+                    
+                    recommendations.append({
+                        "name": str(row["recipe"]),
+                        "cusine": str(row["category"]),
+                        "mealType": str(row["meal_type"]),
+                        "ingredients": all_ingredients,
+                        "available_ingredients": available_ingredients_list,
+                        "missing_ingredients": missing_ingredients_list,
+                        "steps": instructions_list,
+                        "timeTaken": str(row["cooking_time"]),
+                        "difficulty": str(row["difficulty"]),
+                        "image": f"{row['image_name']}.jpg"
+                    })
+                except Exception as e:
+                    print(f"Error formatting recipe {row.get('recipe', 'Unknown')}: {e}")
+                    continue
+            
+            print("\n=== End of Debug Info ===\n")
+            mongo_client.close()
+            return recommendations
+            
+        except Exception as e:
+            print(f"Error loading recipes: {e}")
+            raise
+            
     except Exception as e:
-        print(f"Error loading recipes: {e}")
+        print(f"Error in recipe recommendations: {e}")
         raise
-
-    # Transform recipes data into proper format
-    recipes_list = []
-    for recipe in recipes_data:
-        ingredients = []
-        if isinstance(recipe["Cleaned_Ingredients"], str):
-            ingredients = [ing.strip(" '[]\"") for ing in recipe["Cleaned_Ingredients"].split(",")]
-        elif isinstance(recipe["Cleaned_Ingredients"], list):
-            ingredients = recipe["Cleaned_Ingredients"]
-        
-        recipes_list.append({
-            "recipe": recipe["Title"],
-            "ingredients": ", ".join([ing.lower() for ing in ingredients]),
-            "category": recipe.get("Cuisine", "Unclassified"),
-            "instructions": recipe["Instructions"],
-            "cooking_time": recipe["timeTaken"],
-            "servings": None,
-            "diet": recipe.get("Diet", ""),
-            "difficulty": recipe.get("Difficulty", ""),
-            "meal_type": recipe.get("Meal Type", ""),
-            "image_name": recipe["Image_Name"]})
-
-    recipes_df = pd.DataFrame(recipes_list)
-
-    # ---------- RECIPE RELEVANCE COMPUTATION ----------
-    def compute_recipe_relevance(recipe_ingredients):
-        """Compute a relevance score between 0 and 1 for a recipe based on user preferences"""
-        ings = [i.strip().lower() for i in recipe_ingredients.split(",")]
-        
-        score = 0
-        total_weight = 0
-        
-        for ing in ings:
-            if ing in user_allergies:
-                return 0  # Allergic, not relevant
-            
-            weight = 1
-            if ing in available_ingredients:
-                weight += 1
-            if ing in user_prefs:
-                weight += user_prefs[ing]
-            
-            score += weight
-            total_weight += weight
-
-        if total_weight == 0:
-            return 0
-        
-        normalized_score = score / total_weight
-        return normalized_score
-
-    # Generate labels based on relevance
-    relevance_scores = recipes_df["ingredients"].apply(compute_recipe_relevance)
-    threshold = relevance_scores.quantile(0.75)
-    y = (relevance_scores >= threshold).astype(int)
-
-    # Prepare and train model
-    vectorizer = TfidfVectorizer()
-    X = vectorizer.fit_transform(recipes_df["ingredients"])
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-    model = XGBClassifier(eval_metric="logloss")
-    model.fit(X_train, y_train)
-
-    # ---------- RECIPE SCORING FUNCTION ----------
-    def recipe_score(ingredients_text):
-        ings = [i.strip().lower() for i in ingredients_text.split(",")]
-        score = 0
-        for ing in ings:
-            if ing in available_ingredients:
-                score += 3
-            if ing in user_prefs:
-                score += 2 * user_prefs[ing]
-            if ing in user_allergies:
-                return -np.inf
-        return score
-
-    # ---------- COMPUTE FINAL SCORES & RECOMMEND ----------
-    recipes_df["AI_score"] = model.predict_proba(vectorizer.transform(recipes_df["ingredients"]))[:, 1]
-    recipes_df["custom_score"] = recipes_df["ingredients"].apply(recipe_score)
-    recipes_df["final_score"] = recipes_df["AI_score"] + recipes_df["custom_score"]
-    #top_recs = recipes_df.sort_values("final_score", ascending=False).head(10*count)
-    top_recs = recipes_df.sort_values("final_score", ascending=False).iloc[(10*count)-10 : 10*count]
-
-    # Format recommendations to match Flutter app expectations
-    recommendations = []
-    for _, row in top_recs.iterrows():
-        # Split ingredients string back into list
-        ingredients_list = [ing.strip() for ing in row['ingredients'].split(',')]
-        
-        # Split instructions into steps if they're not already a list
-        if isinstance(row['instructions'], str):
-            instructions_list = [step.strip() for step in row['instructions'].split('.') if step.strip()]
-        else:
-            instructions_list = row['instructions']
-
-        recommendations.append({
-            "name": row["recipe"],
-            "cusine": row["category"],  # category maps to cusine in the app
-            "mealType": row["meal_type"],
-            "ingredients": ingredients_list,
-            "steps": instructions_list,
-            "timeTaken": row["cooking_time"],  # This should be in minutes
-            "difficulty": row["difficulty"],
-            "image": f"{row['image_name']}.jpg"  # Match the image path format
-        })
-
-    # ---------- UPDATE PREFERENCES WHEN USER COOKS ----------
-    def update_preferences_on_cook(user_id, cooked_ingredients):
-        prefs = load_user_preferences(user_id)
-        for ing in [i.strip().lower() for i in cooked_ingredients]:
-            prefs[ing] = prefs.get(ing, 0) + 1
-        with open(PREFS_FILE, "r+") as f:
-            data = json.load(f)
-            if str(user_id) not in data:
-                data[str(user_id)] = {"preferences": {}}
-            data[str(user_id)]["preferences"] = prefs
-            f.seek(0)
-            json.dump(data, f, indent=2)
-            f.truncate()
-        print(f"Updated preferences for user {user_id}")
-
-    mongo_client.close()
-
-    print(
-        [
-        {
-            "name": r["name"],
-            "timeTaken": r["timeTaken"]
-        }
-        for r in recommendations
-    ]
-    )
-
-    return [
-        {
-            "name": r["name"],
-            "cusine": r["cusine"],
-            "mealType": r["mealType"],
-            "ingredients": r["ingredients"],
-            "steps": r.get("steps"),
-            "timeTaken": r["timeTaken"] if r["timeTaken"] else "Unknown",
-            "difficulty": r["difficulty"],
-            "image": r["image"]
-        }
-        for r in recommendations
-    ]
-
-
-get_recipe_recommendations(1)
 
 # Example of how to call the update function
 #update_preferences_on_cook(USER_ID, ["chicken", "salt", "pepper"])

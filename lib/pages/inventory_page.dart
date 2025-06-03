@@ -264,45 +264,53 @@ class _InventoryPageState extends State<InventoryPage> {
                                           color: Color(0xFF1F3354),
                                         ),
                                       ),
-                              title: Row(
+                              title: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                    item.name,
-                                    style: TextStyle(
-                                      color: Color(0xFF1F3354),
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                  Row(
+                                    children: [
+                                      Text(
+                                        item.name,
+                                        style: TextStyle(
+                                          color: Color(0xFF1F3354),
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      if (item.quantity <= 1) ...[
+                                        SizedBox(width: 6),
+                                        Container(
+                                          width: 10,
+                                          height: 10,
+                                          decoration: BoxDecoration(
+                                            color: Colors.red,
+                                            shape: BoxShape.circle,
+                                          ),
+                                        ),
+                                      ],
+                                    ],
                                   ),
-                                  if (item.quantity <= 1) ...[
-                                    SizedBox(width: 6),
-                                    Container(
-                                      width: 10,
-                                      height: 10,
-                                      decoration: BoxDecoration(
-                                        color: Colors.red,
-                                        shape: BoxShape.circle,
-                                      ),
-                                    ),
-                                  ],
                                   if (item.expiryDate != null) ...[
-                                    SizedBox(width: 8),
-                                    Icon(
-                                      Icons.schedule,
-                                      size: 16,
-                                      color: Color(0xFF3E5879),
-                                    ),
-                                    SizedBox(width: 4),
-                                    Text(
-                                      '${calculateDaysLeft(item.expiryDate)} days left',
-                                      style: TextStyle(
-                                        color: Color(0xFF3E5879),
-                                        fontSize: 12,
-                                      ),
+                                    SizedBox(height: 4),
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          Icons.schedule,
+                                          size: 14,
+                                          color: Color(0xFF3E5879),
+                                        ),
+                                        SizedBox(width: 4),
+                                        Text(
+                                          '${calculateDaysLeft(item.expiryDate)} days left',
+                                          style: TextStyle(
+                                            color: Color(0xFF3E5879),
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ],
                               ),
-
                               subtitle: Row(
                                 children: [
                                   IconButton(
