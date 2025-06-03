@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:LILI/models/category_task.dart';
 
 class CreateNewCategoryPage extends StatefulWidget {
   @override
   _CreateNewCategoryPageState createState() => _CreateNewCategoryPageState();
 }
 
-// const Color(0xFF213555)
 class _CreateNewCategoryPageState extends State<CreateNewCategoryPage> {
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
@@ -13,112 +13,186 @@ class _CreateNewCategoryPageState extends State<CreateNewCategoryPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF2F2F2),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF1F3354),
-        title: const Text(
-          'Add Category Task',
-          style: TextStyle(color: Color(0xFFF5EFE7)),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [const Color(0xFF1F3354), const Color(0xFF3E5879)],
+          ),
         ),
-        iconTheme: const IconThemeData(color: Color(0xFFF5EFE7)),
+        child: SafeArea(
+          child: Column(
+            children: [
+              _buildHeader(),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _buildTextField(
+                        _titleController,
+                        'Category Title',
+                        'Enter category title',
+                        Icons.category_outlined,
+                      ),
+                      const SizedBox(height: 20),
+                      _buildTextField(
+                        _descriptionController,
+                        'Description',
+                        'Enter category description',
+                        Icons.description_outlined,
+                        maxLines: 3,
+                      ),
+                      const SizedBox(height: 32),
+                      Row(
+                        children: [
+                          Expanded(child: _buildCancelButton()),
+                          const SizedBox(width: 16),
+                          Expanded(child: _buildSaveButton()),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            _buildTextField(_titleController, 'Title'),
-            const SizedBox(height: 16),
-            _buildTextField(_descriptionController, 'Description', maxLines: 3),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _buildButton(
-                  'Save',
-                  onPressed: () {
-                    if (_titleController.text.isEmpty ||
-                        _descriptionController.text.isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Please fill in all fields')),
-                      );
-                    } else {
-                      showDialog(
-                        context: context,
-                        builder:
-                            (ctx) => AlertDialog(
-                              title: Text('Success'),
-                              content: Text('Category saved successfully!'),
-                              actions: [
-                                TextButton(
-                                  onPressed: () {
-                                    // Navigator.of(ctx).pop(); // Close dialog
-                                    Navigator.pushNamed(context, '/task home');
-                                  },
-                                  child: Text('OK'),
-                                ),
-                              ],
-                            ),
-                      );
-                    }
-                  },
-                ),
-                _buildButton(
-                  'Discard',
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ],
+    );
+  }
+
+  Widget _buildHeader() {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [
+          IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () => Navigator.pop(context),
+          ),
+          const SizedBox(width: 8),
+          const Text(
+            'Create New Category',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildTextField(
     TextEditingController controller,
-    String label, {
+    String label,
+    String hint,
+    IconData icon, {
     int maxLines = 1,
   }) {
-    return TextField(
-      controller: controller,
-      maxLines: maxLines,
-      decoration: InputDecoration(
-        labelText: label,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-        filled: true,
-        fillColor: Colors.white,
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white12,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white24),
+      ),
+      child: TextField(
+        controller: controller,
+        maxLines: maxLines,
+        style: const TextStyle(color: Colors.white),
+        decoration: InputDecoration(
+          labelText: label,
+          labelStyle: const TextStyle(color: Colors.white70),
+          hintText: hint,
+          hintStyle: const TextStyle(color: Colors.white38),
+          prefixIcon: Container(
+            margin: const EdgeInsets.symmetric(horizontal: 12),
+            child: Icon(icon, color: Colors.white70),
+          ),
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.all(16),
+        ),
       ),
     );
   }
 
-  Widget _buildDropdown(String label) {
-    return DropdownButtonFormField<String>(
-      decoration: InputDecoration(
-        labelText: label,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-        filled: true,
-        fillColor: Colors.white,
-      ),
-      items:
-          ['Option 1', 'Option 2', 'Option 3']
-              .map((item) => DropdownMenuItem(value: item, child: Text(item)))
-              .toList(),
-      onChanged: (value) {},
-    );
-  }
-
-  Widget _buildButton(String text, {required VoidCallback onPressed}) {
+  Widget _buildSaveButton() {
     return ElevatedButton(
-      onPressed: onPressed,
+      onPressed: _validateAndSave,
       style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFF1F3354),
-        minimumSize: const Size(140, 50),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        backgroundColor: Colors.white,
+        foregroundColor: Color(0xFF1F3354),
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
       ),
-      child: Text(
-        text,
-        style: const TextStyle(color: Colors.white, fontSize: 16),
+      child: const Text(
+        'Save Category',
+        style: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCancelButton() {
+    return TextButton(
+      onPressed: () => Navigator.pop(context),
+      style: TextButton.styleFrom(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: Colors.white24),
+        ),
+      ),
+      child: const Text(
+        'Cancel',
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+
+  void _validateAndSave() {
+    if (_titleController.text.isEmpty) {
+      _showError('Please enter a category title');
+      return;
+    }
+
+    if (_descriptionController.text.isEmpty) {
+      _showError('Please enter a category description');
+      return;
+    }
+
+    // Create a new category
+    final newCategory = CategoryModel(
+      name: _titleController.text,
+      description: _descriptionController.text,
+    );
+
+    // Pop and return the new category
+    Navigator.pop(context, newCategory);
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red.withOpacity(0.8),
+        behavior: SnackBarBehavior.floating,
+        margin: EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
       ),
     );
   }

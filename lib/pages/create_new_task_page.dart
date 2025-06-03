@@ -1,7 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:LILI/models/task.dart';
+import 'package:LILI/models/category_task.dart';
 
 class CreateNewTaskPage extends StatefulWidget {
+  final List<CategoryModel> categories;
+  final TaskModel? taskToEdit;
+
+  const CreateNewTaskPage({
+    Key? key,
+    required this.categories,
+    this.taskToEdit,
+  }) : super(key: key);
+
   @override
   _CreateNewTaskPageState createState() => _CreateNewTaskPageState();
 }
@@ -15,7 +26,20 @@ class _CreateNewTaskPageState extends State<CreateNewTaskPage> {
   String? _selectedCategory;
 
   final List<String> _assignees = ['Nayera', 'Ali', 'Sara'];
-  final List<String> _categories = ['Design', 'Chores', 'Shopping'];
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.taskToEdit != null) {
+      // Pre-fill the form with existing task data
+      _titleController.text = widget.taskToEdit!.title;
+      _descriptionController.text = widget.taskToEdit!.description;
+      _selectedDate = widget.taskToEdit!.dueDate;
+      _selectedTime = TimeOfDay.fromDateTime(widget.taskToEdit!.dueDate);
+      _selectedAssignee = widget.taskToEdit!.assignedTo;
+      _selectedCategory = widget.taskToEdit!.category;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -67,7 +91,7 @@ class _CreateNewTaskPageState extends State<CreateNewTaskPage> {
                       _buildDropdown(
                         'Category',
                         _selectedCategory,
-                        _categories,
+                        widget.categories.map((c) => c.name).toList(),
                         Icons.category_outlined,
                         (value) => setState(() => _selectedCategory = value),
                       ),
@@ -104,8 +128,8 @@ class _CreateNewTaskPageState extends State<CreateNewTaskPage> {
             onPressed: () => Navigator.pop(context),
           ),
           const SizedBox(width: 8),
-          const Text(
-            'Create New Task',
+          Text(
+            widget.taskToEdit == null ? 'Create New Task' : 'Edit Task',
             style: TextStyle(
               color: Colors.white,
               fontSize: 24,
@@ -313,8 +337,8 @@ class _CreateNewTaskPageState extends State<CreateNewTaskPage> {
           borderRadius: BorderRadius.circular(16),
         ),
       ),
-      child: const Text(
-        'Save Task',
+      child: Text(
+        widget.taskToEdit == null ? 'Save Task' : 'Update Task',
         style: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.bold,
@@ -375,8 +399,25 @@ class _CreateNewTaskPageState extends State<CreateNewTaskPage> {
       return;
     }
 
-    // Here you would typically save the task
-    Navigator.pushNamed(context, '/task home');
+    // Create or update task
+    final task = TaskModel(
+      id: widget.taskToEdit?.id ?? DateTime.now().millisecondsSinceEpoch,
+      title: _titleController.text,
+      description: _descriptionController.text,
+      dueDate: DateTime(
+        _selectedDate!.year,
+        _selectedDate!.month,
+        _selectedDate!.day,
+        _selectedTime!.hour,
+        _selectedTime!.minute,
+      ),
+      assignedTo: _selectedAssignee!,
+      category: _selectedCategory!,
+      isCompleted: widget.taskToEdit?.isCompleted ?? false,
+    );
+
+    // Pop and return the task
+    Navigator.pop(context, task);
   }
 
   void _showError(String message) {

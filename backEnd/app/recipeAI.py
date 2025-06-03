@@ -147,52 +147,52 @@ def get_recipe_recommendations(user_id, count=1):
         load_dotenv()
         MONGO_URI = os.getenv("MONGO_URI")
         
-        SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+    SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
         RECIPES_JSON = os.path.join(SCRIPT_DIR, "..", "data", "recipes.json")
-        
-        # ---------- LOAD INVENTORY FROM MONGODB ----------
-        mongo_client = MongoClient(MONGO_URI)
+
+    # ---------- LOAD INVENTORY FROM MONGODB ----------
+    mongo_client = MongoClient(MONGO_URI)
         inventory_col = mongo_client["lili"]["inventory"]
-        
-        try:
-            house_result = selectUser(f'SELECT house_Id FROM user_tbl WHERE user_Id = "{user_id}"')
-            if not house_result:
-                raise HTTPException(status_code=404, detail="House ID not found for user")
-            house_id = house_result[0]["house_Id"]
-        except Exception as e:
+
+    try:
+        house_result = selectUser(f'SELECT house_Id FROM user_tbl WHERE user_Id = "{user_id}"')
+        if not house_result:
+            raise HTTPException(status_code=404, detail="House ID not found for user")
+        house_id = house_result[0]["house_Id"]
+    except Exception as e:
             logging.error(f"Error fetching house ID: {e}")
-            raise
-        
+        raise
+
         # Fetch and clean household inventory items
-        household_items = list(inventory_col.find({"house_id": house_id}))
+    household_items = list(inventory_col.find({"house_id": house_id}))
         available_ingredients = set()  # Using set for O(1) lookups
-        for item in household_items:
+    for item in household_items:
             try:
-                expiry = datetime.fromisoformat(item["expiry_date"])
-                if expiry >= datetime.now():
+        expiry = datetime.fromisoformat(item["expiry_date"])
+        if expiry >= datetime.now():
                     cleaned_item = clean_ingredient(item["name"])
                     if cleaned_item and cleaned_item not in IGNORED_INGREDIENTS:
                         available_ingredients.add(cleaned_item)
                         # Add standard form if it exists
                         if cleaned_item in INGREDIENT_MAPPING:
                             available_ingredients.add(INGREDIENT_MAPPING[cleaned_item])
-            except Exception as e:
+        except Exception as e:
                 logging.error(f"Error processing inventory item: {e}")
                 continue
         
         # ---------- LOAD RECIPES ----------
-        try:
-            with open(RECIPES_JSON, "r") as f:
-                recipes_data = json.load(f)
-            
-            recipes_list = []
-            for recipe in recipes_data:
+    try:
+        with open(RECIPES_JSON, "r") as f:
+            recipes_data = json.load(f)
+
+    recipes_list = []
+    for recipe in recipes_data:
                 try:
                     # Process ingredients
                     raw_ingredients = []
-                    if isinstance(recipe["Cleaned_Ingredients"], str):
+        if isinstance(recipe["Cleaned_Ingredients"], str):
                         raw_ingredients = [ing.strip(" '[]\"") for ing in recipe["Cleaned_Ingredients"].split(",")]
-                    elif isinstance(recipe["Cleaned_Ingredients"], list):
+        elif isinstance(recipe["Cleaned_Ingredients"], list):
                         raw_ingredients = recipe["Cleaned_Ingredients"]
                     
                     # Clean ingredients and handle variations
@@ -225,20 +225,20 @@ def get_recipe_recommendations(user_id, count=1):
                     
                     # Calculate coverage
                     ingredients_coverage = len(available_recipe_ingredients) / len(cleaned_ingredients)
-                    
-                    recipes_list.append({
-                        "recipe": recipe["Title"],
+        
+        recipes_list.append({
+            "recipe": recipe["Title"],
                         "ingredients": list(cleaned_ingredients),
                         "available_ingredients": list(available_recipe_ingredients),
                         "missing_ingredients": list(missing_ingredients),
                         "ingredients_coverage": ingredients_coverage,
-                        "category": recipe.get("Cuisine", "Unclassified"),
-                        "instructions": recipe["Instructions"],
-                        "cooking_time": recipe["timeTaken"],
-                        "servings": None,
-                        "diet": recipe.get("Diet", ""),
-                        "difficulty": recipe.get("Difficulty", ""),
-                        "meal_type": recipe.get("Meal Type", ""),
+            "category": recipe.get("Cuisine", "Unclassified"),
+            "instructions": recipe["Instructions"],
+            "cooking_time": recipe["timeTaken"],
+            "servings": None,
+            "diet": recipe.get("Diet", ""),
+            "difficulty": recipe.get("Difficulty", ""),
+            "meal_type": recipe.get("Meal Type", ""),
                         "image_name": recipe["Image_Name"]
                     })
                     
@@ -247,7 +247,7 @@ def get_recipe_recommendations(user_id, count=1):
                     continue
             
             # Create DataFrame and calculate scores
-            recipes_df = pd.DataFrame(recipes_list)
+    recipes_df = pd.DataFrame(recipes_list)
             recipes_df["recipe_score"] = recipes_df.apply(calculate_recipe_score, axis=1)
             
             # Sort by the new recipe score
@@ -257,15 +257,15 @@ def get_recipe_recommendations(user_id, count=1):
             start_idx = (count - 1) * 10
             end_idx = min(start_idx + 10, len(recipes_df))
             
-            recommendations = []
+    recommendations = []
             for _, row in recipes_df.iloc[start_idx:end_idx].iterrows():
                 try:
                     # Format ingredients lists
                     available_ingredients_list = row["available_ingredients"]
                     missing_ingredients_list = row["missing_ingredients"]
                     all_ingredients = available_ingredients_list + missing_ingredients_list
-                    
-                    recommendations.append({
+
+        recommendations.append({
                         "name": str(row["recipe"]),
                         "cusine": str(row["category"]),
                         "mealType": str(row["meal_type"]),
@@ -280,8 +280,8 @@ def get_recipe_recommendations(user_id, count=1):
                 except Exception as e:
                     logging.error(f"Error formatting recipe {row.get('recipe', 'Unknown')}: {e}")
                     continue
-            
-            mongo_client.close()
+
+    mongo_client.close()
             return recommendations
             
         except Exception as e:

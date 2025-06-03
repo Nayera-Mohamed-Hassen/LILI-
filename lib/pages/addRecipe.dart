@@ -164,148 +164,324 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
     return Scaffold(
       appBar: AppBar(
         surfaceTintColor: Colors.transparent,
-        title: const Text('Add Recipes', style: TextStyle(color: Colors.white)),
-        backgroundColor: const Color(0xFF1F3354),
+        title: const Text(
+          'Add Recipe',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 24,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        backgroundColor: Color(0xFF1F3354),
+        elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
+        centerTitle: true,
+        actions: [
+          Container(
+            margin: const EdgeInsets.only(right: 16),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: Colors.white24),
+            ),
+            child: IconButton(
+              icon: Icon(Icons.save, color: Colors.white.withOpacity(0.9)),
+              onPressed: _saveRecipe,
+            ),
+          ),
+        ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: [
-              GestureDetector(
-                onTap: _pickImage,
-                child: CircleAvatar(
-                  radius: 50,
-                  backgroundColor: Colors.grey[300],
-                  backgroundImage:
-                      _pickedImage != null ? FileImage(_pickedImage!) : null,
-                  child:
-                      _pickedImage == null
-                          ? const Icon(Icons.add_a_photo, color: Colors.white)
-                          : null,
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _nameController,
-                decoration: const InputDecoration(labelText: 'Recipe Name'),
-                validator:
-                    (value) =>
-                        value == null || value.isEmpty
-                            ? 'Please enter a recipe name'
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFF1F3354), Color(0xFF3E5879)],
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Form(
+            key: _formKey,
+            child: ListView(
+              children: [
+                GestureDetector(
+                  onTap: _pickImage,
+                  child: Container(
+                    width: 100,
+                    height: 100,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.15),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white24),
+                      image:
+                          _pickedImage != null
+                              ? DecorationImage(
+                                image: FileImage(_pickedImage!),
+                                fit: BoxFit.cover,
+                              )
+                              : null,
+                    ),
+                    child:
+                        _pickedImage == null
+                            ? Icon(
+                              Icons.add_a_photo,
+                              color: Colors.white.withOpacity(0.7),
+                              size: 40,
+                            )
                             : null,
-              ),
-              const SizedBox(height: 16),
-
-              // Dropdowns for filters
-              _buildDropdown(
-                'Cuisine',
-                filterOptions['Cuisine'],
-                _selectedCuisine,
-                (val) {
-                  setState(() => _selectedCuisine = val);
-                },
-              ),
-              _buildDropdown(
-                'Meal Type',
-                filterOptions['Meal Type'],
-                _selectedMealType,
-                (val) {
-                  setState(() => _selectedMealType = val);
-                },
-              ),
-              _buildDropdown(
-                'Difficulty',
-                filterOptions['Difficulty'],
-                _selectedDifficulty,
-                (val) {
-                  setState(() => _selectedDifficulty = val);
-                },
-              ),
-              _buildDropdown('Diet', filterOptions['Diet'], _selectedDiet, (
-                val,
-              ) {
-                setState(() => _selectedDiet = val);
-              }),
-              _buildDropdown(
-                'Duration',
-                filterOptions['Duration'],
-                _selectedDuration,
-                (val) {
-                  setState(() => _selectedDuration = val);
-                },
-              ),
-
-              const SizedBox(height: 16),
-
-              // Ingredients input
-              TextFormField(
-                controller: _ingredientsController,
-                decoration: InputDecoration(
-                  labelText: 'Add Ingredient',
-                  suffixIcon: IconButton(
-                    icon: const Icon(Icons.add),
-                    onPressed: _addIngredient,
                   ),
                 ),
-              ),
-              Wrap(
-                spacing: 8,
-                children:
-                    _ingredients
-                        .map((ingredient) => Chip(label: Text(ingredient)))
-                        .toList(),
-              ),
-
-              const SizedBox(height: 24),
-              const Text(
-                "Steps",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: _stepControllers.length,
-                itemBuilder: (context, index) {
-                  return Row(
-                    children: [
-                      Expanded(
-                        child: TextFormField(
-                          controller: _stepControllers[index],
-                          decoration: InputDecoration(
-                            labelText: 'Step ${index + 1}',
+                const SizedBox(height: 24),
+                TextFormField(
+                  controller: _nameController,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    labelText: 'Recipe Name',
+                    labelStyle: TextStyle(color: Colors.white.withOpacity(0.8)),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.white24),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Colors.white),
+                    ),
+                    errorBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.red.shade300),
+                    ),
+                    focusedErrorBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.red.shade300),
+                    ),
+                    filled: true,
+                    fillColor: Colors.white.withOpacity(0.15),
+                  ),
+                  validator:
+                      (value) =>
+                          value == null || value.isEmpty
+                              ? 'Please enter a recipe name'
+                              : null,
+                ),
+                const SizedBox(height: 16),
+                _buildDropdown(
+                  'Cuisine',
+                  filterOptions['Cuisine']!,
+                  _selectedCuisine,
+                  (value) => setState(() => _selectedCuisine = value),
+                ),
+                const SizedBox(height: 16),
+                _buildDropdown(
+                  'Meal Type',
+                  filterOptions['Meal Type']!,
+                  _selectedMealType,
+                  (value) => setState(() => _selectedMealType = value),
+                ),
+                const SizedBox(height: 16),
+                _buildDropdown(
+                  'Difficulty',
+                  filterOptions['Difficulty']!,
+                  _selectedDifficulty,
+                  (value) => setState(() => _selectedDifficulty = value),
+                ),
+                const SizedBox(height: 16),
+                _buildDropdown(
+                  'Duration',
+                  filterOptions['Duration']!,
+                  _selectedDuration,
+                  (value) => setState(() => _selectedDuration = value),
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  'Ingredients',
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.9),
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        controller: _ingredientsController,
+                        style: const TextStyle(color: Colors.white),
+                        decoration: InputDecoration(
+                          hintText: 'Add ingredient',
+                          hintStyle: TextStyle(
+                            color: Colors.white.withOpacity(0.5),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: Colors.white24),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(color: Colors.white),
+                          ),
+                          filled: true,
+                          fillColor: Colors.white.withOpacity(0.15),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.white24),
+                      ),
+                      child: IconButton(
+                        icon: Icon(
+                          Icons.add,
+                          color: Colors.white.withOpacity(0.9),
+                        ),
+                        onPressed: _addIngredient,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children:
+                      _ingredients.map((ingredient) {
+                        return Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: Colors.white24),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                ingredient,
+                                style: const TextStyle(color: Colors.white),
+                              ),
+                              const SizedBox(width: 4),
+                              GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    _ingredients.remove(ingredient);
+                                  });
+                                },
+                                child: Icon(
+                                  Icons.close,
+                                  size: 16,
+                                  color: Colors.white.withOpacity(0.7),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  'Steps',
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.9),
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                ..._stepControllers.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final controller = entry.value;
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 24,
+                          height: 24,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.15),
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white24),
+                          ),
+                          child: Center(
+                            child: Text(
+                              '${index + 1}',
+                              style: const TextStyle(color: Colors.white),
+                            ),
                           ),
                         ),
-                      ),
-                      IconButton(
-                        icon: const Icon(
-                          Icons.remove_circle,
-                          color: Colors.red,
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: TextFormField(
+                            controller: controller,
+                            style: const TextStyle(color: Colors.white),
+                            decoration: InputDecoration(
+                              hintText: 'Enter step ${index + 1}',
+                              hintStyle: TextStyle(
+                                color: Colors.white.withOpacity(0.5),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(color: Colors.white24),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(
+                                  color: Colors.white,
+                                ),
+                              ),
+                              filled: true,
+                              fillColor: Colors.white.withOpacity(0.15),
+                            ),
+                            maxLines: null,
+                          ),
                         ),
-                        onPressed: () {
-                          if (_stepControllers.length > 1) {
-                            _removeStepField(index);
-                          }
-                        },
-                      ),
-                    ],
+                        const SizedBox(width: 8),
+                        if (_stepControllers.length > 1)
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.white24),
+                            ),
+                            child: IconButton(
+                              icon: Icon(
+                                Icons.remove,
+                                color: Colors.red.shade300,
+                              ),
+                              onPressed: () => _removeStepField(index),
+                            ),
+                          ),
+                      ],
+                    ),
                   );
-                },
-              ),
-              TextButton.icon(
-                icon: const Icon(Icons.add),
-                label: const Text("Add Step"),
-                onPressed: _addStepField,
-              ),
-
-              const SizedBox(height: 32),
-              ElevatedButton(
-                onPressed: _saveRecipe,
-                child: const Text("Save Recipe"),
-              ),
-            ],
+                }),
+                const SizedBox(height: 8),
+                Center(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.white24),
+                    ),
+                    child: IconButton(
+                      icon: Icon(
+                        Icons.add,
+                        color: Colors.white.withOpacity(0.9),
+                      ),
+                      onPressed: _addStepField,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 32),
+              ],
+            ),
           ),
         ),
       ),
@@ -314,25 +490,40 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
 
   Widget _buildDropdown(
     String label,
-    List<String>? items,
+    List<String> items,
     String? selectedValue,
-    ValueChanged<String?> onChanged,
+    void Function(String?) onChanged,
   ) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: DropdownButtonFormField<String>(
-        decoration: InputDecoration(labelText: label),
-        value: selectedValue,
-        items:
-            items
-                ?.map(
-                  (item) => DropdownMenuItem(value: item, child: Text(item)),
-                )
-                .toList(),
-        onChanged: onChanged,
-        validator:
-            (value) =>
-                value == null || value.isEmpty ? 'Please select $label' : null,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.15),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white24),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: selectedValue,
+          hint: Text(
+            'Select $label',
+            style: TextStyle(color: Colors.white.withOpacity(0.5)),
+          ),
+          icon: Icon(
+            Icons.arrow_drop_down,
+            color: Colors.white.withOpacity(0.7),
+          ),
+          isExpanded: true,
+          dropdownColor: const Color(0xFF1F3354),
+          style: const TextStyle(color: Colors.white),
+          items:
+              items.map((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+          onChanged: onChanged,
+        ),
       ),
     );
   }

@@ -73,7 +73,7 @@ class LiliApp extends StatelessWidget {
         '/forget password reset': (context) => ForgetPasswordResetPage(),
         '/add user': (context) => AddUserPage(),
         '/task home': (context) => TasksHomePage(),
-        '/create new task': (context) => CreateNewTaskPage(),
+        //  '/create new task': (context) => CreateNewTaskPage(),
         '/create new category': (context) => CreateNewCategoryPage(),
         '/inventory': (context) => InventoryPage(),
         '/new item inventory': (context) => CreateNewItemPage(),

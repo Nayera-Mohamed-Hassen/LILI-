@@ -69,7 +69,7 @@ class _RecipeState extends State<Recipe> {
 
   Future<void> _loadInitialRecipes() async {
     if (_isLoading) return;
-    
+
     setState(() {
       _isLoading = true;
       _currentPage = 1;
@@ -87,9 +87,9 @@ class _RecipeState extends State<Recipe> {
         _isLoading = false;
         _hasMore = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: $e')));
     }
   }
 
@@ -101,13 +101,16 @@ class _RecipeState extends State<Recipe> {
       _currentPage++;
       print('Loading more recipes, page: $_currentPage'); // Debug print
       final newRecipes = await fetchRecipes(_currentPage);
-      
+
       // Remove duplicates based on recipe name
       final existingNames = _allRecipes.map((r) => r.name).toSet();
-      final uniqueNewRecipes = newRecipes.where((r) => !existingNames.contains(r.name)).toList();
-      
-      print('Received ${uniqueNewRecipes.length} new unique recipes'); // Debug print
-      
+      final uniqueNewRecipes =
+          newRecipes.where((r) => !existingNames.contains(r.name)).toList();
+
+      print(
+        'Received ${uniqueNewRecipes.length} new unique recipes',
+      ); // Debug print
+
       setState(() {
         _allRecipes.addAll(uniqueNewRecipes);
         _isLoading = false;
@@ -118,19 +121,19 @@ class _RecipeState extends State<Recipe> {
         _isLoading = false;
         _hasMore = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: $e')));
     }
   }
 
   void _scrollListener() {
     if (!_scrollController.hasClients) return;
-    
+
     final maxScroll = _scrollController.position.maxScrollExtent;
     final currentScroll = _scrollController.offset;
     const threshold = 200.0; // Load more when within 200 pixels of the bottom
-    
+
     if (maxScroll - currentScroll <= threshold) {
       _loadMoreRecipes();
     }
@@ -246,74 +249,125 @@ class _RecipeState extends State<Recipe> {
         surfaceTintColor: Colors.transparent,
         title: const Text(
           'Recipe Suggestion',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 24,
+            fontWeight: FontWeight.w600,
+          ),
         ),
-        backgroundColor: const Color(0xFF1F3354),
+        backgroundColor: Color(0xFF1F3354),
+        elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(28),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 8,
-                          spreadRadius: 2,
-                          offset: const Offset(2, 4),
-                        ),
-                      ],
-                    ),
-                    child: TextField(
-                      controller: searchController,
-                      onChanged:
-                          (value) =>
-                              setState(() => searchQuery = value.toLowerCase()),
-                      decoration: InputDecoration(
-                        hintText: 'Search...',
-                        prefixIcon: const Icon(Icons.search),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(28),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFF1F3354), Color(0xFF3E5879)],
+          ),
+        ),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(28),
+                        border: Border.all(color: Colors.white24),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 8,
+                            spreadRadius: 2,
+                            offset: const Offset(2, 4),
+                          ),
+                        ],
+                      ),
+                      child: TextField(
+                        controller: searchController,
+                        onChanged:
+                            (value) => setState(
+                              () => searchQuery = value.toLowerCase(),
+                            ),
+                        style: const TextStyle(color: Colors.white),
+                        decoration: InputDecoration(
+                          hintText: 'Search...',
+                          hintStyle: TextStyle(
+                            color: Colors.white.withOpacity(0.7),
+                          ),
+                          prefixIcon: Icon(
+                            Icons.search,
+                            color: Colors.white.withOpacity(0.7),
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(28),
+                            borderSide: BorderSide.none,
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(28),
+                            borderSide: BorderSide.none,
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(28),
+                            borderSide: const BorderSide(color: Colors.white38),
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 10),
-                IconButton(
-                  icon: const Icon(Icons.filter_list),
-                  onPressed: _showFilterBottomSheet,
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child:
-                _isLoading && _allRecipes.isEmpty
-                    ? const Center(child: CircularProgressIndicator())
-                    : filteredRecipes.isEmpty
-                    ? const Center(child: Text('No recipes found'))
-                    : ListView.builder(
-                      controller: _scrollController,
-                      itemCount: filteredRecipes.length + (_hasMore ? 1 : 0),
-                      itemBuilder: (context, index) {
-                        if (index >= filteredRecipes.length) {
-                          return _buildLoadMoreButton();
-                        }
-
-                        final recipe = filteredRecipes[index];
-                        return _buildRecipeCard(recipe);
-                      },
+                  const SizedBox(width: 10),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: Colors.white24),
                     ),
-          ),
-        ],
+                    child: IconButton(
+                      icon: Icon(
+                        Icons.filter_list,
+                        color: Colors.white.withOpacity(0.9),
+                      ),
+                      onPressed: _showFilterBottomSheet,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child:
+                  _isLoading && _allRecipes.isEmpty
+                      ? const Center(
+                        child: CircularProgressIndicator(color: Colors.white),
+                      )
+                      : filteredRecipes.isEmpty
+                      ? Center(
+                        child: Text(
+                          'No recipes found',
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.7),
+                            fontSize: 16,
+                          ),
+                        ),
+                      )
+                      : ListView.builder(
+                        controller: _scrollController,
+                        itemCount: filteredRecipes.length + (_hasMore ? 1 : 0),
+                        itemBuilder: (context, index) {
+                          if (index >= filteredRecipes.length) {
+                            return _buildLoadMoreButton();
+                          }
+                          final recipe = filteredRecipes[index];
+                          return _buildRecipeCard(recipe);
+                        },
+                      ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -324,14 +378,37 @@ class _RecipeState extends State<Recipe> {
         padding: const EdgeInsets.all(16.0),
         child:
             _isLoading
-                ? const CircularProgressIndicator()
-                : ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1F3354),
-                    foregroundColor: Colors.white,
+                ? const CircularProgressIndicator(color: Colors.white)
+                : Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: Colors.white24),
                   ),
-                  onPressed: _loadMoreRecipes,
-                  child: const Text("Load More"),
+                  child: TextButton.icon(
+                    onPressed: _loadMoreRecipes,
+                    icon: Icon(
+                      Icons.refresh,
+                      color: Colors.white.withOpacity(0.9),
+                    ),
+                    label: Text(
+                      "Load More",
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.9),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 12,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                  ),
                 ),
       ),
     );
@@ -344,33 +421,37 @@ class _RecipeState extends State<Recipe> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => RecipePage(
-              recipe: {
-                'name': recipe.name,
-                'cusine': recipe.cusine,
-                'mealType': recipe.mealType,
-                'ingredients': recipe.ingredients.toList(),
-                'available_ingredients': recipe.availableIngredients.toList(),
-                'missing_ingredients': recipe.missingIngredients.toList(),
-                'steps': recipe.steps?.toList() ?? [],
-                'timeTaken': recipe.timeTaken,
-                'difficulty': recipe.difficulty,
-                'image': recipe.image,
-              },
-            ),
+            builder:
+                (context) => RecipePage(
+                  recipe: {
+                    'name': recipe.name,
+                    'cusine': recipe.cusine,
+                    'mealType': recipe.mealType,
+                    'ingredients': recipe.ingredients.toList(),
+                    'available_ingredients':
+                        recipe.availableIngredients.toList(),
+                    'missing_ingredients': recipe.missingIngredients.toList(),
+                    'steps': recipe.steps?.toList() ?? [],
+                    'timeTaken': recipe.timeTaken,
+                    'difficulty': recipe.difficulty,
+                    'image': recipe.image,
+                  },
+                ),
           ),
         );
       },
       child: Card(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
-          side: const BorderSide(color: Color(0xFF1F3354), width: 1),
+          side: BorderSide(color: Colors.white.withOpacity(0.2), width: 1),
         ),
-        elevation: 8,
-        shadowColor: const Color(0xFF1F3354),
-        margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+        elevation: 4,
+        shadowColor: Colors.black.withOpacity(0.2),
+        margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+        color: Colors.white.withOpacity(0.15),
         child: Container(
           padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(20)),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -378,14 +459,36 @@ class _RecipeState extends State<Recipe> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   ClipRRect(
-                    borderRadius: BorderRadius.circular(20),
-                    child: Image.network(
-                      'https://raw.githubusercontent.com/Nayera-Mohamed-Hassen/LILI-/main/FoodImages/${Uri.encodeComponent(recipe.image)}',
-                      width: 100,
-                      height: 110,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) =>
-                          const Icon(Icons.broken_image),
+                    borderRadius: BorderRadius.circular(16),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.2),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Image.network(
+                        'https://raw.githubusercontent.com/Nayera-Mohamed-Hassen/LILI-/main/FoodImages/${Uri.encodeComponent(recipe.image)}',
+                        width: 100,
+                        height: 110,
+                        fit: BoxFit.cover,
+                        errorBuilder:
+                            (context, error, stackTrace) => Container(
+                              width: 100,
+                              height: 110,
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Icon(
+                                Icons.broken_image,
+                                color: Colors.white.withOpacity(0.7),
+                              ),
+                            ),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -398,33 +501,48 @@ class _RecipeState extends State<Recipe> {
                           style: const TextStyle(
                             fontWeight: FontWeight.w600,
                             fontSize: 16,
-                            color: Color(0xFF1F3354),
+                            color: Colors.white,
                           ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           recipe.cusine,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontWeight: FontWeight.w500,
                             fontSize: 14,
-                            color: Color(0xFF1F3354),
+                            color: Colors.white.withOpacity(0.8),
                           ),
                         ),
                         const SizedBox(height: 4),
                         Row(
                           children: [
-                            const Icon(
-                              Icons.timer_outlined,
-                              size: 16,
-                              color: Color(0xFF1F3354),
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              recipe.timeTaken,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w400,
-                                fontSize: 14,
-                                color: Color(0xFF1F3354),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.15),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: Colors.white24),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.timer_outlined,
+                                    size: 14,
+                                    color: Colors.white.withOpacity(0.8),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    recipe.timeTaken,
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w400,
+                                      fontSize: 12,
+                                      color: Colors.white.withOpacity(0.8),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ],
@@ -435,7 +553,11 @@ class _RecipeState extends State<Recipe> {
                   IconButton(
                     icon: Icon(
                       isFavorite ? Icons.favorite : Icons.favorite_border,
-                      color: isFavorite ? Colors.red : Colors.grey,
+                      color:
+                          isFavorite
+                              ? Colors.red
+                              : Colors.white.withOpacity(0.7),
+                      size: 24,
                     ),
                     onPressed: () => widget.onFavoriteToggle(recipe),
                   ),
@@ -444,36 +566,51 @@ class _RecipeState extends State<Recipe> {
               const SizedBox(height: 8),
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 6,
+                  horizontal: 12,
+                ),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1F3354).withOpacity(0.1),
+                  color: Colors.white.withOpacity(0.15),
                   borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.white24),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Row(
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.restaurant_menu,
                           size: 16,
-                          color: Color(0xFF1F3354),
+                          color: Colors.white.withOpacity(0.8),
                         ),
                         const SizedBox(width: 4),
                         Text(
                           'Difficulty:',
                           style: TextStyle(
                             fontSize: 14,
-                            color: const Color(0xFF1F3354).withOpacity(0.8),
+                            color: Colors.white.withOpacity(0.8),
                           ),
                         ),
                       ],
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
                         color: const Color(0xFF1F3354),
                         borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.white24),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                       ),
                       child: Text(
                         recipe.difficulty,
@@ -498,6 +635,7 @@ class _RecipeState extends State<Recipe> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -512,11 +650,16 @@ class _RecipeState extends State<Recipe> {
               builder: (context, scrollController) {
                 return Container(
                   padding: const EdgeInsets.all(16),
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.vertical(
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [Color(0xFF1F3354), Color(0xFF3E5879)],
+                    ),
+                    borderRadius: const BorderRadius.vertical(
                       top: Radius.circular(20),
                     ),
+                    border: Border.all(color: Colors.white24),
                   ),
                   child: SingleChildScrollView(
                     controller: scrollController,
@@ -531,18 +674,28 @@ class _RecipeState extends State<Recipe> {
                                 setState(() => selectedSubFilters.clear());
                                 setModalState(() {});
                               },
-                              icon: const Icon(
+                              icon: Icon(
                                 Icons.clear,
-                                color: Color(0xFFbc2c2c),
+                                color: Colors.red.shade400,
                               ),
-                              label: const Text(
+                              label: Text(
                                 "Clear Filters",
-                                style: TextStyle(color: Color(0xFFbc2c2c)),
+                                style: TextStyle(color: Colors.red.shade400),
                               ),
                             ),
-                            IconButton(
-                              icon: const Icon(Icons.close),
-                              onPressed: () => Navigator.pop(context),
+                            Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.15),
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(color: Colors.white24),
+                              ),
+                              child: IconButton(
+                                icon: Icon(
+                                  Icons.close,
+                                  color: Colors.white.withOpacity(0.9),
+                                ),
+                                onPressed: () => Navigator.pop(context),
+                              ),
                             ),
                           ],
                         ),
@@ -553,6 +706,7 @@ class _RecipeState extends State<Recipe> {
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 20,
+                              color: Colors.white,
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -566,8 +720,13 @@ class _RecipeState extends State<Recipe> {
                                   return FilterChip(
                                     label: Text(
                                       subFilter,
-                                      style: const TextStyle(
-                                        color: Colors.white,
+                                      style: TextStyle(
+                                        color:
+                                            isSelected
+                                                ? Colors.white
+                                                : Color(
+                                                  0xFF1F3354,
+                                                ).withOpacity(0.9),
                                       ),
                                     ),
                                     selected: isSelected,
@@ -582,7 +741,19 @@ class _RecipeState extends State<Recipe> {
                                       setState(() {});
                                     },
                                     selectedColor: const Color(0xFF1F3354),
-                                    backgroundColor: const Color(0xFF3E5879),
+                                    backgroundColor: Colors.white.withOpacity(
+                                      0.15,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                      side: BorderSide(
+                                        color:
+                                            isSelected
+                                                ? Colors.white38
+                                                : Colors.white24,
+                                      ),
+                                    ),
+                                    showCheckmark: false,
                                   );
                                 }).toList(),
                           ),

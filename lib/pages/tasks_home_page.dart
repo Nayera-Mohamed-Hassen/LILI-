@@ -4,6 +4,7 @@ import 'package:LILI/models/task.dart';
 import 'package:LILI/models/category_task.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:intl/intl.dart';
+import 'package:LILI/pages/create_new_task_page.dart';
 
 class TasksHomePage extends StatefulWidget {
   const TasksHomePage({Key? key}) : super(key: key);
@@ -116,10 +117,7 @@ class _TasksHomePageState extends State<TasksHomePage> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              const Color(0xFF1F3354),
-              const Color(0xFF3E5879),
-            ],
+            colors: [const Color(0xFF1F3354), const Color(0xFF3E5879)],
           ),
         ),
         child: SafeArea(
@@ -130,9 +128,10 @@ class _TasksHomePageState extends State<TasksHomePage> {
               if (_selectedIndex == 0) _buildFilterChips(),
               SizedBox(height: 16),
               Expanded(
-                child: _selectedIndex == 1
-                    ? _buildCategoryList()
-                    : _selectedIndex == 2
+                child:
+                    _selectedIndex == 1
+                        ? _buildCategoryList()
+                        : _selectedIndex == 2
                         ? _buildPeopleList()
                         : _buildTaskList(),
               ),
@@ -165,10 +164,7 @@ class _TasksHomePageState extends State<TasksHomePage> {
               ),
               Text(
                 '${getFilteredTasks().where((t) => !t.isCompleted).length} tasks pending',
-                style: TextStyle(
-                  color: Colors.white70,
-                  fontSize: 16,
-                ),
+                style: TextStyle(color: Color(0xFF1F3354), fontSize: 16),
               ),
             ],
           ),
@@ -228,12 +224,12 @@ class _TasksHomePageState extends State<TasksHomePage> {
         itemBuilder: (context, i) {
           final f = filters[i];
           return FilterChip(
-            label: Text(f, style: TextStyle(color: Colors.white)),
+            label: Text(f, style: TextStyle(color: Color(0xFF1F3354))),
             selected: selectedFilter == f,
             onSelected: (selected) => setState(() => selectedFilter = f),
             backgroundColor: Colors.white12,
             selectedColor: Colors.white24,
-            checkmarkColor: Colors.white,
+            checkmarkColor: Color(0xFF1F3354),
             side: BorderSide(color: Colors.white24),
           );
         },
@@ -297,9 +293,10 @@ class _TasksHomePageState extends State<TasksHomePage> {
                               color: Colors.white,
                               fontSize: 18,
                               fontWeight: FontWeight.w600,
-                              decoration: task.isCompleted
-                                  ? TextDecoration.lineThrough
-                                  : null,
+                              decoration:
+                                  task.isCompleted
+                                      ? TextDecoration.lineThrough
+                                      : null,
                             ),
                           ),
                         ),
@@ -309,9 +306,13 @@ class _TasksHomePageState extends State<TasksHomePage> {
                             value: task.isCompleted,
                             onChanged: (val) {
                               setState(() {
-                                final idx = allTasks.indexWhere((t) => t.id == task.id);
+                                final idx = allTasks.indexWhere(
+                                  (t) => t.id == task.id,
+                                );
                                 if (idx != -1) {
-                                  allTasks[idx] = allTasks[idx].copyWith(isCompleted: val);
+                                  allTasks[idx] = allTasks[idx].copyWith(
+                                    isCompleted: val,
+                                  );
                                 }
                               });
                             },
@@ -382,10 +383,7 @@ class _TasksHomePageState extends State<TasksHomePage> {
         children: [
           Icon(icon, size: 16, color: Colors.white60),
           SizedBox(width: 4),
-          Text(
-            label,
-            style: TextStyle(color: Colors.white60, fontSize: 12),
-          ),
+          Text(label, style: TextStyle(color: Colors.white60, fontSize: 12)),
         ],
       ),
     );
@@ -407,99 +405,126 @@ class _TasksHomePageState extends State<TasksHomePage> {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        decoration: BoxDecoration(
-          color: Color(0xFF1F3354),
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 40,
-              height: 4,
-              margin: EdgeInsets.symmetric(vertical: 8),
-              decoration: BoxDecoration(
-                color: Colors.white24,
-                borderRadius: BorderRadius.circular(2),
-              ),
+      builder:
+          (context) => Container(
+            decoration: BoxDecoration(
+              color: Color(0xFF1F3354),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
             ),
-            Padding(
-              padding: EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    task.title,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 40,
+                  height: 4,
+                  margin: EdgeInsets.symmetric(vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.white24,
+                    borderRadius: BorderRadius.circular(2),
                   ),
-                  SizedBox(height: 16),
-                  _buildDetailRow(Icons.description_outlined, task.description),
-                  SizedBox(height: 12),
-                  _buildDetailRow(
-                    Icons.calendar_today_outlined,
-                    DateFormat('MMMM d, y').format(task.dueDate),
-                  ),
-                  SizedBox(height: 12),
-                  _buildDetailRow(Icons.person_outline, task.assignedTo),
-                  SizedBox(height: 12),
-                  _buildDetailRow(Icons.category_outlined, task.category),
-                  SizedBox(height: 24),
-                  Row(
+                ),
+                Padding(
+                  padding: EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () {
-                            // Edit task
-                            Navigator.pop(context);
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.white24,
-                            padding: EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          child: Text(
-                            'Edit Task',
-                            style: TextStyle(color: Colors.white),
-                          ),
+                      Text(
+                        task.title,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                      SizedBox(width: 12),
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () {
-                            setState(() {
-                              allTasks.removeWhere((t) => t.id == task.id);
-                            });
-                            Navigator.pop(context);
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red.withOpacity(0.3),
-                            padding: EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                      SizedBox(height: 16),
+                      _buildDetailRow(
+                        Icons.description_outlined,
+                        task.description,
+                      ),
+                      SizedBox(height: 12),
+                      _buildDetailRow(
+                        Icons.calendar_today_outlined,
+                        DateFormat('MMMM d, y').format(task.dueDate),
+                      ),
+                      SizedBox(height: 12),
+                      _buildDetailRow(Icons.person_outline, task.assignedTo),
+                      SizedBox(height: 12),
+                      _buildDetailRow(Icons.category_outlined, task.category),
+                      SizedBox(height: 24),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: () async {
+                                // Edit task
+                                Navigator.pop(
+                                  context,
+                                ); // Close the bottom sheet
+                                final editedTask = await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder:
+                                        (context) => CreateNewTaskPage(
+                                          categories: categories,
+                                          taskToEdit: task,
+                                        ),
+                                  ),
+                                );
+                                if (editedTask != null &&
+                                    editedTask is TaskModel) {
+                                  setState(() {
+                                    final index = allTasks.indexWhere(
+                                      (t) => t.id == task.id,
+                                    );
+                                    if (index != -1) {
+                                      allTasks[index] = editedTask;
+                                    }
+                                  });
+                                }
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.white24,
+                                padding: EdgeInsets.symmetric(vertical: 16),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: Text(
+                                'Edit Task',
+                                style: TextStyle(color: Colors.white),
+                              ),
                             ),
                           ),
-                          child: Text(
-                            'Delete Task',
-                            style: TextStyle(color: Colors.white),
+                          SizedBox(width: 12),
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: () {
+                                setState(() {
+                                  allTasks.removeWhere((t) => t.id == task.id);
+                                });
+                                Navigator.pop(context);
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.red.withOpacity(0.3),
+                                padding: EdgeInsets.symmetric(vertical: 16),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: Text(
+                                'Delete Task',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                            ),
                           ),
-                        ),
+                        ],
                       ),
                     ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
     );
   }
 
@@ -508,23 +533,36 @@ class _TasksHomePageState extends State<TasksHomePage> {
       children: [
         Icon(icon, color: Colors.white60, size: 20),
         SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            text,
-            style: TextStyle(color: Colors.white70),
-          ),
-        ),
+        Expanded(child: Text(text, style: TextStyle(color: Colors.white70))),
       ],
     );
   }
 
   Widget _buildFloatingActionButton() {
     return PopupMenuButton<String>(
-      onSelected: (value) {
+      onSelected: (value) async {
         if (value == 'task') {
-          Navigator.pushNamed(context, '/create new task');
+          final newTask = await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => CreateNewTaskPage(categories: categories),
+            ),
+          );
+          if (newTask != null && newTask is TaskModel) {
+            setState(() {
+              allTasks.add(newTask);
+            });
+          }
         } else if (value == 'category') {
-          Navigator.pushNamed(context, '/create new category');
+          final newCategory = await Navigator.pushNamed(
+            context,
+            '/create new category',
+          );
+          if (newCategory != null && newCategory is CategoryModel) {
+            setState(() {
+              categories.add(newCategory);
+            });
+          }
         }
       },
       offset: Offset(0, -100),
@@ -535,34 +573,32 @@ class _TasksHomePageState extends State<TasksHomePage> {
         child: Icon(Icons.add, size: 30, color: Color(0xFF1F3354)),
         onPressed: null,
       ),
-      itemBuilder: (context) => [
-        PopupMenuItem(
-          value: 'task',
-          child: Row(
-            children: [
-              Icon(Icons.task, color: Color(0xFF1F3354)),
-              SizedBox(width: 10),
-              Text(
-                "New Task",
-                style: TextStyle(color: Color(0xFF1F3354)),
+      itemBuilder:
+          (context) => [
+            PopupMenuItem(
+              value: 'task',
+              child: Row(
+                children: [
+                  Icon(Icons.task, color: Color(0xFF1F3354)),
+                  SizedBox(width: 10),
+                  Text("New Task", style: TextStyle(color: Color(0xFF1F3354))),
+                ],
               ),
-            ],
-          ),
-        ),
-        PopupMenuItem(
-          value: 'category',
-          child: Row(
-            children: [
-              Icon(Icons.category, color: Color(0xFF1F3354)),
-              SizedBox(width: 10),
-              Text(
-                "New Category",
-                style: TextStyle(color: Color(0xFF1F3354)),
+            ),
+            PopupMenuItem(
+              value: 'category',
+              child: Row(
+                children: [
+                  Icon(Icons.category, color: Color(0xFF1F3354)),
+                  SizedBox(width: 10),
+                  Text(
+                    "New Category",
+                    style: TextStyle(color: Color(0xFF1F3354)),
+                  ),
+                ],
               ),
-            ],
-          ),
-        ),
-      ],
+            ),
+          ],
     );
   }
 
@@ -571,7 +607,7 @@ class _TasksHomePageState extends State<TasksHomePage> {
       items: items,
       index: _selectedIndex,
       height: 60,
-      backgroundColor: Colors.transparent,
+      backgroundColor: Color(0xFF3E5879),
       color: Color(0xFF1F3354),
       buttonBackgroundColor: Color(0xFF1F3354),
       onTap: _onItemTapped,

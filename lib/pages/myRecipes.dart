@@ -25,33 +25,99 @@ class _MyRecipesPageState extends State<MyRecipesPage> {
     }
   }
 
+  void _deleteRecipe(RecipeItem recipe) {
+    setState(() {
+      _recipes.remove(recipe);
+    });
+  }
+
+  void _editRecipe(RecipeItem recipe) {
+    // TODO: Implement edit recipe functionality
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF2F2F2),
       appBar: AppBar(
-        surfaceTintColor: Colors.transparent,
-        title: const Text('My Recipes', style: TextStyle(color: Colors.white)),
-        backgroundColor: const Color(0xFF1F3354),
+        title: const Text(
+          'My Recipes',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 24,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        backgroundColor: Color(0xFF1F3354),
+        elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
+        centerTitle: true,
+        actions: [
+          Container(
+            margin: const EdgeInsets.only(right: 16),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: Colors.white24),
+            ),
+            child: IconButton(
+              icon: Icon(
+                Icons.add,
+                color: Colors.white.withOpacity(0.9),
+              ),
+              onPressed: _navigateToAddRecipe,
+            ),
+          ),
+        ],
       ),
-      body: Stack(
-        children: [
-          _recipes.isEmpty
-              ? Center(
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFF1F3354), Color(0xFF3E5879)],
+          ),
+        ),
+        child: _recipes.isEmpty
+            ? Center(
                 child: Column(
-                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text(
-                      "You haven't added any recipes yet.",
-                      style: TextStyle(fontSize: 18),
+                    Icon(
+                      Icons.menu_book,
+                      size: 64,
+                      color: Colors.white.withOpacity(0.5),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      "You haven't created any recipes yet.",
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: Colors.white.withOpacity(0.8),
+                      ),
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 24),
+                    ElevatedButton.icon(
+                      onPressed: _navigateToAddRecipe,
+                      icon: const Icon(Icons.add),
+                      label: const Text('Create Recipe'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white.withOpacity(0.15),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          side: BorderSide(color: Colors.white24),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               )
-              : ListView.builder(
+            : ListView.builder(
                 padding: const EdgeInsets.all(16),
                 itemCount: _recipes.length,
                 itemBuilder: (context, index) {
@@ -59,78 +125,228 @@ class _MyRecipesPageState extends State<MyRecipesPage> {
                   return Card(
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
-                      side: const BorderSide(
-                        color: Color(0xFF1F3354),
+                      side: BorderSide(
+                        color: Colors.white.withOpacity(0.2),
                         width: 1,
                       ),
                     ),
-                    elevation: 8,
-                    shadowColor: const Color(0xFF1F3354),
+                    elevation: 4,
+                    shadowColor: Colors.black.withOpacity(0.2),
                     margin: const EdgeInsets.symmetric(vertical: 8),
+                    color: Colors.white.withOpacity(0.15),
                     child: Container(
                       padding: const EdgeInsets.all(12),
-                      child: Row(
+                      child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(20),
-                            child: Image.asset(
-                              'assets/recipes/Sushi Rolls.jpg',
-                              width: 110, // fixed square width
-                              height:
-                                  110, // fixed square height (same as width)
-                              fit: BoxFit.cover,
-                            ),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(16),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.2),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Image.network(
+                                    'https://raw.githubusercontent.com/Nayera-Mohamed-Hassen/LILI-/main/FoodImages/${Uri.encodeComponent(recipe.image)}',
+                                    width: 100,
+                                    height: 110,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) =>
+                                        Container(
+                                          width: 100,
+                                          height: 110,
+                                          decoration: BoxDecoration(
+                                            color: Colors.white.withOpacity(0.1),
+                                            borderRadius: BorderRadius.circular(16),
+                                          ),
+                                          child: Icon(
+                                            Icons.broken_image,
+                                            color: Colors.white.withOpacity(0.7),
+                                          ),
+                                        ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      recipe.name,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 16,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      recipe.cusine,
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w500,
+                                        fontSize: 14,
+                                        color: Colors.white.withOpacity(0.8),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Row(
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 8,
+                                            vertical: 4,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: Colors.white.withOpacity(0.15),
+                                            borderRadius: BorderRadius.circular(12),
+                                            border: Border.all(color: Colors.white24),
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              Icon(
+                                                Icons.timer_outlined,
+                                                size: 14,
+                                                color: Colors.white.withOpacity(0.8),
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                recipe.timeTaken,
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.w400,
+                                                  fontSize: 12,
+                                                  color: Colors.white.withOpacity(0.8),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              PopupMenuButton<String>(
+                                icon: Icon(
+                                  Icons.more_vert,
+                                  color: Colors.white.withOpacity(0.9),
+                                ),
+                                color: const Color(0xFF1F3354),
+                                itemBuilder: (context) => [
+                                  PopupMenuItem(
+                                    value: 'edit',
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          Icons.edit,
+                                          size: 20,
+                                          color: Colors.white.withOpacity(0.9),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          'Edit',
+                                          style: TextStyle(
+                                            color: Colors.white.withOpacity(0.9),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  PopupMenuItem(
+                                    value: 'delete',
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          Icons.delete,
+                                          size: 20,
+                                          color: Colors.red.shade300,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          'Delete',
+                                          style: TextStyle(
+                                            color: Colors.red.shade300,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                                onSelected: (value) {
+                                  if (value == 'edit') {
+                                    _editRecipe(recipe);
+                                  } else if (value == 'delete') {
+                                    _deleteRecipe(recipe);
+                                  }
+                                },
+                              ),
+                            ],
                           ),
-
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  recipe.name,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w800,
-                                    fontSize: 18,
-                                    color: Color(0xFF1F3354),
-                                  ),
-                                ),
-                                Text(
-                                  recipe.cusine,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 16,
-                                    color: Color(0xFF1F3354),
-                                  ),
-                                ),
-                                Text(
-                                  recipe.difficulty,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w400,
-                                    fontSize: 14,
-                                    color: Color(0xFF1F3354),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 6),
+                          const SizedBox(height: 8),
                           Container(
-                            width: 60,
-                            padding: const EdgeInsets.only(top: 4),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 6,
+                              horizontal: 12,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.white24),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                // Removed favorite IconButton here
-                                Text(
-                                  recipe.timeTaken,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 16,
-                                    color: Color(0xFF1F3354),
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.restaurant_menu,
+                                      size: 16,
+                                      color: Colors.white.withOpacity(0.8),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      'Difficulty:',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.white.withOpacity(0.8),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 2,
                                   ),
-                                  textAlign: TextAlign.center,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF1F3354),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(color: Colors.white24),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.1),
+                                        blurRadius: 4,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Text(
+                                    recipe.difficulty,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
                                 ),
                               ],
                             ),
@@ -141,31 +357,7 @@ class _MyRecipesPageState extends State<MyRecipesPage> {
                   );
                 },
               ),
-          Positioned(
-            left: MediaQuery.of(context).size.width - 90,
-            bottom: 30,
-            child: SizedBox(
-              height: 70,
-              width: 70,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF1F3354),
-                  iconColor: Colors.white,
-                ),
-                onPressed: _navigateToAddRecipe,
-                child: Icon(Icons.add),
-              ),
-            ),
-          ),
-        ],
       ),
-      // floatingActionButton: FloatingActionButton(
-      //   onPressed: _navigateToAddRecipe,
-      //   backgroundColor: const Color(0xFF1F3354),
-      //   foregroundColor: Color(0xFFf2f2f2),
-      //   child: const Icon(Icons.add),
-      // ),
-      // floatingActionButtonLocation: FloatingActionButtonLocation.centerTop,
     );
   }
 }

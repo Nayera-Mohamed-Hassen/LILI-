@@ -56,7 +56,7 @@ class _RecipeNavbarState extends State<RecipeNavbar> {
         ],
         color: Color(0xFF1F3354),
         buttonBackgroundColor: Color(0xFF1F3354),
-        backgroundColor: Colors.transparent,
+        backgroundColor: Color(0xFF3E5879),
         animationCurve: Curves.easeInOut,
         animationDuration: const Duration(milliseconds: 300),
         onTap: (index) {
