@@ -12,7 +12,7 @@ class IncomePage extends StatefulWidget {
 class _IncomePageState extends State<IncomePage> {
   final TextEditingController _amountController = TextEditingController();
   String selectedSource = 'Salary';
-  
+
   final List<Map<String, dynamic>> sources = [
     {'name': 'Salary', 'icon': Icons.work},
     {'name': 'Freelance', 'icon': Icons.computer},
@@ -37,10 +37,7 @@ class _IncomePageState extends State<IncomePage> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              const Color(0xFF1F3354),
-              const Color(0xFF3E5879),
-            ],
+            colors: [const Color(0xFF1F3354), const Color(0xFF3E5879)],
           ),
         ),
         child: SafeArea(
@@ -90,11 +87,19 @@ class _IncomePageState extends State<IncomePage> {
                           child: TextField(
                             controller: _amountController,
                             style: TextStyle(color: Colors.white, fontSize: 24),
-                            keyboardType: TextInputType.numberWithOptions(decimal: true),
+                            keyboardType: TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
                             decoration: InputDecoration(
-                              prefixIcon: Icon(Icons.attach_money, color: Colors.white70),
+                              prefixIcon: Icon(
+                                Icons.attach_money,
+                                color: Colors.white70,
+                              ),
                               border: InputBorder.none,
-                              contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                              contentPadding: EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 16,
+                              ),
                               hintText: '0.00',
                               hintStyle: TextStyle(color: Colors.white38),
                             ),
@@ -113,11 +118,12 @@ class _IncomePageState extends State<IncomePage> {
                         GridView.builder(
                           shrinkWrap: true,
                           physics: NeverScrollableScrollPhysics(),
-                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 4,
-                            crossAxisSpacing: 12,
-                            mainAxisSpacing: 12,
-                          ),
+                          gridDelegate:
+                              SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 4,
+                                crossAxisSpacing: 12,
+                                mainAxisSpacing: 12,
+                              ),
                           itemCount: sources.length,
                           itemBuilder: (context, index) {
                             final source = sources[index];
@@ -130,14 +136,16 @@ class _IncomePageState extends State<IncomePage> {
                               },
                               child: Container(
                                 decoration: BoxDecoration(
-                                  color: isSelected 
-                                      ? Colors.white.withOpacity(0.2)
-                                      : Colors.white.withOpacity(0.1),
+                                  color:
+                                      isSelected
+                                          ? Colors.white.withOpacity(0.2)
+                                          : Colors.white.withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(12),
                                   border: Border.all(
-                                    color: isSelected 
-                                        ? Colors.white
-                                        : Colors.white24,
+                                    color:
+                                        isSelected
+                                            ? Colors.white
+                                            : Colors.white24,
                                   ),
                                 ),
                                 child: Column(

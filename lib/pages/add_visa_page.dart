@@ -224,8 +224,10 @@ class _AddVisaPageState extends State<AddVisaPage> {
                         _nameController.text.isNotEmpty) {
                       Navigator.pop(context, {
                         'type': selectedType,
-                        'fullNumber': _cardNumberController.text,
-                        'color': Color(0xFF1F3354),
+                        'fullNumber': _cardNumberController.text.replaceAll(' ', ''),
+                        'expiryDate': _expiryController.text,
+                        'cvv': _cvvController.text,
+                        'cardholderName': _nameController.text,
                       });
                     }
                   },

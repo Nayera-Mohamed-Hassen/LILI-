@@ -3,34 +3,111 @@ import 'dart:ui';
 import 'add_visa_page.dart';
 import 'spent_page.dart';
 import 'income_page.dart';
+import '../services/transaction_service.dart';
 
 class ExpensesPage extends StatefulWidget {
+  final String userId;
+
+  const ExpensesPage({Key? key, required this.userId}) : super(key: key);
+
   @override
   _ExpensesPageState createState() => _ExpensesPageState();
 }
 
 class _ExpensesPageState extends State<ExpensesPage> {
-  double currentBalance = 2090.20;
-
-  List<Map<String, dynamic>> expenses = [
-    {'icon': Icons.store, 'title': 'Grocery', 'time': '10 min ago', 'amount': 35.0},
-    {'icon': Icons.shopping_bag_outlined, 'title': 'Shopping', 'time': '14 min ago', 'amount': 12.0},
-  ];
-
-  List<Map<String, dynamic>> cards = [
-    {
-      'color': Color(0xFF1F3354),
-      'type': 'VISA',
-      'fullNumber': '1234 5678 9012 3456',
-    },
-    {
-      'color': Color(0xFF1F3354),
-      'type': 'Master Card',
-      'fullNumber': '9876 5432 1098 7654',
-    },
-  ];
-
+  double currentBalance = 0.0;
+  List<Map<String, dynamic>> expenses = [];
+  List<Map<String, dynamic>> cards = [];
   bool _isBalanceRevealed = false;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    setState(() => _isLoading = true);
+    try {
+      // Load transactions
+      final transactions = await TransactionService.getTransactions(
+        widget.userId,
+      );
+
+      // Calculate current balance
+      double totalIncome = 0.0;
+      double totalExpenses = 0.0;
+      List<Map<String, dynamic>> recentExpenses = [];
+
+      for (var transaction in transactions) {
+        if (transaction['transaction_type'] == 'income') {
+          totalIncome += transaction['amount'];
+        } else {
+          totalExpenses += transaction['amount'];
+          recentExpenses.add({
+            'icon': _getIconForCategory(transaction['category']),
+            'title': transaction['category'],
+            'time': _formatDate(transaction['date']),
+            'amount': transaction['amount'],
+          });
+        }
+      }
+
+      // Load cards
+      final userCards = await TransactionService.getCards(widget.userId);
+      final formattedCards =
+          userCards
+              .map(
+                (card) => {
+                  'color': Color(0xFF1F3354),
+                  'type': card['card_type'],
+                  'fullNumber': card['card_number'],
+                  'expiryDate': card['expiry_date'],
+                  'cvv': card['cvv'] ?? '***',
+                  // Provide default if CVV is excluded from backend
+                  'cardholderName': card['cardholder_name'],
+                },
+              )
+              .toList();
+
+      setState(() {
+        currentBalance = totalIncome - totalExpenses;
+        expenses = recentExpenses;
+        cards = formattedCards;
+        _isLoading = false;
+      });
+    } catch (e) {
+      print('Error loading data: $e');
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error loading data: $e')));
+    }
+  }
+
+  String _formatDate(String? dateStr) {
+    if (dateStr == null) return 'Just now';
+    try {
+      final date = DateTime.parse(dateStr);
+      final now = DateTime.now();
+      final difference = now.difference(date);
+
+      if (difference.inMinutes < 1) {
+        return 'Just now';
+      } else if (difference.inHours < 1) {
+        return '${difference.inMinutes} min ago';
+      } else if (difference.inDays < 1) {
+        return '${difference.inHours} hours ago';
+      } else if (difference.inDays < 30) {
+        return '${difference.inDays} days ago';
+      } else {
+        return '${date.year}-${date.month}-${date.day}';
+      }
+    } catch (e) {
+      return 'Just now';
+    }
+  }
 
   IconData _getIconForCategory(String category) {
     switch (category) {
@@ -49,36 +126,67 @@ class _ExpensesPageState extends State<ExpensesPage> {
     }
   }
 
-  void _addExpense(String category, double amount) {
-    setState(() {
-      currentBalance -= amount;
-      expenses.insert(0, {
-        'icon': _getIconForCategory(category),
-        'title': category,
-        'time': 'Just now',
-        'amount': amount
-      });
-    });
+  Future<void> _addExpense(String category, double amount) async {
+    try {
+      await TransactionService.addTransaction(
+        userId: widget.userId,
+        amount: amount,
+        category: category,
+        transactionType: 'expense',
+      );
+      await _loadData(); // Reload data after adding expense
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error adding expense: $e')));
+    }
   }
 
-  void _addIncome(double amount) {
-    setState(() {
-      currentBalance += amount;
-    });
+  Future<void> _addIncome(double amount, String source) async {
+    try {
+      await TransactionService.addTransaction(
+        userId: widget.userId,
+        amount: amount,
+        category: source,
+        transactionType: 'income',
+        source: source,
+      );
+      await _loadData(); // Reload data after adding income
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error adding income: $e')));
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Scaffold(
+        body: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [const Color(0xFF1F3354), const Color(0xFF3E5879)],
+            ),
+          ),
+          child: Center(
+            child: CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+            ),
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              const Color(0xFF1F3354),
-              const Color(0xFF3E5879),
-            ],
+            colors: [const Color(0xFF1F3354), const Color(0xFF3E5879)],
           ),
         ),
         child: SafeArea(
@@ -125,7 +233,10 @@ class _ExpensesPageState extends State<ExpensesPage> {
                         Positioned.fill(
                           child: ClipRect(
                             child: BackdropFilter(
-                              filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
+                              filter: ImageFilter.blur(
+                                sigmaX: 10.0,
+                                sigmaY: 10.0,
+                              ),
                               child: Container(
                                 color: Colors.black.withOpacity(0),
                               ),
@@ -158,8 +269,12 @@ class _ExpensesPageState extends State<ExpensesPage> {
                               builder: (_) => IncomePage(income: 0),
                             ),
                           );
-                          if (result != null && result is Map<String, dynamic>) {
-                            _addIncome(result['amount']);
+                          if (result != null &&
+                              result is Map<String, dynamic>) {
+                            await _addIncome(
+                              result['amount'],
+                              result['source'],
+                            );
                           }
                         },
                         child: Row(
@@ -197,14 +312,21 @@ class _ExpensesPageState extends State<ExpensesPage> {
                               builder: (_) => SpentPage(spent: 0),
                             ),
                           );
-                          if (result != null && result is Map<String, dynamic>) {
-                            _addExpense(result['category'], result['amount']);
+                          if (result != null &&
+                              result is Map<String, dynamic>) {
+                            await _addExpense(
+                              result['category'],
+                              result['amount'],
+                            );
                           }
                         },
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.remove_circle_outline, color: Colors.white),
+                            Icon(
+                              Icons.remove_circle_outline,
+                              color: Colors.white,
+                            ),
                             SizedBox(width: 8),
                             Text(
                               'Spent',
@@ -242,9 +364,21 @@ class _ExpensesPageState extends State<ExpensesPage> {
                           MaterialPageRoute(builder: (_) => AddVisaPage()),
                         );
                         if (result != null && result is Map<String, dynamic>) {
-                          setState(() {
-                            cards.add(result);
-                          });
+                          try {
+                            await TransactionService.addCard(
+                              userId: widget.userId,
+                              cardType: result['type'],
+                              cardNumber: result['fullNumber'],
+                              expiryDate: result['expiryDate'],
+                              cvv: result['cvv'],
+                              cardholderName: result['cardholderName'],
+                            );
+                            await _loadData(); // Reload data after adding card
+                          } catch (e) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Error adding card: $e')),
+                            );
+                          }
                         }
                       },
                     ),
@@ -254,14 +388,22 @@ class _ExpensesPageState extends State<ExpensesPage> {
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
-                    children: cards.map((card) => Padding(
-                      padding: const EdgeInsets.only(right: 16),
-                      child: CardTile(
-                        color: card['color'],
-                        type: card['type'],
-                        fullNumber: card['fullNumber'],
-                      ),
-                    )).toList(),
+                    children:
+                        cards
+                            .map(
+                              (card) => Padding(
+                                padding: const EdgeInsets.only(right: 10),
+                                child: CardTile(
+                                  color: card['color'],
+                                  type: card['type'],
+                                  fullNumber: card['fullNumber'],
+                                  expiryDate: card['expiryDate'],
+                                  cvv: card['cvv'],
+                                  cardholderName: card['cardholderName'],
+                                ),
+                              ),
+                            )
+                            .toList(),
                   ),
                 ),
 
@@ -299,10 +441,7 @@ class _ExpensesPageState extends State<ExpensesPage> {
                               color: Colors.white24,
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            child: Icon(
-                              item['icon'],
-                              color: Colors.white,
-                            ),
+                            child: Icon(item['icon'], color: Colors.white),
                           ),
                           title: Text(
                             item['title'],
@@ -341,11 +480,17 @@ class CardTile extends StatefulWidget {
   final Color color;
   final String type;
   final String fullNumber;
+  final String expiryDate;
+  final String cvv;
+  final String cardholderName;
 
   const CardTile({
     required this.color,
     required this.type,
     required this.fullNumber,
+    required this.expiryDate,
+    required this.cardholderName,
+    required this.cvv,
   });
 
   @override
@@ -363,14 +508,28 @@ class _CardTileState extends State<CardTile> {
 
   String get _displayNumber {
     if (_isRevealed) {
-      return widget.fullNumber;
+      return _formatCardNumber(widget.fullNumber);
     } else {
-      final parts = widget.fullNumber.split(' ');
-      for (int i = 0; i < parts.length - 1; i++) {
-        parts[i] = '****';
-      }
-      return parts.join(' ');
+      String lastFour = widget.fullNumber.substring(
+        widget.fullNumber.length - 4,
+      );
+      return "**** **** **** " + lastFour;
     }
+  }
+
+  String get _displayCVV {
+    return _isRevealed ? widget.cvv : "***";
+  }
+
+  String _formatCardNumber(String number) {
+    String formatted = "";
+    for (int i = 0; i < number.length; i++) {
+      if (i > 0 && i % 4 == 0) {
+        formatted += " ";
+      }
+      formatted += number[i];
+    }
+    return formatted;
   }
 
   @override
@@ -406,7 +565,7 @@ class _CardTileState extends State<CardTile> {
                 ),
               ],
             ),
-            SizedBox(height: 30),
+            SizedBox(height: 10),
             Text(
               _displayNumber,
               style: TextStyle(
@@ -415,13 +574,56 @@ class _CardTileState extends State<CardTile> {
                 letterSpacing: 2,
               ),
             ),
-            SizedBox(height: 20),
+            SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'VALID THRU',
+                      style: TextStyle(color: Colors.white60, fontSize: 10),
+                    ),
+                    Text(
+                      widget.expiryDate,
+                      style: TextStyle(color: Colors.white, fontSize: 14),
+                    ),
+                  ],
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'CVV',
+                      style: TextStyle(color: Colors.white60, fontSize: 10),
+                    ),
+                    Text(
+                      _displayCVV,
+                      style: TextStyle(color: Colors.white, fontSize: 14),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            SizedBox(height: 10),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'CARDHOLDER NAME',
+                  style: TextStyle(color: Colors.white60, fontSize: 10),
+                ),
+                Text(
+                  widget.cardholderName.toUpperCase(),
+                  style: TextStyle(color: Colors.white, fontSize: 14),
+                ),
+              ],
+            ),
+            SizedBox(height: 10),
             Text(
-              'Tap to reveal/hide',
-              style: TextStyle(
-                color: Colors.white60,
-                fontSize: 12,
-              ),
+              'Tap to reveal/hide sensitive information',
+              style: TextStyle(color: Colors.white60, fontSize: 12),
             ),
           ],
         ),

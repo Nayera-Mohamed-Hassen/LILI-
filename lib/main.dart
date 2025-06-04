@@ -1,3 +1,4 @@
+import 'package:LILI/user_session.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:LILI/pages/budgetAnalysis.dart';
@@ -42,9 +43,7 @@ import 'package:LILI/services/task_service.dart';
 void main() {
   runApp(
     MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => TaskService()),
-      ],
+      providers: [ChangeNotifierProvider(create: (_) => TaskService())],
       child: LiliApp(),
     ),
   );
@@ -95,7 +94,9 @@ class LiliApp extends StatelessWidget {
             (context) => CreateNewCategoryBudgetPage(),
         '/host house': (context) => HostHousePage(),
         '/dash board ': (context) => ReportDashboard(),
-        '/Expenses ': (context) => ExpensesPage(),
+        '/Expenses ':
+            (context) =>
+                ExpensesPage(userId: UserSession().getUserId().toString()),
       },
     );
   }
