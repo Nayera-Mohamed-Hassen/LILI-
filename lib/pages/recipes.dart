@@ -245,130 +245,188 @@ class _RecipeState extends State<Recipe> {
     final filteredRecipes = filterRecipes(_allRecipes);
 
     return Scaffold(
-      appBar: AppBar(
-        surfaceTintColor: Colors.transparent,
-        title: const Text(
-          'Recipe Suggestion',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 24,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        backgroundColor: Color(0xFF1F3354),
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white),
-      ),
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFF1F3354), Color(0xFF3E5879)],
+            colors: [const Color(0xFF1F3354), const Color(0xFF3E5879)],
           ),
         ),
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.15),
-                        borderRadius: BorderRadius.circular(28),
-                        border: Border.all(color: Colors.white24),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 8,
-                            spreadRadius: 2,
-                            offset: const Offset(2, 4),
-                          ),
-                        ],
-                      ),
-                      child: TextField(
-                        controller: searchController,
-                        onChanged:
-                            (value) => setState(
-                              () => searchQuery = value.toLowerCase(),
-                            ),
-                        style: const TextStyle(color: Colors.white),
-                        decoration: InputDecoration(
-                          hintText: 'Search...',
-                          hintStyle: TextStyle(
-                            color: Colors.white.withOpacity(0.7),
-                          ),
-                          prefixIcon: Icon(
-                            Icons.search,
-                            color: Colors.white.withOpacity(0.7),
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(28),
-                            borderSide: BorderSide.none,
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(28),
-                            borderSide: BorderSide.none,
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(28),
-                            borderSide: const BorderSide(color: Colors.white38),
-                          ),
-                        ),
-                      ),
-                    ),
+        child: SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              AppBar(
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                surfaceTintColor: Colors.transparent,
+                leading: IconButton(
+                  icon: Icon(Icons.arrow_back, color: Colors.white),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+                title: Text(
+                  'Recipes',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
                   ),
-                  const SizedBox(width: 10),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: Colors.white24),
-                    ),
-                    child: IconButton(
-                      icon: Icon(
-                        Icons.filter_list,
-                        color: Colors.white.withOpacity(0.9),
-                      ),
-                      onPressed: _showFilterBottomSheet,
-                    ),
+                ),
+              ),
+              _buildSearch(),
+              //_buildFilterChips(),
+              Expanded(
+                child:
+                    _isLoading
+                        ? Center(
+                          child: CircularProgressIndicator(color: Colors.white),
+                        )
+                        : _buildRecipeList(),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSearch() {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Row(
+        children: [
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(28),
+                border: Border.all(color: Colors.white24),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 8,
+                    spreadRadius: 2,
+                    offset: const Offset(2, 4),
                   ),
                 ],
               ),
+              child: TextField(
+                controller: searchController,
+                onChanged:
+                    (value) =>
+                        setState(() => searchQuery = value.toLowerCase()),
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  hintText: 'Search...',
+                  hintStyle: TextStyle(color: Colors.white.withOpacity(0.7)),
+                  prefixIcon: Icon(
+                    Icons.search,
+                    color: Colors.white.withOpacity(0.7),
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(28),
+                    borderSide: BorderSide.none,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(28),
+                    borderSide: BorderSide.none,
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(28),
+                    borderSide: const BorderSide(color: Colors.white38),
+                  ),
+                ),
+              ),
             ),
-            Expanded(
-              child:
-                  _isLoading && _allRecipes.isEmpty
-                      ? const Center(
-                        child: CircularProgressIndicator(color: Colors.white),
-                      )
-                      : filteredRecipes.isEmpty
-                      ? Center(
-                        child: Text(
-                          'No recipes found',
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.7),
-                            fontSize: 16,
-                          ),
-                        ),
-                      )
-                      : ListView.builder(
-                        controller: _scrollController,
-                        itemCount: filteredRecipes.length + (_hasMore ? 1 : 0),
-                        itemBuilder: (context, index) {
-                          if (index >= filteredRecipes.length) {
-                            return _buildLoadMoreButton();
-                          }
-                          final recipe = filteredRecipes[index];
-                          return _buildRecipeCard(recipe);
-                        },
-                      ),
+          ),
+          const SizedBox(width: 10),
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: Colors.white24),
             ),
-          ],
-        ),
+            child: IconButton(
+              icon: Icon(
+                Icons.filter_list,
+                color: Colors.white.withOpacity(0.9),
+              ),
+              onPressed: _showFilterBottomSheet,
+            ),
+          ),
+        ],
       ),
+    );
+  }
+
+  // Widget _buildFilterChips() {
+  //   return Padding(
+  //     padding: const EdgeInsets.all(16.0),
+  //     child: Wrap(
+  //       spacing: 6,
+  //       runSpacing: 6,
+  //       children:
+  //           filterOptions.entries.map((category) {
+  //             return FilterChip(
+  //               label: Text(
+  //                 category.key,
+  //                 style: const TextStyle(color: Colors.white),
+  //               ),
+  //               selected: selectedSubFilters.contains(category.value.first),
+  //               onSelected: (selected) {
+  //                 setState(() {
+  //                   if (selected) {
+  //                     selectedSubFilters.add(category.value.first);
+  //                   } else {
+  //                     selectedSubFilters.remove(category.value.first);
+  //                   }
+  //                 });
+  //               },
+  //               selectedColor: const Color(0xFF1F3354),
+  //               backgroundColor: Colors.white.withOpacity(0.15),
+  //               shape: RoundedRectangleBorder(
+  //                 borderRadius: BorderRadius.circular(12),
+  //                 side: BorderSide(
+  //                   color:
+  //                       selectedSubFilters.contains(category.value.first)
+  //                           ? Colors.white38
+  //                           : Colors.white24,
+  //                 ),
+  //               ),
+  //               showCheckmark: false,
+  //             );
+  //           }).toList(),
+  //     ),
+  //   );
+  // }
+
+  Widget _buildRecipeList() {
+    final filteredRecipes = filterRecipes(_allRecipes);
+
+    return Expanded(
+      child:
+          filteredRecipes.isEmpty
+              ? Center(
+                child: Text(
+                  'No recipes found',
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.7),
+                    fontSize: 16,
+                  ),
+                ),
+              )
+              : ListView.builder(
+                controller: _scrollController,
+                itemCount: filteredRecipes.length + (_hasMore ? 1 : 0),
+                itemBuilder: (context, index) {
+                  if (index >= filteredRecipes.length) {
+                    return _buildLoadMoreButton();
+                  }
+                  final recipe = filteredRecipes[index];
+                  return _buildRecipeCard(recipe);
+                },
+              ),
     );
   }
 
