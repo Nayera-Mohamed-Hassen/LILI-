@@ -1,17 +1,17 @@
+import 'package:LILI/user_session.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:LILI/models/task.dart';
 import 'package:LILI/models/category_task.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class CreateNewTaskPage extends StatefulWidget {
   final List<CategoryModel> categories;
   final TaskModel? taskToEdit;
 
-  const CreateNewTaskPage({
-    Key? key,
-    required this.categories,
-    this.taskToEdit,
-  }) : super(key: key);
+  const CreateNewTaskPage({Key? key, required this.categories, this.taskToEdit})
+    : super(key: key);
 
   @override
   _CreateNewTaskPageState createState() => _CreateNewTaskPageState();
@@ -49,10 +49,7 @@ class _CreateNewTaskPageState extends State<CreateNewTaskPage> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              const Color(0xFF1F3354),
-              const Color(0xFF3E5879),
-            ],
+            colors: [const Color(0xFF1F3354), const Color(0xFF3E5879)],
           ),
         ),
         child: SafeArea(
@@ -190,12 +187,10 @@ class _CreateNewTaskPageState extends State<CreateNewTaskPage> {
       ),
       child: DropdownButtonFormField<String>(
         value: value,
-        items: items
-            .map((item) => DropdownMenuItem(
-                  value: item,
-                  child: Text(item),
-                ))
-            .toList(),
+        items:
+            items
+                .map((item) => DropdownMenuItem(value: item, child: Text(item)))
+                .toList(),
         onChanged: onChanged,
         style: const TextStyle(color: Colors.white),
         dropdownColor: const Color(0xFF1F3354),
@@ -333,16 +328,11 @@ class _CreateNewTaskPageState extends State<CreateNewTaskPage> {
         backgroundColor: Colors.white,
         foregroundColor: Color(0xFF1F3354),
         padding: const EdgeInsets.symmetric(vertical: 16),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
       child: Text(
         widget.taskToEdit == null ? 'Save Task' : 'Update Task',
-        style: TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-        ),
+        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
       ),
     );
   }
@@ -368,7 +358,7 @@ class _CreateNewTaskPageState extends State<CreateNewTaskPage> {
     );
   }
 
-  void _validateAndSave() {
+  void _validateAndSave() async {
     if (_titleController.text.isEmpty) {
       _showError('Please enter a task title');
       return;
@@ -399,25 +389,52 @@ class _CreateNewTaskPageState extends State<CreateNewTaskPage> {
       return;
     }
 
-    // Create or update task
-    final task = TaskModel(
-      id: widget.taskToEdit?.id ?? DateTime.now().millisecondsSinceEpoch,
-      title: _titleController.text,
-      description: _descriptionController.text,
-      dueDate: DateTime(
-        _selectedDate!.year,
-        _selectedDate!.month,
-        _selectedDate!.day,
-        _selectedTime!.hour,
-        _selectedTime!.minute,
-      ),
-      assignedTo: _selectedAssignee!,
-      category: _selectedCategory!,
-      isCompleted: widget.taskToEdit?.isCompleted ?? false,
+    final dueDate = DateTime(
+      _selectedDate!.year,
+      _selectedDate!.month,
+      _selectedDate!.day,
+      _selectedTime!.hour,
+      _selectedTime!.minute,
     );
 
-    // Pop and return the task
-    Navigator.pop(context, task);
+    try {
+      // Send task to backend first
+      final response = await http.post(
+        Uri.parse('http://10.0.2.2:8000/user/tasks/create'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'title': _titleController.text,
+          'description': _descriptionController.text,
+          'due_date': dueDate.toIso8601String(),
+          'assigned_to': _selectedAssignee!,
+          'category': _selectedCategory!,
+          'user_id': UserSession().getUserId(),
+          'is_completed': widget.taskToEdit?.isCompleted ?? false,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        
+        // Create task object with the ID from the response
+        final task = TaskModel(
+          id: responseData['task_id'],
+          title: _titleController.text,
+          description: _descriptionController.text,
+          dueDate: dueDate,
+          assignedTo: _selectedAssignee!,
+          category: _selectedCategory!,
+          isCompleted: widget.taskToEdit?.isCompleted ?? false,
+        );
+
+        // Pop and return the task
+        Navigator.pop(context, task);
+      } else {
+        _showError('Failed to create task: ${response.body}');
+      }
+    } catch (e) {
+      _showError('Error creating task: $e');
+    }
   }
 
   void _showError(String message) {
@@ -427,9 +444,7 @@ class _CreateNewTaskPageState extends State<CreateNewTaskPage> {
         backgroundColor: Colors.red.withOpacity(0.8),
         behavior: SnackBarBehavior.floating,
         margin: EdgeInsets.all(16),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }

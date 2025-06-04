@@ -1,7 +1,7 @@
 import 'package:LILI/models/category_task.dart';
 
 class TaskModel {
-  final int id;
+  final String id; // Using String for MongoDB ObjectId
   final String title;
   final String description;
   final DateTime dueDate;
@@ -19,7 +19,7 @@ class TaskModel {
     required this.category,
   });
 
-  TaskModel copyWith({bool? isCompleted, double? progress}) {
+  TaskModel copyWith({bool? isCompleted}) {
     return TaskModel(
       id: id,
       title: title,

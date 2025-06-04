@@ -7,6 +7,7 @@ from pydantic import BaseModel
 from pymongo import MongoClient
 from ..recipeAI import get_recipe_recommendations
 from ..mySQLConnection import selectUser, selectAllergy, insertUser, insertHouseHold, insertAllergy, executeWriteQuery
+from bson import ObjectId
 
 
 HouseHold_id = 1  # Default household ID, can be changed as needed
@@ -614,6 +615,113 @@ async def get_user_profile(user_id: int):
             "gender": user_data["user_gender"],
             "user_birthday": user_data["user_birthday"]
         }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+class Task(BaseModel):
+    title: str
+    description: str
+    due_date: str
+    assigned_to: str
+    category: str
+    user_id: int
+    is_completed: bool = False
+
+@router.post("/tasks/create")
+async def create_task(task: Task):
+    try:
+        # Initialize MongoDB connection
+        client = MongoClient(os.getenv("MONGO_URI"))
+        db = client["lili"]
+        tasks_collection = db["tasks"]
+
+        # Create task document
+        task_dict = task.dict()
+        task_dict["created_at"] = datetime.now().isoformat()
+        
+        # Insert task into MongoDB
+        result = tasks_collection.insert_one(task_dict)
+        
+        if not result.inserted_id:
+            raise HTTPException(status_code=500, detail="Failed to create task")
+
+        return {
+            "status": "success",
+            "message": "Task created successfully",
+            "task_id": str(result.inserted_id)
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/tasks/{user_id}")
+async def get_tasks(user_id: int):
+    try:
+        # Initialize MongoDB connection
+        client = MongoClient(os.getenv("MONGO_URI"))
+        db = client["lili"]
+        tasks_collection = db["tasks"]
+
+        # Get all tasks for the user
+        tasks = list(tasks_collection.find({"user_id": user_id}))
+        
+        # Convert ObjectId to string for JSON serialization
+        for task in tasks:
+            task["_id"] = str(task["_id"])
+        
+        return tasks
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+class UpdateTaskStatus(BaseModel):
+    task_id: str
+    is_completed: bool
+
+@router.post("/tasks/update")
+async def update_task_status(data: UpdateTaskStatus):
+    try:
+        # Initialize MongoDB connection
+        client = MongoClient(os.getenv("MONGO_URI"))
+        db = client["lili"]
+        tasks_collection = db["tasks"]
+
+        # Convert string ID to ObjectId
+        object_id = ObjectId(data.task_id)
+
+        # Update task status
+        result = tasks_collection.update_one(
+            {"_id": object_id},
+            {"$set": {"is_completed": data.is_completed}}
+        )
+
+        if result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Task not found")
+
+        return {"status": "success", "message": "Task status updated successfully"}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.delete("/tasks/{task_id}")
+async def delete_task(task_id: str):
+    try:
+        # Initialize MongoDB connection
+        client = MongoClient(os.getenv("MONGO_URI"))
+        db = client["lili"]
+        tasks_collection = db["tasks"]
+
+        # Convert string ID to ObjectId
+        object_id = ObjectId(task_id)
+
+        # Delete the task
+        result = tasks_collection.delete_one({"_id": object_id})
+
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Task not found")
+
+        return {"status": "success", "message": "Task deleted successfully"}
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
