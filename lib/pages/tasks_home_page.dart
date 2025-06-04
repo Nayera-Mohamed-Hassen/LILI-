@@ -8,6 +8,8 @@ import 'package:intl/intl.dart';
 import 'package:LILI/pages/create_new_task_page.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:provider/provider.dart';
+import 'package:LILI/services/task_service.dart';
 
 class TasksHomePage extends StatefulWidget {
   const TasksHomePage({Key? key}) : super(key: key);
@@ -33,144 +35,55 @@ class _TasksHomePageState extends State<TasksHomePage> {
   @override
   void initState() {
     super.initState();
-    fetchTasks();
-  }
-
-  Future<void> fetchTasks() async {
-    try {
-      setState(() {
-        isLoading = true;
-        error = null;
-      });
-
-      final response = await http.get(
-        Uri.parse(
-          'http://10.0.2.2:8000/user/tasks/' +
-              (UserSession().getUserId().toString() ?? ''),
-        ),
-      );
-
-      if (response.statusCode == 200) {
-        final List<dynamic> tasksJson = jsonDecode(response.body);
-        setState(() {
-          allTasks = tasksJson.map((json) => TaskModel(
-            id: json['_id'],
-            title: json['title'],
-            description: json['description'],
-            dueDate: DateTime.parse(json['due_date']),
-            assignedTo: json['assigned_to'],
-            category: json['category'],
-            isCompleted: json['is_completed'],
-          )).toList();
-          isLoading = false;
-        });
-      } else {
-        setState(() {
-          error = 'Failed to load tasks: ${response.body}';
-          isLoading = false;
-        });
-      }
-    } catch (e) {
-      setState(() {
-        error = 'Error loading tasks: $e';
-        isLoading = false;
-      });
-    }
-  }
-
-  List<TaskModel> getFilteredTasks() {
-    List<TaskModel> filtered = allTasks;
-
-    switch (selectedFilter) {
-      case 'Done':
-        filtered = filtered.where((t) => t.isCompleted).toList();
-        break;
-      case 'In progress':
-        filtered = filtered.where((t) => !t.isCompleted).toList();
-        break;
-      case 'Scheduled':
-        filtered =
-            filtered.where((t) => t.dueDate.isAfter(DateTime.now())).toList();
-        break;
-      case 'All':
-      default:
-        break;
-    }
-
-    if (searchQuery.isNotEmpty) {
-      filtered =
-          filtered
-              .where(
-                (t) =>
-                    t.title.toLowerCase().contains(searchQuery.toLowerCase()) ||
-                    t.description.toLowerCase().contains(
-                      searchQuery.toLowerCase(),
-                    ) ||
-                    t.assignedTo.toLowerCase().contains(
-                      searchQuery.toLowerCase(),
-                    ) ||
-                    t.category.toLowerCase().contains(
-                      searchQuery.toLowerCase(),
-                    ),
-              )
-              .toList();
-    }
-
-    return filtered;
-  }
-
-  int _selectedIndex = 0;
-  final items = [
-    Icon(Icons.task, size: 30, color: Color(0xFFF5EFE7)),
-    Icon(Icons.category, size: 30, color: Color(0xFFF5EFE7)),
-    Icon(
-      Icons.person,
-      size: 30,
-      color: Color(0xFFF5EFE7),
-    ), // ➕ Added People tab
-  ];
-
-  void _onItemTapped(int index) {
-    setState(() => _selectedIndex = index);
+    // Fetch tasks when the page loads
+    Provider.of<TaskService>(context, listen: false).fetchTasks();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [const Color(0xFF1F3354), const Color(0xFF3E5879)],
-          ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              _buildHeader(),
-              _buildSearch(),
-              if (_selectedIndex == 0) _buildFilterChips(),
-              SizedBox(height: 16),
-              Expanded(
-                child:
-                    _selectedIndex == 1
-                        ? _buildCategoryList()
-                        : _selectedIndex == 2
-                        ? _buildPeopleList()
-                        : _buildTaskList(),
+    return Consumer<TaskService>(
+      builder: (context, taskService, child) {
+        final filteredTasks = taskService.getFilteredTasks(
+          filter: selectedFilter,
+          searchQuery: searchQuery,
+        );
+
+        return Scaffold(
+          body: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [const Color(0xFF1F3354), const Color(0xFF3E5879)],
               ),
-            ],
+            ),
+            child: SafeArea(
+              child: Column(
+                children: [
+                  _buildHeader(taskService),
+                  _buildSearch(),
+                  if (_selectedIndex == 0) _buildFilterChips(),
+                  SizedBox(height: 16),
+                  Expanded(
+                    child: _selectedIndex == 1
+                        ? _buildCategoryList(taskService)
+                        : _selectedIndex == 2
+                            ? _buildPeopleList(taskService)
+                            : _buildTaskList(taskService, filteredTasks),
+                  ),
+                ],
+              ),
+            ),
           ),
-        ),
-      ),
-      floatingActionButton: _buildFloatingActionButton(),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      bottomNavigationBar: _buildBottomNavBar(),
+          floatingActionButton: _buildFloatingActionButton(),
+          floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+          bottomNavigationBar: _buildBottomNavBar(),
+        );
+      },
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(TaskService taskService) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Row(
@@ -188,17 +101,17 @@ class _TasksHomePageState extends State<TasksHomePage> {
                 ),
               ),
               Text(
-                '${getFilteredTasks().where((t) => !t.isCompleted).length} tasks pending',
-                style: TextStyle(color: Color(0xFF1F3354), fontSize: 16),
+                '${taskService.getPendingTasksCount()} tasks pending',
+                style: TextStyle(color: Colors.white70, fontSize: 16),
               ),
             ],
           ),
           CircularPercentIndicator(
             radius: 25.0,
             lineWidth: 4.0,
-            percent: _calculateCompletionRate(),
+            percent: taskService.getCompletionRate(),
             center: Text(
-              '${(_calculateCompletionRate() * 100).toInt()}%',
+              '${(taskService.getCompletionRate() * 100).toInt()}%',
               style: TextStyle(color: Colors.white, fontSize: 12),
             ),
             progressColor: Colors.white,
@@ -262,8 +175,8 @@ class _TasksHomePageState extends State<TasksHomePage> {
     );
   }
 
-  Widget _buildTaskList() {
-    if (isLoading) {
+  Widget _buildTaskList(TaskService taskService, List<TaskModel> tasks) {
+    if (taskService.isLoading) {
       return Center(
         child: CircularProgressIndicator(
           valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
@@ -271,7 +184,7 @@ class _TasksHomePageState extends State<TasksHomePage> {
       );
     }
 
-    if (error != null) {
+    if (taskService.error != null) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -279,13 +192,13 @@ class _TasksHomePageState extends State<TasksHomePage> {
             Icon(Icons.error_outline, size: 64, color: Colors.white38),
             SizedBox(height: 16),
             Text(
-              error!,
+              taskService.error!,
               style: TextStyle(color: Colors.white70, fontSize: 18),
               textAlign: TextAlign.center,
             ),
             SizedBox(height: 16),
             ElevatedButton(
-              onPressed: fetchTasks,
+              onPressed: () => taskService.fetchTasks(),
               child: Text('Retry'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.white,
@@ -297,7 +210,6 @@ class _TasksHomePageState extends State<TasksHomePage> {
       );
     }
 
-    final tasks = getFilteredTasks();
     if (tasks.isEmpty) {
       return Center(
         child: Column(
@@ -315,7 +227,7 @@ class _TasksHomePageState extends State<TasksHomePage> {
     }
 
     return RefreshIndicator(
-      onRefresh: fetchTasks,
+      onRefresh: () => taskService.fetchTasks(),
       child: ListView.builder(
         padding: EdgeInsets.all(16),
         itemCount: tasks.length,
@@ -326,104 +238,11 @@ class _TasksHomePageState extends State<TasksHomePage> {
             background: _buildDismissBackground(),
             secondaryBackground: _buildDismissBackground(isEndToStart: true),
             onDismissed: (direction) async {
-              // Store the task in case we need to restore it
-              final deletedTask = task;
-              final deletedIndex = allTasks.indexOf(task);
-
-              // Optimistically remove the task from the list
-              setState(() {
-                allTasks.removeWhere((t) => t.id == task.id);
-              });
-
-              try {
-                // Call the backend to delete the task
-                final response = await http.delete(
-                  Uri.parse('http://10.0.2.2:8000/user/tasks/${task.id}'),
-                );
-
-                if (response.statusCode != 200) {
-                  // If deletion failed, show error and restore the task
-                  setState(() {
-                    allTasks.insert(deletedIndex, deletedTask);
-                  });
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Failed to delete task: ${response.body}'),
-                      backgroundColor: Colors.red,
-                      action: SnackBarAction(
-                        label: 'UNDO',
-                        textColor: Colors.white,
-                        onPressed: () {
-                          setState(() {
-                            allTasks.insert(deletedIndex, deletedTask);
-                          });
-                        },
-                      ),
-                    ),
-                  );
-                } else {
-                  // Show success message with undo option
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Task deleted'),
-                      action: SnackBarAction(
-                        label: 'UNDO',
-                        onPressed: () async {
-                          try {
-                            // Recreate the task in the backend
-                            final response = await http.post(
-                              Uri.parse('http://10.0.2.2:8000/user/tasks/create'),
-                              headers: {'Content-Type': 'application/json'},
-                              body: jsonEncode({
-                                'title': deletedTask.title,
-                                'description': deletedTask.description,
-                                'due_date': deletedTask.dueDate.toIso8601String(),
-                                'assigned_to': deletedTask.assignedTo,
-                                'category': deletedTask.category,
-                                'user_id': UserSession().getUserId(),
-                                'is_completed': deletedTask.isCompleted,
-                              }),
-                            );
-
-                            if (response.statusCode == 200) {
-                              final responseData = jsonDecode(response.body);
-                              // Create new task with new ID from response
-                              final restoredTask = TaskModel(
-                                id: responseData['task_id'],
-                                title: deletedTask.title,
-                                description: deletedTask.description,
-                                dueDate: deletedTask.dueDate,
-                                assignedTo: deletedTask.assignedTo,
-                                category: deletedTask.category,
-                                isCompleted: deletedTask.isCompleted,
-                              );
-                              setState(() {
-                                allTasks.insert(deletedIndex, restoredTask);
-                              });
-                            } else {
-                              throw Exception('Failed to restore task');
-                            }
-                          } catch (e) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Failed to restore task: $e'),
-                                backgroundColor: Colors.red,
-                              ),
-                            );
-                          }
-                        },
-                      ),
-                    ),
-                  );
-                }
-              } catch (e) {
-                // If deletion failed, show error and restore the task
-                setState(() {
-                  allTasks.insert(deletedIndex, deletedTask);
-                });
+              final success = await taskService.deleteTask(task);
+              if (!success) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('Error deleting task: $e'),
+                    content: Text('Failed to delete task'),
                     backgroundColor: Colors.red,
                   ),
                 );
@@ -453,10 +272,9 @@ class _TasksHomePageState extends State<TasksHomePage> {
                                 color: Colors.white,
                                 fontSize: 18,
                                 fontWeight: FontWeight.w600,
-                                decoration:
-                                    task.isCompleted
-                                        ? TextDecoration.lineThrough
-                                        : null,
+                                decoration: task.isCompleted
+                                    ? TextDecoration.lineThrough
+                                    : null,
                               ),
                             ),
                           ),
@@ -465,72 +283,16 @@ class _TasksHomePageState extends State<TasksHomePage> {
                             child: Checkbox(
                               value: task.isCompleted,
                               onChanged: (val) async {
-                                try {
-                                  final response = await http.post(
-                                    Uri.parse(
-                                      'http://10.0.2.2:8000/user/tasks/update',
-                                    ),
-                                    headers: {
-                                      'Content-Type': 'application/json',
-                                    },
-                                    body: jsonEncode({
-                                      'task_id': task.id,
-                                      'is_completed': val ?? false,
-                                    }),
-                                  );
-
-                                  if (response.statusCode == 200) {
-                                    setState(() {
-                                      final idx = allTasks.indexWhere(
-                                        (t) => t.id == task.id,
-                                      );
-                                      if (idx != -1) {
-                                        allTasks[idx] = allTasks[idx].copyWith(
-                                          isCompleted: val ?? false,
-                                        );
-                                      }
-                                    });
-                                  } else {
-                                    // Show error and revert the checkbox
-                                    setState(() {
-                                      final idx = allTasks.indexWhere(
-                                        (t) => t.id == task.id,
-                                      );
-                                      if (idx != -1) {
-                                        allTasks[idx] = allTasks[idx].copyWith(
-                                          isCompleted: !val!,
-                                        );
-                                      }
-                                    });
+                                if (val != null) {
+                                  final success = await taskService.updateTaskStatus(task, val);
+                                  if (!success) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
-                                        content: Text(
-                                          'Failed to update task status: ${response.body}',
-                                        ),
+                                        content: Text('Failed to update task status'),
                                         backgroundColor: Colors.red,
                                       ),
                                     );
                                   }
-                                } catch (e) {
-                                  // Show error and revert the checkbox
-                                  setState(() {
-                                    final idx = allTasks.indexWhere(
-                                      (t) => t.id == task.id,
-                                    );
-                                    if (idx != -1) {
-                                      allTasks[idx] = allTasks[idx].copyWith(
-                                        isCompleted: !val!,
-                                      );
-                                    }
-                                  });
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        'Error updating task status: $e',
-                                      ),
-                                      backgroundColor: Colors.red,
-                                    ),
-                                  );
                                 }
                               },
                               checkColor: Colors.white,
@@ -832,12 +594,22 @@ class _TasksHomePageState extends State<TasksHomePage> {
     );
   }
 
-  double _calculateCompletionRate() {
-    if (allTasks.isEmpty) return 0.0;
-    return allTasks.where((t) => t.isCompleted).length / allTasks.length;
+  int _selectedIndex = 0;
+  final items = [
+    Icon(Icons.task, size: 30, color: Color(0xFFF5EFE7)),
+    Icon(Icons.category, size: 30, color: Color(0xFFF5EFE7)),
+    Icon(
+      Icons.person,
+      size: 30,
+      color: Color(0xFFF5EFE7),
+    ), // ➕ Added People tab
+  ];
+
+  void _onItemTapped(int index) {
+    setState(() => _selectedIndex = index);
   }
 
-  Widget _buildCategoryList() {
+  Widget _buildCategoryList(TaskService taskService) {
     return ListView.builder(
       itemCount: categories.length,
       itemBuilder: (context, index) {
@@ -917,7 +689,7 @@ class _TasksHomePageState extends State<TasksHomePage> {
     );
   }
 
-  Widget _buildPeopleList() {
+  Widget _buildPeopleList(TaskService taskService) {
     // Group tasks by person
     final Map<String, List<TaskModel>> peopleMap = {};
     for (var task in allTasks) {

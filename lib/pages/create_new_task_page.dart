@@ -1,49 +1,71 @@
-import 'package:LILI/user_session.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:LILI/models/task.dart';
 import 'package:LILI/models/category_task.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
+import 'package:LILI/user_session.dart';
+import 'package:provider/provider.dart';
+import 'package:LILI/services/task_service.dart';
 
 class CreateNewTaskPage extends StatefulWidget {
   final List<CategoryModel> categories;
   final TaskModel? taskToEdit;
 
-  const CreateNewTaskPage({Key? key, required this.categories, this.taskToEdit})
-    : super(key: key);
+  const CreateNewTaskPage({
+    Key? key,
+    required this.categories,
+    this.taskToEdit,
+  }) : super(key: key);
 
   @override
   _CreateNewTaskPageState createState() => _CreateNewTaskPageState();
 }
 
 class _CreateNewTaskPageState extends State<CreateNewTaskPage> {
-  final _titleController = TextEditingController();
-  final _descriptionController = TextEditingController();
-  DateTime? _selectedDate;
-  TimeOfDay? _selectedTime;
-  String? _selectedAssignee;
-  String? _selectedCategory;
-
-  final List<String> _assignees = ['Nayera', 'Ali', 'Sara'];
+  final _formKey = GlobalKey<FormState>();
+  late TextEditingController _titleController;
+  late TextEditingController _descriptionController;
+  late TextEditingController _assignedToController;
+  late DateTime _selectedDate;
+  late String _selectedCategory;
 
   @override
   void initState() {
     super.initState();
-    if (widget.taskToEdit != null) {
-      // Pre-fill the form with existing task data
-      _titleController.text = widget.taskToEdit!.title;
-      _descriptionController.text = widget.taskToEdit!.description;
-      _selectedDate = widget.taskToEdit!.dueDate;
-      _selectedTime = TimeOfDay.fromDateTime(widget.taskToEdit!.dueDate);
-      _selectedAssignee = widget.taskToEdit!.assignedTo;
-      _selectedCategory = widget.taskToEdit!.category;
+    _titleController = TextEditingController(text: widget.taskToEdit?.title ?? '');
+    _descriptionController = TextEditingController(text: widget.taskToEdit?.description ?? '');
+    _assignedToController = TextEditingController(text: widget.taskToEdit?.assignedTo ?? '');
+    _selectedDate = widget.taskToEdit?.dueDate ?? DateTime.now();
+    _selectedCategory = widget.taskToEdit?.category ?? widget.categories[0].name;
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _descriptionController.dispose();
+    _assignedToController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2101),
+    );
+    if (picked != null && picked != _selectedDate) {
+      setState(() {
+        _selectedDate = picked;
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.taskToEdit == null ? 'Create New Task' : 'Edit Task'),
+        backgroundColor: Color(0xFF1F3354),
+      ),
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -52,61 +74,88 @@ class _CreateNewTaskPageState extends State<CreateNewTaskPage> {
             colors: [const Color(0xFF1F3354), const Color(0xFF3E5879)],
           ),
         ),
-        child: SafeArea(
-          child: Column(
+        child: Form(
+          key: _formKey,
+          child: ListView(
+            padding: EdgeInsets.all(16.0),
             children: [
-              _buildHeader(),
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      _buildTextField(
-                        _titleController,
-                        'Task Title',
-                        'Enter task title',
-                        Icons.title,
-                      ),
-                      const SizedBox(height: 20),
-                      _buildTextField(
-                        _descriptionController,
-                        'Description',
-                        'Enter task description',
-                        Icons.description_outlined,
-                        maxLines: 3,
-                      ),
-                      const SizedBox(height: 20),
-                      _buildDropdown(
-                        'Assignee',
-                        _selectedAssignee,
-                        _assignees,
-                        Icons.person_outline,
-                        (value) => setState(() => _selectedAssignee = value),
-                      ),
-                      const SizedBox(height: 20),
-                      _buildDropdown(
-                        'Category',
-                        _selectedCategory,
-                        widget.categories.map((c) => c.name).toList(),
-                        Icons.category_outlined,
-                        (value) => setState(() => _selectedCategory = value),
-                      ),
-                      const SizedBox(height: 20),
-                      _buildDatePicker(),
-                      const SizedBox(height: 20),
-                      _buildTimePicker(),
-                      const SizedBox(height: 32),
-                      Row(
-                        children: [
-                          Expanded(child: _buildCancelButton()),
-                          const SizedBox(width: 16),
-                          Expanded(child: _buildSaveButton()),
-                        ],
-                      ),
-                    ],
+              _buildTextField(
+                controller: _titleController,
+                label: 'Title',
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a title';
+                  }
+                  return null;
+                },
+              ),
+              SizedBox(height: 16),
+              _buildTextField(
+                controller: _descriptionController,
+                label: 'Description',
+                maxLines: 3,
+              ),
+              SizedBox(height: 16),
+              _buildTextField(
+                controller: _assignedToController,
+                label: 'Assigned To',
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter an assignee';
+                  }
+                  return null;
+                },
+              ),
+              SizedBox(height: 16),
+              _buildDatePicker(),
+              SizedBox(height: 16),
+              _buildCategoryDropdown(),
+              SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: () async {
+                  if (_formKey.currentState!.validate()) {
+                    final taskService = Provider.of<TaskService>(context, listen: false);
+                    final taskData = {
+                      'title': _titleController.text,
+                      'description': _descriptionController.text,
+                      'due_date': _selectedDate.toIso8601String(),
+                      'assigned_to': _assignedToController.text,
+                      'category': _selectedCategory,
+                      'user_id': UserSession().getUserId(),
+                      'is_completed': widget.taskToEdit?.isCompleted ?? false,
+                    };
+
+                    TaskModel? result;
+                    if (widget.taskToEdit != null) {
+                      // Update existing task
+                      taskData['task_id'] = widget.taskToEdit!.id;
+                      result = await taskService.createTask(taskData);
+                    } else {
+                      // Create new task
+                      result = await taskService.createTask(taskData);
+                    }
+
+                    if (result != null) {
+                      Navigator.pop(context, result);
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Failed to save task'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: Color(0xFF1F3354),
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
                 ),
+                child: Text(widget.taskToEdit == null ? 'Create Task' : 'Update Task'),
               ),
             ],
           ),
@@ -115,93 +164,35 @@ class _CreateNewTaskPageState extends State<CreateNewTaskPage> {
     );
   }
 
-  Widget _buildHeader() {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        children: [
-          IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () => Navigator.pop(context),
-          ),
-          const SizedBox(width: 8),
-          Text(
-            widget.taskToEdit == null ? 'Create New Task' : 'Edit Task',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTextField(
-    TextEditingController controller,
-    String label,
-    String hint,
-    IconData icon, {
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
     int maxLines = 1,
+    String? Function(String?)? validator,
   }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white12,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white24),
-      ),
-      child: TextField(
-        controller: controller,
-        maxLines: maxLines,
-        style: const TextStyle(color: Colors.white),
-        decoration: InputDecoration(
-          labelText: label,
-          labelStyle: const TextStyle(color: Colors.white70),
-          hintText: hint,
-          hintStyle: const TextStyle(color: Colors.white38),
-          prefixIcon: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 12),
-            child: Icon(icon, color: Colors.white70),
-          ),
-          border: InputBorder.none,
-          contentPadding: const EdgeInsets.all(16),
+    return TextFormField(
+      controller: controller,
+      maxLines: maxLines,
+      validator: validator,
+      style: TextStyle(color: Colors.white),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: TextStyle(color: Colors.white70),
+        enabledBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: Colors.white24),
+          borderRadius: BorderRadius.circular(12),
         ),
-      ),
-    );
-  }
-
-  Widget _buildDropdown(
-    String label,
-    String? value,
-    List<String> items,
-    IconData icon,
-    Function(String?) onChanged,
-  ) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      decoration: BoxDecoration(
-        color: Colors.white12,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white24),
-      ),
-      child: DropdownButtonFormField<String>(
-        value: value,
-        items:
-            items
-                .map((item) => DropdownMenuItem(value: item, child: Text(item)))
-                .toList(),
-        onChanged: onChanged,
-        style: const TextStyle(color: Colors.white),
-        dropdownColor: const Color(0xFF1F3354),
-        decoration: InputDecoration(
-          labelText: label,
-          labelStyle: const TextStyle(color: Colors.white70),
-          prefixIcon: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 12),
-            child: Icon(icon, color: Colors.white70),
-          ),
-          border: InputBorder.none,
+        focusedBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: Colors.white),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: Colors.red),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: Colors.red),
+          borderRadius: BorderRadius.circular(12),
         ),
       ),
     );
@@ -209,55 +200,20 @@ class _CreateNewTaskPageState extends State<CreateNewTaskPage> {
 
   Widget _buildDatePicker() {
     return InkWell(
-      onTap: () async {
-        final picked = await showDatePicker(
-          context: context,
-          initialDate: _selectedDate ?? DateTime.now(),
-          firstDate: DateTime.now(),
-          lastDate: DateTime(2030),
-          builder: (context, child) {
-            return Theme(
-              data: Theme.of(context).copyWith(
-                colorScheme: ColorScheme.dark(
-                  primary: Colors.white,
-                  onPrimary: Color(0xFF1F3354),
-                  surface: Color(0xFF1F3354),
-                  onSurface: Colors.white,
-                ),
-              ),
-              child: child!,
-            );
-          },
-        );
-        if (picked != null) {
-          setState(() => _selectedDate = picked);
-        }
-      },
+      onTap: () => _selectDate(context),
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white12,
-          borderRadius: BorderRadius.circular(16),
           border: Border.all(color: Colors.white24),
+          borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
           children: [
-            Container(
-              margin: const EdgeInsets.only(right: 12),
-              child: const Icon(
-                Icons.calendar_today_outlined,
-                color: Colors.white70,
-              ),
-            ),
-            Expanded(
-              child: Text(
-                _selectedDate == null
-                    ? 'Select Due Date'
-                    : DateFormat('MMMM d, y').format(_selectedDate!),
-                style: TextStyle(
-                  color: _selectedDate == null ? Colors.white38 : Colors.white,
-                ),
-              ),
+            Icon(Icons.calendar_today, color: Colors.white70),
+            SizedBox(width: 8),
+            Text(
+              'Due Date: ${_selectedDate.toLocal().toString().split(' ')[0]}',
+              style: TextStyle(color: Colors.white70),
             ),
           ],
         ),
@@ -265,186 +221,34 @@ class _CreateNewTaskPageState extends State<CreateNewTaskPage> {
     );
   }
 
-  Widget _buildTimePicker() {
-    return InkWell(
-      onTap: () async {
-        final picked = await showTimePicker(
-          context: context,
-          initialTime: _selectedTime ?? TimeOfDay.now(),
-          builder: (context, child) {
-            return Theme(
-              data: Theme.of(context).copyWith(
-                colorScheme: ColorScheme.dark(
-                  primary: Colors.white,
-                  onPrimary: Color(0xFF1F3354),
-                  surface: Color(0xFF1F3354),
-                  onSurface: Colors.white,
-                ),
-              ),
-              child: child!,
+  Widget _buildCategoryDropdown() {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.white24),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: _selectedCategory,
+          isExpanded: true,
+          dropdownColor: Color(0xFF1F3354),
+          style: TextStyle(color: Colors.white),
+          icon: Icon(Icons.arrow_drop_down, color: Colors.white70),
+          items: widget.categories.map((category) {
+            return DropdownMenuItem(
+              value: category.name,
+              child: Text(category.name),
             );
+          }).toList(),
+          onChanged: (value) {
+            if (value != null) {
+              setState(() {
+                _selectedCategory = value;
+              });
+            }
           },
-        );
-        if (picked != null) {
-          setState(() => _selectedTime = picked);
-        }
-      },
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white12,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white24),
         ),
-        child: Row(
-          children: [
-            Container(
-              margin: const EdgeInsets.only(right: 12),
-              child: const Icon(
-                Icons.access_time_outlined,
-                color: Colors.white70,
-              ),
-            ),
-            Expanded(
-              child: Text(
-                _selectedTime == null
-                    ? 'Select Time'
-                    : _selectedTime!.format(context),
-                style: TextStyle(
-                  color: _selectedTime == null ? Colors.white38 : Colors.white,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSaveButton() {
-    return ElevatedButton(
-      onPressed: _validateAndSave,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.white,
-        foregroundColor: Color(0xFF1F3354),
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      ),
-      child: Text(
-        widget.taskToEdit == null ? 'Save Task' : 'Update Task',
-        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-      ),
-    );
-  }
-
-  Widget _buildCancelButton() {
-    return TextButton(
-      onPressed: () => Navigator.pop(context),
-      style: TextButton.styleFrom(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: BorderSide(color: Colors.white24),
-        ),
-      ),
-      child: const Text(
-        'Cancel',
-        style: TextStyle(
-          color: Colors.white,
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-  }
-
-  void _validateAndSave() async {
-    if (_titleController.text.isEmpty) {
-      _showError('Please enter a task title');
-      return;
-    }
-
-    if (_descriptionController.text.isEmpty) {
-      _showError('Please enter a task description');
-      return;
-    }
-
-    if (_selectedAssignee == null) {
-      _showError('Please select an assignee');
-      return;
-    }
-
-    if (_selectedCategory == null) {
-      _showError('Please select a category');
-      return;
-    }
-
-    if (_selectedDate == null) {
-      _showError('Please select a due date');
-      return;
-    }
-
-    if (_selectedTime == null) {
-      _showError('Please select a time');
-      return;
-    }
-
-    final dueDate = DateTime(
-      _selectedDate!.year,
-      _selectedDate!.month,
-      _selectedDate!.day,
-      _selectedTime!.hour,
-      _selectedTime!.minute,
-    );
-
-    try {
-      // Send task to backend first
-      final response = await http.post(
-        Uri.parse('http://10.0.2.2:8000/user/tasks/create'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'title': _titleController.text,
-          'description': _descriptionController.text,
-          'due_date': dueDate.toIso8601String(),
-          'assigned_to': _selectedAssignee!,
-          'category': _selectedCategory!,
-          'user_id': UserSession().getUserId(),
-          'is_completed': widget.taskToEdit?.isCompleted ?? false,
-        }),
-      );
-
-      if (response.statusCode == 200) {
-        final responseData = jsonDecode(response.body);
-        
-        // Create task object with the ID from the response
-        final task = TaskModel(
-          id: responseData['task_id'],
-          title: _titleController.text,
-          description: _descriptionController.text,
-          dueDate: dueDate,
-          assignedTo: _selectedAssignee!,
-          category: _selectedCategory!,
-          isCompleted: widget.taskToEdit?.isCompleted ?? false,
-        );
-
-        // Pop and return the task
-        Navigator.pop(context, task);
-      } else {
-        _showError('Failed to create task: ${response.body}');
-      }
-    } catch (e) {
-      _showError('Error creating task: $e');
-    }
-  }
-
-  void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red.withOpacity(0.8),
-        behavior: SnackBarBehavior.floating,
-        margin: EdgeInsets.all(16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }

@@ -2,6 +2,9 @@
 
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:provider/provider.dart';
+import 'package:LILI/services/task_service.dart';
+import 'package:LILI/models/task.dart';
 import 'navbar.dart'; // Import your Navbar
 
 class HomePage extends StatefulWidget {
@@ -27,6 +30,8 @@ class _HomePageState extends State<HomePage> {
     _calendarFormat = CalendarFormat.week;
     _focusedDay = DateTime.now();
     _selectedDay = DateTime.now();
+    // Fetch tasks when the page loads
+    Provider.of<TaskService>(context, listen: false).fetchTasks();
   }
 
   // This function will be used for navigation when the navbar items are tapped
@@ -317,66 +322,118 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildTasksList() {
-    return Column(
-      children: [
-        _buildTaskItem(
-          "Load laundry",
-          _checkbox1,
-          (v) => setState(() => _checkbox1 = v ?? false),
-          Icons.local_laundry_service,
-        ),
-        _buildTaskItem(
-          "Sweep floors",
-          _checkbox2,
-          (v) => setState(() => _checkbox2 = v ?? false),
-          Icons.cleaning_services,
-        ),
-        _buildTaskItem(
-          "Do dishes",
-          _checkbox3,
-          (v) => setState(() => _checkbox3 = v ?? false),
-          Icons.wash,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTaskItem(String label, bool value, Function(bool?) onChanged, IconData icon) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      elevation: 4,
-      shadowColor: Colors.black26,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: ListTile(
-        leading: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: const Color(0xFF1F3354).withOpacity(0.1),
-            shape: BoxShape.circle,
-          ),
-          child: Icon(icon, color: const Color(0xFF1F3354)),
-        ),
-        title: Text(
-          label,
-          style: TextStyle(
-            decoration: value ? TextDecoration.lineThrough : null,
-            color: value ? Colors.grey : Colors.black87,
-          ),
-        ),
-        trailing: Transform.scale(
-          scale: 1.2,
-          child: Checkbox(
-            value: value,
-            onChanged: onChanged,
-            activeColor: const Color(0xFF1F3354),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(4),
+    return Consumer<TaskService>(
+      builder: (context, taskService, child) {
+        if (taskService.isLoading) {
+          return Center(
+            child: CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
             ),
-          ),
-        ),
-      ),
+          );
+        }
+
+        if (taskService.error != null) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.error_outline, size: 48, color: Colors.white38),
+                SizedBox(height: 16),
+                Text(
+                  taskService.error!,
+                  style: TextStyle(color: Colors.white70),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () => taskService.fetchTasks(),
+                  child: Text('Retry'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: Color(0xFF1F3354),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        final tasks = taskService.tasks;
+        if (tasks.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.task_alt, size: 48, color: Colors.white38),
+                SizedBox(height: 16),
+                Text(
+                  'No tasks for today',
+                  style: TextStyle(color: Colors.white70),
+                ),
+              ],
+            ),
+          );
+        }
+
+        return ListView.builder(
+          shrinkWrap: true,
+          physics: NeverScrollableScrollPhysics(),
+          itemCount: tasks.length,
+          itemBuilder: (context, index) {
+            final task = tasks[index];
+            return Card(
+              margin: EdgeInsets.only(bottom: 12),
+              color: Colors.white.withOpacity(0.1),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(color: Colors.white24),
+              ),
+              child: ListTile(
+                title: Text(
+                  task.title,
+                  style: TextStyle(
+                    color: Colors.white,
+                    decoration: task.isCompleted ? TextDecoration.lineThrough : null,
+                  ),
+                ),
+                subtitle: Text(
+                  task.description,
+                  style: TextStyle(color: Colors.white70),
+                ),
+                trailing: Checkbox(
+                  value: task.isCompleted,
+                  onChanged: (val) async {
+                    if (val != null) {
+                      final success = await taskService.updateTaskStatus(task, val);
+                      if (!success) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Failed to update task status'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+                    }
+                  },
+                  checkColor: Colors.white,
+                  fillColor: MaterialStateProperty.resolveWith<Color>(
+                    (Set<MaterialState> states) {
+                      if (states.contains(MaterialState.selected)) {
+                        return Colors.white24;
+                      }
+                      return Colors.transparent;
+                    },
+                  ),
+                  side: BorderSide(color: Colors.white60),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }

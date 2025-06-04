@@ -36,9 +36,18 @@ import 'pages/menuItem.dart';
 import 'pages/RecipeNavBar.dart';
 import 'pages/dash_board_page.dart';
 import 'pages/expenses_page.dart';
+import 'package:provider/provider.dart';
+import 'package:LILI/services/task_service.dart';
 
 void main() {
-  runApp(LiliApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => TaskService()),
+      ],
+      child: LiliApp(),
+    ),
+  );
 }
 
 class LiliApp extends StatelessWidget {
