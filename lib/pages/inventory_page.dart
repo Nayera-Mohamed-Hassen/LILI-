@@ -161,21 +161,33 @@ class _InventoryPageState extends State<InventoryPage> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              const Color(0xFF1F3354),
-              const Color(0xFF3E5879),
-            ],
+            colors: [const Color(0xFF1F3354), const Color(0xFF3E5879)],
           ),
         ),
         child: SafeArea(
           child: Column(
             children: [
+              AppBar(
+                surfaceTintColor: Colors.transparent,
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                leading: IconButton(
+                  icon: Icon(Icons.arrow_back, color: Colors.white),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+                title: Text(
+                  'Inventory',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
               _buildHeader(),
               _buildSearch(),
               _buildFilterChips(),
-              Expanded(
-                child: _buildInventoryList(groupedItems),
-              ),
+              Expanded(child: _buildInventoryList(groupedItems)),
             ],
           ),
         ),
@@ -193,20 +205,17 @@ class _InventoryPageState extends State<InventoryPage> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Inventory',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              // Text(
+              //   'Inventory',
+              //   style: TextStyle(
+              //     color: Colors.white,
+              //     fontSize: 32,
+              //     fontWeight: FontWeight.bold,
+              //   ),
+              // ),
               Text(
                 '${allItems.length} items',
-                style: TextStyle(
-                  color: Colors.white70,
-                  fontSize: 16,
-                ),
+                style: TextStyle(color: Colors.white70, fontSize: 20),
               ),
             ],
           ),
@@ -254,12 +263,15 @@ class _InventoryPageState extends State<InventoryPage> {
         itemBuilder: (context, i) {
           final category = categories[i];
           return FilterChip(
-            label: Text(category, style: TextStyle(color: Colors.white)),
+            label: Text(
+              category,
+              style: TextStyle(color: const Color(0xFF1F3354)),
+            ),
             selected: _selectedIndex == i,
             onSelected: (selected) => setState(() => _selectedIndex = i),
             backgroundColor: Colors.white12,
             selectedColor: Colors.white24,
-            checkmarkColor: Colors.white,
+            checkmarkColor: const Color(0xFF1F3354),
             side: BorderSide(color: Colors.white24),
           );
         },
@@ -290,7 +302,7 @@ class _InventoryPageState extends State<InventoryPage> {
       itemBuilder: (context, index) {
         final category = groupedItems.keys.elementAt(index);
         final items = groupedItems[category]!;
-        
+
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -375,7 +387,10 @@ class _InventoryPageState extends State<InventoryPage> {
                           children: [
                             if (isLowStock)
                               Container(
-                                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 2,
+                                ),
                                 margin: EdgeInsets.only(right: 8),
                                 decoration: BoxDecoration(
                                   color: Colors.red.withOpacity(0.2),
@@ -383,19 +398,28 @@ class _InventoryPageState extends State<InventoryPage> {
                                 ),
                                 child: Text(
                                   'Low Stock',
-                                  style: TextStyle(color: Colors.red[300], fontSize: 12),
+                                  style: TextStyle(
+                                    color: Colors.red[300],
+                                    fontSize: 12,
+                                  ),
                                 ),
                               ),
                             if (isExpiringSoon)
                               Container(
-                                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 2,
+                                ),
                                 decoration: BoxDecoration(
                                   color: Colors.orange.withOpacity(0.2),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Text(
                                   'Expiring Soon',
-                                  style: TextStyle(color: Colors.orange[300], fontSize: 12),
+                                  style: TextStyle(
+                                    color: Colors.orange[300],
+                                    fontSize: 12,
+                                  ),
                                 ),
                               ),
                           ],
@@ -421,7 +445,11 @@ class _InventoryPageState extends State<InventoryPage> {
                                   );
                                 } catch (e) {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text('Failed to update quantity: $e')),
+                                    SnackBar(
+                                      content: Text(
+                                        'Failed to update quantity: $e',
+                                      ),
+                                    ),
                                   );
                                 }
                               }
@@ -447,7 +475,11 @@ class _InventoryPageState extends State<InventoryPage> {
                                 );
                               } catch (e) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Failed to update quantity: $e')),
+                                  SnackBar(
+                                    content: Text(
+                                      'Failed to update quantity: $e',
+                                    ),
+                                  ),
                                 );
                               }
                             },
@@ -457,10 +489,7 @@ class _InventoryPageState extends State<InventoryPage> {
                       if (daysLeft != null)
                         Text(
                           '$daysLeft days left',
-                          style: TextStyle(
-                            color: Colors.white60,
-                            fontSize: 12,
-                          ),
+                          style: TextStyle(color: Colors.white60, fontSize: 12),
                         ),
                     ],
                   ),
@@ -477,92 +506,93 @@ class _InventoryPageState extends State<InventoryPage> {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        decoration: BoxDecoration(
-          color: Color(0xFF1F3354),
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 40,
-              height: 4,
-              margin: EdgeInsets.symmetric(vertical: 8),
-              decoration: BoxDecoration(
-                color: Colors.white24,
-                borderRadius: BorderRadius.circular(2),
-              ),
+      builder:
+          (context) => Container(
+            decoration: BoxDecoration(
+              color: Color(0xFF1F3354),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
             ),
-            Padding(
-              padding: EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    item.name,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 40,
+                  height: 4,
+                  margin: EdgeInsets.symmetric(vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.white24,
+                    borderRadius: BorderRadius.circular(2),
                   ),
-                  SizedBox(height: 16),
-                  _buildDetailRow(Icons.category_outlined, item.category),
-                  SizedBox(height: 12),
-                  _buildDetailRow(
-                    Icons.inventory_2_outlined,
-                    'Quantity: ${item.quantity}',
-                  ),
-                  if (item.expiryDate != null) ...[
-                    SizedBox(height: 12),
-                    _buildDetailRow(
-                      Icons.event_outlined,
-                      'Expires in ${calculateDaysLeft(item.expiryDate)} days',
-                    ),
-                  ],
-                  SizedBox(height: 24),
-                  ElevatedButton(
-                    onPressed: () async {
-                      try {
-                        await deleteItemFromBackend(
-                          item.name,
-                          UserSession().getUserId(),
-                          item.expiryDate,
-                        );
-                        setState(() {
-                          allItems.remove(item);
-                        });
-                        Navigator.pop(context);
-                      } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Failed to delete: $e')),
-                        );
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red.withOpacity(0.3),
-                      padding: EdgeInsets.symmetric(vertical: 16),
-                      minimumSize: Size(double.infinity, 48),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                ),
+                Padding(
+                  padding: EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item.name,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    child: Text(
-                      'Delete Item',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
+                      SizedBox(height: 16),
+                      _buildDetailRow(Icons.category_outlined, item.category),
+                      SizedBox(height: 12),
+                      _buildDetailRow(
+                        Icons.inventory_2_outlined,
+                        'Quantity: ${item.quantity}',
                       ),
-                    ),
+                      if (item.expiryDate != null) ...[
+                        SizedBox(height: 12),
+                        _buildDetailRow(
+                          Icons.event_outlined,
+                          'Expires in ${calculateDaysLeft(item.expiryDate)} days',
+                        ),
+                      ],
+                      SizedBox(height: 24),
+                      ElevatedButton(
+                        onPressed: () async {
+                          try {
+                            await deleteItemFromBackend(
+                              item.name,
+                              UserSession().getUserId(),
+                              item.expiryDate,
+                            );
+                            setState(() {
+                              allItems.remove(item);
+                            });
+                            Navigator.pop(context);
+                          } catch (e) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Failed to delete: $e')),
+                            );
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red.withOpacity(0.3),
+                          padding: EdgeInsets.symmetric(vertical: 16),
+                          minimumSize: Size(double.infinity, 48),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: Text(
+                          'Delete Item',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
     );
   }
 
@@ -571,12 +601,7 @@ class _InventoryPageState extends State<InventoryPage> {
       children: [
         Icon(icon, color: Colors.white60, size: 20),
         SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            text,
-            style: TextStyle(color: Colors.white70),
-          ),
-        ),
+        Expanded(child: Text(text, style: TextStyle(color: Colors.white70))),
       ],
     );
   }
@@ -610,34 +635,35 @@ class _InventoryPageState extends State<InventoryPage> {
         child: Icon(Icons.add, size: 30, color: Color(0xFF1F3354)),
         onPressed: null,
       ),
-      itemBuilder: (context) => [
-        PopupMenuItem<String>(
-          value: 'Item',
-          child: Row(
-            children: [
-              Icon(Icons.inventory_2_outlined, color: Color(0xFF1F3354)),
-              SizedBox(width: 12),
-              Text(
-                'Add New Item',
-                style: TextStyle(color: Color(0xFF1F3354)),
+      itemBuilder:
+          (context) => [
+            PopupMenuItem<String>(
+              value: 'Item',
+              child: Row(
+                children: [
+                  Icon(Icons.inventory_2_outlined, color: Color(0xFF1F3354)),
+                  SizedBox(width: 12),
+                  Text(
+                    'Add New Item',
+                    style: TextStyle(color: Color(0xFF1F3354)),
+                  ),
+                ],
               ),
-            ],
-          ),
-        ),
-        PopupMenuItem<String>(
-          value: 'category',
-          child: Row(
-            children: [
-              Icon(Icons.category_outlined, color: Color(0xFF1F3354)),
-              SizedBox(width: 12),
-              Text(
-                'Add New Category',
-                style: TextStyle(color: Color(0xFF1F3354)),
+            ),
+            PopupMenuItem<String>(
+              value: 'category',
+              child: Row(
+                children: [
+                  Icon(Icons.category_outlined, color: Color(0xFF1F3354)),
+                  SizedBox(width: 12),
+                  Text(
+                    'Add New Category',
+                    style: TextStyle(color: Color(0xFF1F3354)),
+                  ),
+                ],
               ),
-            ],
-          ),
-        ),
-      ],
+            ),
+          ],
     );
   }
 }

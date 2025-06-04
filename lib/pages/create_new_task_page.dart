@@ -9,11 +9,8 @@ class CreateNewTaskPage extends StatefulWidget {
   final List<CategoryModel> categories;
   final TaskModel? taskToEdit;
 
-  const CreateNewTaskPage({
-    Key? key,
-    required this.categories,
-    this.taskToEdit,
-  }) : super(key: key);
+  const CreateNewTaskPage({Key? key, required this.categories, this.taskToEdit})
+    : super(key: key);
 
   @override
   _CreateNewTaskPageState createState() => _CreateNewTaskPageState();
@@ -30,11 +27,18 @@ class _CreateNewTaskPageState extends State<CreateNewTaskPage> {
   @override
   void initState() {
     super.initState();
-    _titleController = TextEditingController(text: widget.taskToEdit?.title ?? '');
-    _descriptionController = TextEditingController(text: widget.taskToEdit?.description ?? '');
-    _assignedToController = TextEditingController(text: widget.taskToEdit?.assignedTo ?? '');
+    _titleController = TextEditingController(
+      text: widget.taskToEdit?.title ?? '',
+    );
+    _descriptionController = TextEditingController(
+      text: widget.taskToEdit?.description ?? '',
+    );
+    _assignedToController = TextEditingController(
+      text: widget.taskToEdit?.assignedTo ?? '',
+    );
     _selectedDate = widget.taskToEdit?.dueDate ?? DateTime.now();
-    _selectedCategory = widget.taskToEdit?.category ?? widget.categories[0].name;
+    _selectedCategory =
+        widget.taskToEdit?.category ?? widget.categories[0].name;
   }
 
   @override
@@ -63,7 +67,15 @@ class _CreateNewTaskPageState extends State<CreateNewTaskPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.taskToEdit == null ? 'Create New Task' : 'Edit Task'),
+        surfaceTintColor: Colors.transparent,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: Text(
+          widget.taskToEdit == null ? 'Create New Task' : 'Edit Task',
+          style: TextStyle(color: Colors.white70),
+        ),
         backgroundColor: Color(0xFF1F3354),
       ),
       body: Container(
@@ -114,7 +126,10 @@ class _CreateNewTaskPageState extends State<CreateNewTaskPage> {
               ElevatedButton(
                 onPressed: () async {
                   if (_formKey.currentState!.validate()) {
-                    final taskService = Provider.of<TaskService>(context, listen: false);
+                    final taskService = Provider.of<TaskService>(
+                      context,
+                      listen: false,
+                    );
                     final taskData = {
                       'title': _titleController.text,
                       'description': _descriptionController.text,
@@ -155,7 +170,9 @@ class _CreateNewTaskPageState extends State<CreateNewTaskPage> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: Text(widget.taskToEdit == null ? 'Create Task' : 'Update Task'),
+                child: Text(
+                  widget.taskToEdit == null ? 'Create Task' : 'Update Task',
+                ),
               ),
             ],
           ),
@@ -235,12 +252,13 @@ class _CreateNewTaskPageState extends State<CreateNewTaskPage> {
           dropdownColor: Color(0xFF1F3354),
           style: TextStyle(color: Colors.white),
           icon: Icon(Icons.arrow_drop_down, color: Colors.white70),
-          items: widget.categories.map((category) {
-            return DropdownMenuItem(
-              value: category.name,
-              child: Text(category.name),
-            );
-          }).toList(),
+          items:
+              widget.categories.map((category) {
+                return DropdownMenuItem(
+                  value: category.name,
+                  child: Text(category.name),
+                );
+              }).toList(),
           onChanged: (value) {
             if (value != null) {
               setState(() {

@@ -181,6 +181,22 @@ class _ExpensesPageState extends State<ExpensesPage> {
     }
 
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF1F3354),
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: Text(
+          'Expenses Manager',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -195,15 +211,15 @@ class _ExpensesPageState extends State<ExpensesPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Expenses Manager',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                SizedBox(height: 20),
+                // Text(
+                //   'Expenses Manager',
+                //   style: TextStyle(
+                //     color: Colors.white,
+                //     fontSize: 32,
+                //     fontWeight: FontWeight.bold,
+                //   ),
+                // ),
+                //SizedBox(height: 20),
                 Text(
                   'Current balance',
                   style: TextStyle(

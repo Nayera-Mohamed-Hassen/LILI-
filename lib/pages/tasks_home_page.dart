@@ -60,14 +60,32 @@ class _TasksHomePageState extends State<TasksHomePage> {
             child: SafeArea(
               child: Column(
                 children: [
+                  AppBar(
+                    surfaceTintColor: Colors.transparent,
+                    backgroundColor: Colors.transparent,
+                    elevation: 0,
+                    leading: IconButton(
+                      icon: Icon(Icons.arrow_back, color: Colors.white),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                    title: Text(
+                      'Tasks',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
                   _buildHeader(taskService),
                   _buildSearch(),
                   if (_selectedIndex == 0) _buildFilterChips(),
                   SizedBox(height: 16),
                   Expanded(
-                    child: _selectedIndex == 1
-                        ? _buildCategoryList(taskService)
-                        : _selectedIndex == 2
+                    child:
+                        _selectedIndex == 1
+                            ? _buildCategoryList(taskService)
+                            : _selectedIndex == 2
                             ? _buildPeopleList(taskService)
                             : _buildTaskList(taskService, filteredTasks),
                   ),
@@ -92,17 +110,17 @@ class _TasksHomePageState extends State<TasksHomePage> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'My Tasks',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              // Text(
+              //   'My Tasks',
+              //   style: TextStyle(
+              //     color: Colors.white,
+              //     fontSize: 32,
+              //     fontWeight: FontWeight.bold,
+              //   ),
+              // ),
               Text(
                 '${taskService.getPendingTasksCount()} tasks pending',
-                style: TextStyle(color: Colors.white70, fontSize: 16),
+                style: TextStyle(color: Colors.white70, fontSize: 20),
               ),
             ],
           ),
@@ -272,9 +290,10 @@ class _TasksHomePageState extends State<TasksHomePage> {
                                 color: Colors.white,
                                 fontSize: 18,
                                 fontWeight: FontWeight.w600,
-                                decoration: task.isCompleted
-                                    ? TextDecoration.lineThrough
-                                    : null,
+                                decoration:
+                                    task.isCompleted
+                                        ? TextDecoration.lineThrough
+                                        : null,
                               ),
                             ),
                           ),
@@ -284,11 +303,14 @@ class _TasksHomePageState extends State<TasksHomePage> {
                               value: task.isCompleted,
                               onChanged: (val) async {
                                 if (val != null) {
-                                  final success = await taskService.updateTaskStatus(task, val);
+                                  final success = await taskService
+                                      .updateTaskStatus(task, val);
                                   if (!success) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
-                                        content: Text('Failed to update task status'),
+                                        content: Text(
+                                          'Failed to update task status',
+                                        ),
                                         backgroundColor: Colors.red,
                                       ),
                                     );
