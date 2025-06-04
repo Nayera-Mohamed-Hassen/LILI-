@@ -1,7 +1,9 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import '../../../../models/user.dart';
+import '../models/user.dart';
+import '../services/user_service.dart';
+import '../user_session.dart';
 
 class EditProfilePage extends StatefulWidget {
   final User user;
@@ -16,8 +18,26 @@ class _EditProfilePageState extends State<EditProfilePage> {
   late TextEditingController nameController;
   late TextEditingController emailController;
   late TextEditingController phoneController;
+  late TextEditingController heightController;
+  late TextEditingController weightController;
+  late TextEditingController allergyController;
   late ImagePicker _picker;
   XFile? _image;
+  String? selectedGender;
+  String? selectedDiet;
+  List<String> allergies = [];
+  bool _isLoading = false;
+  final UserService _userService = UserService();
+
+  final List<String> dietOptions = [
+    'vegan',
+    'vegetarian',
+    'pescatarian',
+    'omnivore',
+    'other',
+  ];
+
+  final List<String> genderOptions = ['male', 'female', 'other'];
 
   @override
   void initState() {
@@ -25,7 +45,28 @@ class _EditProfilePageState extends State<EditProfilePage> {
     nameController = TextEditingController(text: widget.user.name);
     emailController = TextEditingController(text: widget.user.email);
     phoneController = TextEditingController(text: widget.user.phone);
+    heightController = TextEditingController(
+      text: widget.user.height?.toString() ?? '',
+    );
+    weightController = TextEditingController(
+      text: widget.user.weight?.toString() ?? '',
+    );
+    allergyController = TextEditingController();
+    selectedGender = widget.user.gender;
+    selectedDiet = widget.user.diet;
+    allergies = List.from(widget.user.allergies);
     _picker = ImagePicker();
+  }
+
+  @override
+  void dispose() {
+    nameController.dispose();
+    emailController.dispose();
+    phoneController.dispose();
+    heightController.dispose();
+    weightController.dispose();
+    allergyController.dispose();
+    super.dispose();
   }
 
   Future<void> _pickImage() async {
@@ -37,6 +78,78 @@ class _EditProfilePageState extends State<EditProfilePage> {
     });
   }
 
+  void _addAllergy() {
+    final allergy = allergyController.text.trim();
+    if (allergy.isNotEmpty && !allergies.contains(allergy)) {
+      setState(() {
+        allergies.add(allergy);
+        allergyController.clear();
+      });
+    }
+  }
+
+  void _removeAllergy(String allergy) {
+    setState(() {
+      allergies.remove(allergy);
+    });
+  }
+
+  Future<void> _saveProfile() async {
+    setState(() => _isLoading = true);
+
+    try {
+      int? userId = UserSession().getUserId();
+      if (userId == null || userId == 0) {
+        throw Exception('Invalid user ID');
+      }
+
+      await _userService.updateProfile(
+        userId: userId,
+        name: nameController.text,
+        email: emailController.text,
+        phone: phoneController.text,
+        height:
+            heightController.text.isNotEmpty
+                ? double.parse(heightController.text)
+                : null,
+        weight:
+            weightController.text.isNotEmpty
+                ? double.parse(weightController.text)
+                : null,
+        diet: selectedDiet,
+        gender: selectedGender,
+        birthday: widget.user.dob,
+        allergies: allergies,
+      );
+
+      final updatedUser = User(
+        name: nameController.text,
+        email: emailController.text,
+        phone: phoneController.text,
+        dob: widget.user.dob,
+        height:
+            heightController.text.isNotEmpty
+                ? double.parse(heightController.text)
+                : null,
+        weight:
+            weightController.text.isNotEmpty
+                ? double.parse(weightController.text)
+                : null,
+        diet: selectedDiet,
+        gender: selectedGender,
+        allergies: allergies,
+      );
+
+      Navigator.pop(context, updatedUser);
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to update profile: $e')));
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -45,10 +158,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              const Color(0xFF1F3354),
-              const Color(0xFF3E5879),
-            ],
+            colors: [const Color(0xFF1F3354), const Color(0xFF3E5879)],
           ),
         ),
         child: SafeArea(
@@ -75,41 +185,47 @@ class _EditProfilePageState extends State<EditProfilePage> {
                               child: Container(
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
-                                  border: Border.all(color: Colors.white, width: 4),
+                                  border: Border.all(
+                                    color: Colors.white,
+                                    width: 4,
+                                  ),
                                 ),
                                 child: CircleAvatar(
                                   radius: 50,
                                   backgroundColor: Colors.white24,
-                                  backgroundImage: _image != null
-                                      ? FileImage(File(_image!.path))
-                                      : null,
-                                  child: _image == null
-                                      ? Column(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: [
-                                            Icon(
-                                              Icons.camera_alt,
-                                              size: 32,
-                                              color: Colors.white,
-                                            ),
-                                            SizedBox(height: 4),
-                                            Text(
-                                              'Change',
-                                              style: TextStyle(
+                                  backgroundImage:
+                                      _image != null
+                                          ? FileImage(File(_image!.path))
+                                          : null,
+                                  child:
+                                      _image == null
+                                          ? Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Icon(
+                                                Icons.camera_alt,
+                                                size: 32,
                                                 color: Colors.white,
-                                                fontSize: 12,
                                               ),
-                                            ),
-                                          ],
-                                        )
-                                      : null,
+                                              SizedBox(height: 4),
+                                              Text(
+                                                'Change',
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ],
+                                          )
+                                          : null,
                                 ),
                               ),
                             ),
                             const SizedBox(height: 16),
                             Text(
                               'Edit Profile',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 24,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white,
@@ -127,9 +243,13 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     children: [
-                      _buildEditCard(),
+                      _buildPersonalInfoCard(),
+                      const SizedBox(height: 16),
+                      _buildHealthInfoCard(),
+                      const SizedBox(height: 16),
+                      _buildAllergiesCard(),
                       const SizedBox(height: 24),
-                      _buildActionButtons(),
+                      _buildSaveButton(),
                     ],
                   ),
                 ),
@@ -141,19 +261,17 @@ class _EditProfilePageState extends State<EditProfilePage> {
     );
   }
 
-  Widget _buildEditCard() {
+  Widget _buildPersonalInfoCard() {
     return Card(
       elevation: 4,
       shadowColor: Colors.black26,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Personal Information',
               style: TextStyle(
                 fontSize: 18,
@@ -179,6 +297,113 @@ class _EditProfilePageState extends State<EditProfilePage> {
               label: 'Phone',
               icon: Icons.phone_outlined,
             ),
+            const SizedBox(height: 16),
+            _buildDropdownField(
+              label: 'Gender',
+              value: selectedGender,
+              items: genderOptions,
+              onChanged: (value) => setState(() => selectedGender = value),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHealthInfoCard() {
+    return Card(
+      elevation: 4,
+      shadowColor: Colors.black26,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Health Information',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1F3354),
+              ),
+            ),
+            const SizedBox(height: 16),
+            _buildTextField(
+              controller: heightController,
+              label: 'Height (cm)',
+              icon: Icons.height,
+              keyboardType: TextInputType.number,
+            ),
+            const SizedBox(height: 16),
+            _buildTextField(
+              controller: weightController,
+              label: 'Weight (kg)',
+              icon: Icons.monitor_weight_outlined,
+              keyboardType: TextInputType.number,
+            ),
+            const SizedBox(height: 16),
+            _buildDropdownField(
+              label: 'Diet',
+              value: selectedDiet,
+              items: dietOptions,
+              onChanged: (value) => setState(() => selectedDiet = value),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAllergiesCard() {
+    return Card(
+      elevation: 4,
+      shadowColor: Colors.black26,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Allergies',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1F3354),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildTextField(
+                    controller: allergyController,
+                    label: 'Add Allergy',
+                    icon: Icons.warning_amber_outlined,
+                  ),
+                ),
+                IconButton(
+                  icon: Icon(Icons.add_circle_outline),
+                  onPressed: _addAllergy,
+                  color: Color(0xFF1F3354),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children:
+                  allergies.map((allergy) {
+                    return Chip(
+                      label: Text(allergy),
+                      onDeleted: () => _removeAllergy(allergy),
+                      backgroundColor: Colors.white70,
+                      deleteIconColor: Color(0xFF1F3354),
+                    );
+                  }).toList(),
+            ),
           ],
         ),
       ),
@@ -189,101 +414,94 @@ class _EditProfilePageState extends State<EditProfilePage> {
     required TextEditingController controller,
     required String label,
     required IconData icon,
+    TextInputType? keyboardType,
   }) {
     return TextField(
       controller: controller,
-      style: const TextStyle(
-        fontSize: 16,
-        color: Color(0xFF1F3354),
-      ),
+      keyboardType: keyboardType,
+      style: TextStyle(fontSize: 16, color: Color(0xFF1F3354)),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: TextStyle(
-          color: Colors.grey[600],
-          fontSize: 14,
-        ),
-        prefixIcon: Container(
-          margin: const EdgeInsets.only(right: 12),
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: const Color(0xFF1F3354).withOpacity(0.1),
-            shape: BoxShape.circle,
-          ),
-          child: Icon(icon, color: const Color(0xFF1F3354)),
-        ),
+        labelStyle: TextStyle(color: Color(0xFF1F3354).withOpacity(0.7)),
+        prefixIcon: Icon(icon, color: Color(0xFF1F3354)),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey[300]!),
+          borderSide: BorderSide(color: Color(0xFF1F3354).withOpacity(0.3)),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey[300]!),
+          borderSide: BorderSide(color: Color(0xFF1F3354).withOpacity(0.3)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFF1F3354)),
+          borderSide: BorderSide(color: Color(0xFF1F3354)),
         ),
-        filled: true,
-        fillColor: Colors.white,
       ),
     );
   }
 
-  Widget _buildActionButtons() {
-    return Row(
-      children: [
-        Expanded(
-          child: ElevatedButton(
-            onPressed: () {
-              final updatedUser = widget.user.copyWith(
-                name: nameController.text,
-                email: emailController.text,
-                phone: phoneController.text,
-              );
-              Navigator.pop(context, updatedUser);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.white,
-              foregroundColor: const Color(0xFF1F3354),
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              elevation: 2,
-            ),
-            child: const Text(
-              'Save Changes',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
+  Widget _buildDropdownField({
+    required String label,
+    required String? value,
+    required List<String> items,
+    required void Function(String?) onChanged,
+  }) {
+    return DropdownButtonFormField<String>(
+      value: value,
+      items:
+          items.map((item) {
+            return DropdownMenuItem(value: item, child: Text(item));
+          }).toList(),
+      onChanged: onChanged,
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: TextStyle(color: Color(0xFF1F3354).withOpacity(0.7)),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Color(0xFF1F3354).withOpacity(0.3)),
         ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: ElevatedButton(
-            onPressed: () => Navigator.pop(context),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.white24,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-                side: const BorderSide(color: Colors.white38),
-              ),
-              elevation: 0,
-            ),
-            child: const Text(
-              'Cancel',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Color(0xFF1F3354).withOpacity(0.3)),
         ),
-      ],
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Color(0xFF1F3354)),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSaveButton() {
+    return SizedBox(
+      width: double.infinity,
+      height: 56,
+      child: ElevatedButton(
+        onPressed: _isLoading ? null : _saveProfile,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.white24,
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: BorderSide(color: Colors.white24),
+          ),
+          elevation: 0,
+        ),
+        child:
+            _isLoading
+                ? SizedBox(
+                  height: 24,
+                  width: 24,
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                    strokeWidth: 2,
+                  ),
+                )
+                : Text(
+                  'Save Changes',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+      ),
     );
   }
 }

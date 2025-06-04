@@ -859,3 +859,60 @@ async def reset_password(request: ResetPasswordRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+class UpdateProfileRequest(BaseModel):
+    user_id: int
+    name: str
+    email: str
+    phone: str
+    height: float = None
+    weight: float = None
+    diet: str = None
+    gender: str = None
+    birthday: str = None
+    allergies: list[str] = []
+
+@router.put("/update-profile")
+async def update_profile(data: UpdateProfileRequest):
+    try:
+        # Update user data
+        query = f'''
+            UPDATE user_tbl 
+            SET user_Name = "{data.name}",
+                user_email = "{data.email}",
+                user_phone = "{data.phone}",
+                user_Height = {data.height if data.height is not None else 'NULL'},
+                user_weight = {data.weight if data.weight is not None else 'NULL'},
+                user_diet = "{data.diet if data.diet is not None else 'NULL'}",
+                user_gender = "{data.gender if data.gender is not None else 'NULL'}",
+                user_birthday = "{data.birthday if data.birthday is not None else 'NULL'}"
+            WHERE user_Id = {data.user_id}
+        '''
+        
+        if not executeWriteQuery(query):
+            raise HTTPException(status_code=500, detail="Failed to update user profile")
+
+        # Delete existing allergies
+        delete_query = f'DELETE FROM allergy_tbl WHERE user_Id = {data.user_id}'
+        executeWriteQuery(delete_query)
+
+        # Insert new allergies
+        for allergy in data.allergies:
+            if allergy.strip():
+                insertAllergy(allergy_name=allergy.strip(), user_Id=data.user_id)
+
+        return {"message": "Profile updated successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/allergies/{user_id}")
+async def get_user_allergies(user_id: int):
+    try:
+        result = selectAllergy(f'SELECT allergy_name FROM allergy_tbl WHERE user_Id = {user_id}')
+        if not result:
+            return {"allergies": []}
+            
+        allergies = [row["allergy_name"] for row in result]
+        return {"allergies": allergies}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+

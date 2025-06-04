@@ -182,6 +182,7 @@ class _ExpensesPageState extends State<ExpensesPage> {
 
     return Scaffold(
       appBar: AppBar(
+        surfaceTintColor: Colors.transparent,
         backgroundColor: const Color(0xFF1F3354),
         elevation: 0,
         leading: IconButton(
