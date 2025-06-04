@@ -8,6 +8,11 @@ from pymongo import MongoClient
 from ..recipeAI import get_recipe_recommendations
 from ..mySQLConnection import selectUser, selectAllergy, insertUser, insertHouseHold, insertAllergy, executeWriteQuery
 from bson import ObjectId
+import random
+import string
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 
 HouseHold_id = 1  # Default household ID, can be changed as needed
@@ -722,6 +727,135 @@ async def delete_task(task_id: str):
 
         return {"status": "success", "message": "Task deleted successfully"}
 
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Initialize MongoDB for storing reset tokens
+MONGO_URI = os.getenv("MONGO_URI")
+client = MongoClient(MONGO_URI)
+db = client["lili"]
+reset_tokens_collection = db["reset_tokens"]
+
+# Email configuration
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_PORT = 587
+EMAIL_USER = os.getenv("EMAIL_USER")  # Your Gmail address
+EMAIL_PASSWORD = os.getenv("EMAIL_APP_PASSWORD")  # Your Gmail app password
+
+def send_reset_email(to_email: str, reset_code: str):
+    msg = MIMEMultipart()
+    msg['From'] = EMAIL_USER
+    msg['To'] = to_email
+    msg['Subject'] = "Password Reset Code - LILI App"
+    
+    body = f"""
+    Hello,
+    
+    You have requested to reset your password for the LILI App.
+    Your password reset code is: {reset_code}
+    
+    This code will expire in 15 minutes.
+    
+    If you did not request this reset, please ignore this email.
+    
+    Best regards,
+    LILI App Team
+    """
+    
+    msg.attach(MIMEText(body, 'plain'))
+    
+    try:
+        server = smtplib.SMTP(EMAIL_HOST, EMAIL_PORT)
+        server.starttls()
+        server.login(EMAIL_USER, EMAIL_PASSWORD)
+        server.send_message(msg)
+        server.quit()
+        return True
+    except Exception as e:
+        print(f"Error sending email: {e}")
+        return False
+
+def generate_reset_code():
+    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+
+class ForgotPasswordRequest(BaseModel):
+    email: str
+
+class VerifyCodeRequest(BaseModel):
+    email: str
+    code: str
+
+class ResetPasswordRequest(BaseModel):
+    email: str
+    code: str
+    new_password: str
+
+@router.post("/forgot-password")
+async def forgot_password(request: ForgotPasswordRequest):
+    try:
+        # Check if email exists in database
+        user_result = selectUser(f'SELECT * FROM user_tbl WHERE user_email = "{request.email}"')
+        if not user_result:
+            raise HTTPException(status_code=404, detail="Email not found")
+        
+        # Generate reset code
+        reset_code = generate_reset_code()
+        
+        # Store reset code in MongoDB with expiration
+        reset_tokens_collection.insert_one({
+            "email": request.email,
+            "code": reset_code,
+            "created_at": datetime.utcnow(),
+            "expires_at": datetime.utcnow() + timedelta(minutes=15)
+        })
+        
+        # Send reset email
+        if not send_reset_email(request.email, reset_code):
+            raise HTTPException(status_code=500, detail="Failed to send reset email")
+        
+        return {"message": "Reset code sent to email"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/verify-reset-code")
+async def verify_reset_code(request: VerifyCodeRequest):
+    try:
+        # Find valid reset token
+        token = reset_tokens_collection.find_one({
+            "email": request.email,
+            "code": request.code,
+            "expires_at": {"$gt": datetime.utcnow()}
+        })
+        
+        if not token:
+            raise HTTPException(status_code=400, detail="Invalid or expired code")
+        
+        return {"message": "Code verified successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/reset-password")
+async def reset_password(request: ResetPasswordRequest):
+    try:
+        # Verify code again
+        token = reset_tokens_collection.find_one({
+            "email": request.email,
+            "code": request.code,
+            "expires_at": {"$gt": datetime.utcnow()}
+        })
+        
+        if not token:
+            raise HTTPException(status_code=400, detail="Invalid or expired code")
+        
+        # Update password in database
+        query = f'UPDATE user_tbl SET user_password = "{request.new_password}" WHERE user_email = "{request.email}"'
+        if not executeWriteQuery(query):
+            raise HTTPException(status_code=500, detail="Failed to update password")
+        
+        # Delete used token
+        reset_tokens_collection.delete_many({"email": request.email})
+        
+        return {"message": "Password updated successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

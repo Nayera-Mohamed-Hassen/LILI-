@@ -15,6 +15,7 @@ import 'pages/joining_page.dart';
 import 'pages/init_setup_page.dart';
 import 'pages/forget_password_email_page.dart';
 import 'pages/forget_password_reset_page.dart';
+import 'pages/verify_code_page.dart';
 import 'pages/add_user_page.dart';
 import 'pages/tasks_home_page.dart';
 import 'pages/navbar.dart';
@@ -78,6 +79,10 @@ class LiliApp extends StatelessWidget {
         '/joining': (context) => JoiningPage(),
         //'/init setup': (context) => InitSetupPage(),
         '/forget password email': (context) => ForgetPasswordEmailPage(),
+        '/verify code': (context) {
+          final email = ModalRoute.of(context)?.settings.arguments as String?;
+          return VerifyCodePage(email: email ?? '');
+        },
         '/forget password reset': (context) => ForgetPasswordResetPage(),
         '/add user': (context) => AddUserPage(),
         '/task home': (context) => TasksHomePage(),

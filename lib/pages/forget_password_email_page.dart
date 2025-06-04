@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 // class ForgetPasswordEmailPage extends StatelessWidget {
 //   const ForgetPasswordEmailPage({super.key});
@@ -13,6 +15,7 @@ class ForgetPasswordEmailPage extends StatefulWidget {
 
 class _ForgetPasswordEmailPageState extends State<ForgetPasswordEmailPage> {
   final _emailController = TextEditingController();
+  bool _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -139,7 +142,7 @@ class _ForgetPasswordEmailPageState extends State<ForgetPasswordEmailPage> {
       width: double.infinity,
       height: 56,
       child: ElevatedButton(
-        onPressed: _handleReset,
+        onPressed: _isLoading ? null : _handleReset,
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.white24,
           foregroundColor: Colors.white,
@@ -149,18 +152,27 @@ class _ForgetPasswordEmailPageState extends State<ForgetPasswordEmailPage> {
           ),
           elevation: 0,
         ),
-        child: const Text(
-          'Reset Password',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+        child: _isLoading
+            ? const SizedBox(
+                height: 24,
+                width: 24,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 2,
+                ),
+              )
+            : const Text(
+                'Reset Password',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
       ),
     );
   }
 
-  void _handleReset() {
+  Future<void> _handleReset() async {
     final email = _emailController.text.trim();
     
     if (email.isEmpty) {
@@ -173,8 +185,33 @@ class _ForgetPasswordEmailPageState extends State<ForgetPasswordEmailPage> {
       return;
     }
 
-    // Here you would typically call your password reset API
-    Navigator.pushNamed(context, '/forget password reset');
+    setState(() => _isLoading = true);
+
+    try {
+      final response = await http.post(
+        Uri.parse('http://10.0.2.2:8000/user/forgot-password'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': email,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        // Navigate to verification page
+        Navigator.pushNamed(
+          context,
+          '/verify code',
+          arguments: email,
+        );
+      } else {
+        final error = jsonDecode(response.body)['detail'];
+        _showError(error ?? 'Failed to send reset code');
+      }
+    } catch (e) {
+      _showError('Failed to send reset code. Please try again.');
+    } finally {
+      setState(() => _isLoading = false);
+    }
   }
 
   bool _isValidEmail(String email) {
