@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../user_session.dart';
 
 class InitSetupPage extends StatefulWidget {
   final String name;
@@ -395,6 +396,11 @@ class _InitSetupPageState extends State<InitSetupPage> {
       );
 
       if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final userId = data['user_id'];
+        if (userId != null && userId is String) {
+          UserSession().setUserId(userId);
+        }
         Navigator.pushNamed(context, '/hosting');
       } else {
         _showError('Signup failed. Please try again.');

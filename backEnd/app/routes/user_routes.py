@@ -62,7 +62,7 @@ def signup(user: UserSignup):
         if a.strip():
             insertAllergy(allergy_name=a.strip(), user_Id=user_id)
 
-    return {"message": "User signed up successfully"}
+    return {"message": "User signed up successfully", "user_id": user_id}
 
 
 
@@ -84,7 +84,8 @@ async def login(user: UserLogin):
 
         if result:
             user_id = result[0]["_id"]
-            return {"status": "success", "user_id": user_id}
+            house_id = result[0].get("house_Id", "")
+            return {"status": "success", "user_id": user_id, "house_Id": house_id}
         else:
             raise HTTPException(status_code=401, detail="Invalid email or password")
     except Exception as e:
@@ -97,7 +98,7 @@ class HouseHold(BaseModel):
     name: str
     pic: str
     address: str
-    email: str
+    user_id: str
 
 
 
@@ -109,7 +110,7 @@ async def create_household(data: HouseHold):
         raise HTTPException(status_code=500, detail="Failed to create household")
 
     # 2. Update the user's house_Id with the new house_id
-    user_result = selectUser(query={"user_email": data.email})
+    user_result = selectUser(query={"_id": data.user_id})
     if not user_result:
         raise HTTPException(status_code=404, detail="User not found")
     user_id = user_result[0]["_id"]
@@ -570,7 +571,8 @@ async def get_user_profile(user_id: str):
             "weight": user_data["user_weight"],
             "diet": user_data["user_diet"],
             "gender": user_data["user_gender"],
-            "user_birthday": user_data["user_birthday"]
+            "user_birthday": user_data["user_birthday"],
+            "house_Id": user_data.get("house_Id", "")
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

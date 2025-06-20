@@ -64,22 +64,6 @@ class RecipePage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              AppBar(
-                backgroundColor: Colors.transparent,
-                elevation: 0,
-                leading: IconButton(
-                  icon: Icon(Icons.arrow_back, color: Colors.white),
-                  onPressed: () => Navigator.of(context).pop(),
-                ),
-                title: Text(
-                  recipe['name'] ?? 'Recipe Details',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
               Expanded(
                 child: CustomScrollView(
                   slivers: [
@@ -159,6 +143,38 @@ class RecipePage extends StatelessWidget {
                                     ],
                                   ),
                                 ],
+                              ),
+                            ),
+                            // Custom circular back button for better visibility
+                            Positioned(
+                              top: 32,
+                              left: 16,
+                              child: Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(30),
+                                  onTap: () => Navigator.of(context).pop(),
+                                  child: Container(
+                                    width: 48,
+                                    height: 48,
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      shape: BoxShape.circle,
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(0.15),
+                                          blurRadius: 8,
+                                          offset: Offset(0, 4),
+                                        ),
+                                      ],
+                                    ),
+                                    child: const Icon(
+                                      Icons.arrow_back,
+                                      color: Color(0xFF1F3354),
+                                      size: 28,
+                                    ),
+                                  ),
+                                ),
                               ),
                             ),
                           ],

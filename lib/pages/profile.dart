@@ -231,6 +231,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         elevation: 0,
                         pinned: true,
                         expandedHeight: 200,
+                        automaticallyImplyLeading: false,
                         flexibleSpace: FlexibleSpaceBar(
                           background: Stack(
                             children: [

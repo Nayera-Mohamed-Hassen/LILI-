@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 import '../user_session.dart';
+import 'package:LILI/services/user_service.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -239,7 +240,21 @@ class _LoginPageState extends State<LoginPage> {
         if (userId != null && userId.isNotEmpty) {
           UserSession().setUserId(userId);
           UserSession().setRecipeCount(1);
-          Navigator.pushNamed(context, '/homepage');
+
+          // Fetch user profile to check house_Id
+          final userService = UserService();
+          try {
+            final profile = await userService.getUserProfile(userId);
+            final houseId = profile['house_Id']?.toString() ?? '';
+            print(houseId);
+            if (houseId.isEmpty) {
+              Navigator.pushNamed(context, '/hosting');
+            } else {
+              Navigator.pushNamed(context, '/homepage');
+            }
+          } catch (e) {
+            _showError('Failed to fetch user profile after login.');
+          }
         } else {
           _showError('Login response missing user ID');
         }
