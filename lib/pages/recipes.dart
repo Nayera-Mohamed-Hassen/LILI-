@@ -281,12 +281,9 @@ class _RecipeState extends State<Recipe> {
               _buildSearch(),
               //_buildFilterChips(),
               Expanded(
-                child:
-                    _isLoading
-                        ? Center(
-                          child: CircularProgressIndicator(color: Colors.white),
-                        )
-                        : _buildRecipeList(),
+                child: filteredRecipes.isEmpty && _isLoading
+                    ? Center(child: CircularProgressIndicator(color: Colors.white))
+                    : _buildRecipeList(),
               ),
             ],
           ),
@@ -408,70 +405,68 @@ class _RecipeState extends State<Recipe> {
   Widget _buildRecipeList() {
     final filteredRecipes = filterRecipes(_allRecipes);
 
-    return Expanded(
-      child:
-          filteredRecipes.isEmpty
-              ? Center(
-                child: Text(
-                  'No recipes found',
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.7),
-                    fontSize: 16,
-                  ),
-                ),
-              )
-              : ListView.builder(
-                controller: _scrollController,
-                itemCount: filteredRecipes.length + (_hasMore ? 1 : 0),
-                itemBuilder: (context, index) {
-                  if (index >= filteredRecipes.length) {
-                    return _buildLoadMoreButton();
-                  }
-                  final recipe = filteredRecipes[index];
-                  return _buildRecipeCard(recipe);
-                },
-              ),
+    if (filteredRecipes.isEmpty) {
+      return Center(
+        child: Text(
+          'No recipes found',
+          style: TextStyle(
+            color: Colors.white.withOpacity(0.7),
+            fontSize: 16,
+          ),
+        ),
+      );
+    }
+
+    return ListView.builder(
+      key: const PageStorageKey('recipeList'),
+      controller: _scrollController,
+      itemCount: filteredRecipes.length + (_hasMore ? 1 : 0),
+      itemBuilder: (context, index) {
+        if (index >= filteredRecipes.length) {
+          return _buildLoadMoreButton();
+        }
+        final recipe = filteredRecipes[index];
+        return _buildRecipeCard(recipe);
+      },
     );
   }
 
   Widget _buildLoadMoreButton() {
-    return Center(
-      child: Padding(
+    if (_isLoading) {
+      return Padding(
         padding: const EdgeInsets.all(16.0),
-        child:
-            _isLoading
-                ? const CircularProgressIndicator(color: Colors.white)
-                : Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: Colors.white24),
-                  ),
-                  child: TextButton.icon(
-                    onPressed: _loadMoreRecipes,
-                    icon: Icon(
-                      Icons.refresh,
-                      color: Colors.white.withOpacity(0.9),
-                    ),
-                    label: Text(
-                      "Load More",
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.9),
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 12,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                    ),
-                  ),
-                ),
+        child: Center(child: CircularProgressIndicator(color: Colors.white)),
+      );
+    }
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.15),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.white24),
+      ),
+      child: TextButton.icon(
+        onPressed: _loadMoreRecipes,
+        icon: Icon(
+          Icons.refresh,
+          color: Colors.white.withOpacity(0.9),
+        ),
+        label: Text(
+          "Load More",
+          style: TextStyle(
+            color: Colors.white.withOpacity(0.9),
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        style: TextButton.styleFrom(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 12,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+        ),
       ),
     );
   }
