@@ -6,7 +6,7 @@ from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 from pymongo import MongoClient
 from ..recipeAI import get_recipe_recommendations
-from ..mySQLConnection import selectUser, selectAllergy, insertUser, insertHouseHold, insertAllergy, updateUser
+from ..mySQLConnection import selectUser, selectAllergy, insertUser, insertHouseHold, insertAllergy, updateUser, generate_unique_house_code, selectHouseHold
 from bson import ObjectId
 import random
 import string
@@ -105,19 +105,21 @@ class HouseHold(BaseModel):
 
 @router.post("/household/create")
 async def create_household(data: HouseHold):
-    # 1. Insert the household and get the new house_id
-    house_id = insertHouseHold(data.name, data.pic, data.address)
+    # 1. Generate unique join code
+    join_code = generate_unique_house_code()
+    # 2. Insert the household and get the new house_id
+    house_id = insertHouseHold(data.name, data.pic, data.address, join_code=join_code)
     if not house_id:
         raise HTTPException(status_code=500, detail="Failed to create household")
 
-    # 2. Update the user's house_Id with the new house_id
+    # 3. Update the user's house_Id with the new house_id
     user_result = selectUser(query={"_id": data.user_id})
     if not user_result:
         raise HTTPException(status_code=404, detail="User not found")
     user_id = user_result[0]["_id"]
     updateUser(user_id, {"house_Id": house_id})
 
-    return {"message": "Household created", "house_id": house_id}
+    return {"message": "Household created", "house_id": house_id, "join_code": join_code}
 
 
 
@@ -907,4 +909,44 @@ async def get_feedback(user_id: str):
         "feedback": entry.get("feedback", ""),
         "rating": entry.get("rating", 0)
     }
+
+@router.get("/household/{house_id}")
+async def get_household(house_id: str):
+    result = selectHouseHold(query={"_id": house_id})
+    if not result:
+        raise HTTPException(status_code=404, detail="Household not found")
+    house = result[0]
+    return {
+        "house_id": house["_id"],
+        "name": house.get("house_Name", ""),
+        "address": house.get("house_address", ""),
+        "pic": house.get("house_pic", ""),
+        "join_code": house.get("join_code", "")
+    }
+
+@router.get("/household-by-code/{join_code}")
+async def get_household_by_code(join_code: str):
+    result = selectHouseHold(query={"join_code": join_code})
+    if not result:
+        raise HTTPException(status_code=404, detail="No household with this code")
+    house = result[0]
+    return {
+        "house_id": house["_id"],
+        "name": house.get("house_Name", ""),
+        "address": house.get("house_address", ""),
+        "pic": house.get("house_pic", ""),
+        "join_code": house.get("join_code", "")
+    }
+
+@router.post("/update-house")
+async def update_user_house(data: dict):
+    user_id = data.get("user_id")
+    house_id = data.get("house_id")
+    if not user_id or not house_id:
+        raise HTTPException(status_code=400, detail="user_id and house_id required")
+    updated = updateUser(user_id, {"house_Id": house_id})
+    if updated:
+        return {"message": "User's household updated"}
+    else:
+        raise HTTPException(status_code=404, detail="User not found or not updated")
 

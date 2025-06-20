@@ -3,6 +3,8 @@ from datetime import datetime
 from dotenv import load_dotenv
 from pymongo import MongoClient
 import uuid
+import random
+import string
 
 load_dotenv()
 
@@ -15,13 +17,15 @@ def generate_id():
 
 # Household CRUD
 
-def insertHouseHold(name: str, pic: str, address: str) -> str:
+def insertHouseHold(name: str, pic: str, address: str, join_code: str = None) -> str:
     doc = {
         "_id": generate_id(),
         "house_Name": name,
         "house_pic": pic,
         "house_address": address
     }
+    if join_code:
+        doc["join_code"] = join_code
     db["household_tbl"].insert_one(doc)
     return doc["_id"]
 
@@ -57,7 +61,7 @@ def selectUser(query: dict = None, id: str = None) -> list:
         return list(db["user_tbl"].find(query))
     elif id is not None:
         return list(db["user_tbl"].find({"_id": id}))
-    else:
+        else:
         return list(db["user_tbl"].find())
 
 def updateUser(user_id: str, update_fields: dict) -> bool:
@@ -76,7 +80,7 @@ def insert_notification(title: str, body: str, user_id: str, is_read: bool = Fal
         "user_Id": user_id
     }
     db["notification_tbl"].insert_one(doc)
-    return True
+        return True
 
 def selectNotifications(query: dict = None, id: str = None) -> list:
     if query is not None:
@@ -106,7 +110,7 @@ def selectTasks(query: dict = None, id: str = None) -> list:
         return list(db["task_tbl"].find(query))
     elif id is not None:
         return list(db["task_tbl"].find({"assignedTo_Id": id}))
-    else:
+        else:
         return list(db["task_tbl"].find())
 
 # Allergy CRUD
@@ -118,15 +122,23 @@ def insertAllergy(allergy_name: str, user_Id: str) -> bool:
         "user_Id": user_Id
     }
     db["allergy_tbl"].insert_one(doc)
-    return True
+        return True
 
 def selectAllergy(query: dict = None, id: str = None) -> list:
     if query is not None:
         return list(db["allergy_tbl"].find(query))
     elif id is not None:
         return list(db["allergy_tbl"].find({"user_Id": id}))
-    else:
+        else:
         return list(db["allergy_tbl"].find())
+
+def generate_unique_house_code():
+    chars = string.ascii_uppercase + string.digits
+    while True:
+        code = ''.join(random.choices(chars, k=6))
+        # Check if code exists in the database
+        if not db["household_tbl"].find_one({"join_code": code}):
+            return code
 
 if __name__ == '__main__':
     #print(insertUser("hana","AppAdminstrator","1234","2003-06-24","sss","hanabassem@gmail.com","01111111",'169',"60","vegan","female","2"))

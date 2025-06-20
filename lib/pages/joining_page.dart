@@ -1,7 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import '../user_session.dart';
 
-class JoiningPage extends StatelessWidget {
+class JoiningPage extends StatefulWidget {
   const JoiningPage({super.key});
+
+  @override
+  State<JoiningPage> createState() => _JoiningPageState();
+}
+
+class _JoiningPageState extends State<JoiningPage> {
+  final TextEditingController _codeController = TextEditingController();
+  bool _isJoining = false;
 
   @override
   Widget build(BuildContext context) {
@@ -71,10 +82,19 @@ class JoiningPage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 20),
+              TextField(
+                controller: _codeController,
+                decoration: InputDecoration(
+                  labelText: 'Enter Join Code',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.key),
+                ),
+                textCapitalization: TextCapitalization.characters,
+                maxLength: 6,
+              ),
+              const SizedBox(height: 20),
               ElevatedButton(
-                onPressed: () {
-                  Navigator.pushNamed(context, '/homepage');
-                },
+                onPressed: _isJoining ? null : _handleJoin,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Color(0xFF3E5879),
 
@@ -95,5 +115,58 @@ class JoiningPage extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _handleJoin() async {
+    final code = _codeController.text.trim().toUpperCase();
+    if (code.isEmpty || code.length != 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a valid 6-character code.')),
+      );
+      return;
+    }
+    setState(() => _isJoining = true);
+    try {
+      // 1. Check if household with this code exists
+      final url = Uri.parse('http://10.0.2.2:8000/user/household-by-code/$code');
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final houseId = data['house_id'];
+        // 2. Update user's house_Id
+        final userId = UserSession().getUserId();
+        final updateUrl = Uri.parse('http://10.0.2.2:8000/user/update-house');
+        final updateResponse = await http.post(
+          updateUrl,
+          headers: {"Content-Type": "application/json"},
+          body: jsonEncode({
+            "user_id": userId,
+            "house_id": houseId,
+          }),
+        );
+        if (updateResponse.statusCode == 200) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Successfully joined the household!')),
+            );
+            Navigator.pushNamedAndRemoveUntil(context, '/homepage', (route) => false);
+          }
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Failed to join the household.')),
+          );
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No household exists with this code.')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    } finally {
+      setState(() => _isJoining = false);
+    }
   }
 }

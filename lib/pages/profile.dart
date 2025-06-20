@@ -11,6 +11,7 @@ import 'package:LILI/services/user_service.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
+import 'package:flutter/services.dart';
 
 class ProfilePage extends StatefulWidget {
   @override
@@ -26,6 +27,7 @@ class _ProfilePageState extends State<ProfilePage> {
   bool _isSavingFeedback = false;
   String _feedbackStatus = '';
   int _feedbackRating = 0;
+  String? _joinCode;
 
   User user = User(
     name: "Loading...",
@@ -43,6 +45,7 @@ class _ProfilePageState extends State<ProfilePage> {
     super.initState();
     _loadUserProfile();
     _loadFeedback();
+    _loadJoinCode();
   }
 
   Future<void> _loadUserProfile() async {
@@ -148,6 +151,33 @@ class _ProfilePageState extends State<ProfilePage> {
       setState(() {
         _isSavingFeedback = false;
       });
+    }
+  }
+
+  Future<void> _loadJoinCode() async {
+    final userId = UserSession().getUserId();
+    if (userId == null || userId.isEmpty) return;
+    try {
+      // Get user's house_Id
+      final urlProfile = Uri.parse('http://10.0.2.2:8000/user/profile/$userId');
+      final responseProfile = await http.get(urlProfile);
+      if (responseProfile.statusCode == 200) {
+        final data = jsonDecode(responseProfile.body);
+        final houseId = data['house_Id'];
+        if (houseId != null && houseId != "") {
+          // Fetch household by houseId to get join_code
+          final urlHouse = Uri.parse('http://10.0.2.2:8000/user/household/$houseId');
+          final responseHouse = await http.get(urlHouse);
+          if (responseHouse.statusCode == 200) {
+            final houseData = jsonDecode(responseHouse.body);
+            setState(() {
+              _joinCode = houseData['join_code'] ?? null;
+            });
+          }
+        }
+      }
+    } catch (e) {
+      // Optionally handle error
     }
   }
 
@@ -762,10 +792,8 @@ class _ProfilePageState extends State<ProfilePage> {
             'Add User',
             Icons.person_add,
             onTap: () {
-              showDetailSheet(context, "House Code", [
-                "Code: HJ223FA56",
-                "Location: Main Home",
-                "Owner: Farah",
+              showDetailSheet(context, "Household Join Code", [
+                _joinCode != null ? "Code: $_joinCode" : "No code available",
               ], showCheckboxes: false);
             },
           ),
