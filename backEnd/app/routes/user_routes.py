@@ -2,7 +2,7 @@ import os
 from typing import List, Optional, Union
 from datetime import datetime, timedelta
 from difflib import get_close_matches
-from fastapi import APIRouter, HTTPException, Request, Body
+from fastapi import APIRouter, HTTPException, Request, Body, Query
 from pydantic import BaseModel
 from pymongo import MongoClient
 from ..recipeAI import get_recipe_recommendations
@@ -1029,6 +1029,78 @@ async def update_task_full(data: UpdateTaskRequest):
         if result.matched_count == 0:
             raise HTTPException(status_code=404, detail="Task not found")
         return {"status": "success", "message": "Task updated successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# --- User Recipes Endpoints ---
+class UserRecipeRequest(BaseModel):
+    user_id: str
+    recipe: dict
+    shared: bool = False
+
+@router.post("/recipes/save")
+async def save_user_recipe(data: UserRecipeRequest):
+    try:
+        client = MongoClient(os.getenv("MONGO_URI"))
+        db = client["lili"]
+        recipes_collection = db["usersRecipes"]
+        # Add user_id and shared flag to the recipe document
+        recipe_doc = data.recipe.copy()
+        recipe_doc["user_id"] = data.user_id
+        recipe_doc["shared"] = data.shared
+        recipe_doc["created_at"] = datetime.now().isoformat()
+        result = recipes_collection.insert_one(recipe_doc)
+        if not result.inserted_id:
+            raise HTTPException(status_code=500, detail="Failed to save recipe")
+        return {"status": "success", "message": "Recipe saved", "recipe_id": str(result.inserted_id)}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/recipes/{user_id}")
+async def get_user_recipes(user_id: str, shared: bool = Query(False)):
+    try:
+        client = MongoClient(os.getenv("MONGO_URI"))
+        db = client["lili"]
+        recipes_collection = db["usersRecipes"]
+        if shared:
+            # Get the user's household
+            user_result = selectUser(query={"_id": user_id})
+            if not user_result:
+                raise HTTPException(status_code=404, detail="User not found")
+            house_id = user_result[0].get("house_Id", "")
+            if not house_id:
+                return []
+            # Find all users in the same household
+            users = selectUser(query={"house_Id": house_id})
+            user_ids = [u["_id"] for u in users]
+            recipes = list(recipes_collection.find({"user_id": {"$in": user_ids}, "shared": True}))
+        else:
+            recipes = list(recipes_collection.find({"user_id": user_id}))
+        for recipe in recipes:
+            recipe["_id"] = str(recipe["_id"])
+        return recipes
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+class UpdateRecipeSharedRequest(BaseModel):
+    recipe_id: str
+    shared: bool
+
+@router.put("/recipes/update-shared")
+async def update_recipe_shared(data: UpdateRecipeSharedRequest):
+    try:
+        client = MongoClient(os.getenv("MONGO_URI"))
+        db = client["lili"]
+        recipes_collection = db["usersRecipes"]
+        from bson import ObjectId
+        object_id = ObjectId(data.recipe_id)
+        result = recipes_collection.update_one(
+            {"_id": object_id},
+            {"$set": {"shared": data.shared}}
+        )
+        if result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Recipe not found")
+        return {"status": "success", "message": "Recipe sharing updated"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

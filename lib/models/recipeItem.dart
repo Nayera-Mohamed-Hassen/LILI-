@@ -1,4 +1,5 @@
 class RecipeItem {
+  final String? id;
   final String name;
   final String cusine;
   final String mealType;
@@ -10,8 +11,10 @@ class RecipeItem {
   final String timeTaken; // now String
   final String difficulty;
   final String image;
+  bool shared;
 
   RecipeItem({
+    this.id,
     required this.name,
     required this.cusine,
     required this.mealType,
@@ -23,10 +26,12 @@ class RecipeItem {
     required this.timeTaken,
     required this.difficulty,
     required this.image,
+    this.shared = false,
   });
 
   factory RecipeItem.fromJson(Map<String, dynamic> json) {
     return RecipeItem(
+      id: json['_id'] ?? json['id'],
       name: json['name'] ?? '',
       cusine: json['cusine'] ?? '',
       mealType: json['mealType'] ?? '',
@@ -38,10 +43,12 @@ class RecipeItem {
       timeTaken: json['timeTaken']?.toString() ?? '',
       difficulty: json['difficulty'] ?? '',
       image: json['image'] ?? '',
+      shared: json['shared'] ?? false,
     );
   }
 
   Map<String, dynamic> toJson() => {
+    'id': id,
     'name': name,
     'cusine': cusine,
     'mealType': mealType,
@@ -53,6 +60,7 @@ class RecipeItem {
     'timeTaken': timeTaken,
     'difficulty': difficulty,
     'image': image,
+    'shared': shared,
   };
 
   @override
