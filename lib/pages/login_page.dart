@@ -25,10 +25,7 @@ class _LoginPageState extends State<LoginPage> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              const Color(0xFF1F3354),
-              const Color(0xFF3E5879),
-            ],
+            colors: [const Color(0xFF1F3354), const Color(0xFF3E5879)],
           ),
         ),
         child: SafeArea(
@@ -55,10 +52,7 @@ class _LoginPageState extends State<LoginPage> {
                   const SizedBox(height: 16),
                   const Text(
                     'Sign in to continue',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 16,
-                    ),
+                    style: TextStyle(color: Colors.white70, fontSize: 16),
                   ),
                   const SizedBox(height: 48),
                   _buildTextField(
@@ -85,7 +79,10 @@ class _LoginPageState extends State<LoginPage> {
                     children: [
                       TextButton.icon(
                         onPressed: () {
-                          Navigator.pushNamed(context, '/forget password email');
+                          Navigator.pushNamed(
+                            context,
+                            '/forget password email',
+                          );
                         },
                         icon: const Icon(
                           Icons.lock_reset_outlined,
@@ -94,10 +91,7 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                         label: const Text(
                           'Forgot password?',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.white70,
-                          ),
+                          style: TextStyle(fontSize: 14, color: Colors.white70),
                         ),
                         style: TextButton.styleFrom(
                           padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -114,10 +108,7 @@ class _LoginPageState extends State<LoginPage> {
                       children: [
                         const Text(
                           "Don't have an account? ",
-                          style: TextStyle(
-                            color: Colors.white70,
-                            fontSize: 14,
-                          ),
+                          style: TextStyle(color: Colors.white70, fontSize: 14),
                         ),
                         TextButton(
                           onPressed: () {
@@ -140,6 +131,8 @@ class _LoginPageState extends State<LoginPage> {
                       ],
                     ),
                   ),
+
+                  SizedBox(height: 220),
                 ],
               ),
             ),
@@ -174,17 +167,18 @@ class _LoginPageState extends State<LoginPage> {
             margin: const EdgeInsets.only(left: 12, right: 8),
             child: Icon(icon, color: Colors.white70),
           ),
-          suffixIcon: isPassword
-              ? IconButton(
-                  icon: Icon(
-                    _isPasswordVisible
-                        ? Icons.visibility_outlined
-                        : Icons.visibility_off_outlined,
-                    color: Colors.white70,
-                  ),
-                  onPressed: onTogglePassword,
-                )
-              : null,
+          suffixIcon:
+              isPassword
+                  ? IconButton(
+                    icon: Icon(
+                      _isPasswordVisible
+                          ? Icons.visibility_outlined
+                          : Icons.visibility_off_outlined,
+                      color: Colors.white70,
+                    ),
+                    onPressed: onTogglePassword,
+                  )
+                  : null,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
             borderSide: BorderSide.none,
@@ -213,10 +207,7 @@ class _LoginPageState extends State<LoginPage> {
         ),
         child: const Text(
           'Log In',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
       ),
     );

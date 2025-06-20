@@ -27,10 +27,7 @@ class _SignUpPageState extends State<SignUpPage> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              const Color(0xFF1F3354),
-              const Color(0xFF3E5879),
-            ],
+            colors: [const Color(0xFF1F3354), const Color(0xFF3E5879)],
           ),
         ),
         child: SafeArea(
@@ -57,10 +54,7 @@ class _SignUpPageState extends State<SignUpPage> {
                   const SizedBox(height: 16),
                   const Text(
                     'Sign up to get started',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 16,
-                    ),
+                    style: TextStyle(color: Colors.white70, fontSize: 16),
                   ),
                   const SizedBox(height: 48),
                   _buildTextField(
@@ -115,10 +109,7 @@ class _SignUpPageState extends State<SignUpPage> {
                       children: [
                         const Text(
                           "Already have an account? ",
-                          style: TextStyle(
-                            color: Colors.white70,
-                            fontSize: 14,
-                          ),
+                          style: TextStyle(color: Colors.white70, fontSize: 14),
                         ),
                         TextButton(
                           onPressed: () {
@@ -141,6 +132,7 @@ class _SignUpPageState extends State<SignUpPage> {
                       ],
                     ),
                   ),
+                  SizedBox(height: 38),
                 ],
               ),
             ),
@@ -175,17 +167,18 @@ class _SignUpPageState extends State<SignUpPage> {
             margin: const EdgeInsets.only(left: 12, right: 8),
             child: Icon(icon, color: Colors.white70),
           ),
-          suffixIcon: isPassword
-              ? IconButton(
-                  icon: Icon(
-                    (isPasswordVisible ?? false)
-                        ? Icons.visibility_outlined
-                        : Icons.visibility_off_outlined,
-                    color: Colors.white70,
-                  ),
-                  onPressed: onTogglePassword,
-                )
-              : null,
+          suffixIcon:
+              isPassword
+                  ? IconButton(
+                    icon: Icon(
+                      (isPasswordVisible ?? false)
+                          ? Icons.visibility_outlined
+                          : Icons.visibility_off_outlined,
+                      color: Colors.white70,
+                    ),
+                    onPressed: onTogglePassword,
+                  )
+                  : null,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
             borderSide: BorderSide.none,
@@ -213,10 +206,7 @@ class _SignUpPageState extends State<SignUpPage> {
         ),
         child: const Text(
           'Next',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
       ),
     );
@@ -240,12 +230,13 @@ class _SignUpPageState extends State<SignUpPage> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => InitSetupPage(
-          name: _name.text,
-          email: _email.text,
-          password: _passwordController.text,
-          phone: _phoneNumber.text,
-        ),
+        builder:
+            (context) => InitSetupPage(
+              name: _name.text,
+              email: _email.text,
+              password: _passwordController.text,
+              phone: _phoneNumber.text,
+            ),
       ),
     );
   }
