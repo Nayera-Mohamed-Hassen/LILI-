@@ -828,12 +828,6 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
           const Divider(height: 1),
           _buildSettingsTile(
-            'Privacy',
-            Icons.lock_outline,
-            onTap: _showPrivacySheet,
-          ),
-          const Divider(height: 1),
-          _buildSettingsTile(
             'Reset Password',
             Icons.lock_reset,
             onTap: _showResetPasswordDialog,
@@ -842,9 +836,7 @@ class _ProfilePageState extends State<ProfilePage> {
           _buildSettingsTile(
             'Help & Support',
             Icons.help_outline,
-            onTap: () {
-              // Handle help and support
-            },
+            onTap: _showHelpSupportDialog,
           ),
           const Divider(height: 1),
           _buildSettingsTile(
@@ -881,6 +873,49 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
       trailing: const Icon(Icons.chevron_right),
       onTap: onTap,
+    );
+  }
+
+  void _showHelpSupportDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Row(
+            children: const [
+              Icon(Icons.help_outline, color: Color(0xFF1F3354)),
+              SizedBox(width: 8),
+              Text('Help & Support', style: TextStyle(fontWeight: FontWeight.bold)),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                Text('Need help or have questions?'),
+                SizedBox(height: 12),
+                Text('• For technical support, app issues, or feedback, please contact us:'),
+                SizedBox(height: 8),
+                SelectableText('Email: support@liliapp.com', style: TextStyle(fontWeight: FontWeight.bold)),
+                SizedBox(height: 8),
+                Text('• You can also reach us through the in-app feedback section below.'),
+                SizedBox(height: 12),
+                Text('• For urgent issues, call us at:'),
+                SelectableText('+1-800-555-LILI', style: TextStyle(fontWeight: FontWeight.bold)),
+                SizedBox(height: 16),
+                Text('Thank you for using LILI!'),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Close'),
+            ),
+          ],
+        );
+      },
     );
   }
 
