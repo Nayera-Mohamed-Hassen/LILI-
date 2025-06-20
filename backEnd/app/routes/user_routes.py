@@ -2,11 +2,11 @@ import os
 from typing import List, Optional, Union
 from datetime import datetime, timedelta
 from difflib import get_close_matches
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Body
 from pydantic import BaseModel
 from pymongo import MongoClient
 from ..recipeAI import get_recipe_recommendations
-from ..mySQLConnection import selectUser, selectAllergy, insertUser, insertHouseHold, insertAllergy, updateUser, generate_unique_house_code, selectHouseHold
+from ..mySQLConnection import selectUser, selectAllergy, insertUser, insertHouseHold, insertAllergy, updateUser, generate_unique_house_code, selectHouseHold, is_unique_user, check_user_uniqueness
 from bson import ObjectId
 import random
 import string
@@ -22,6 +22,7 @@ router = APIRouter(prefix="/user", tags=["User"])
 
 class UserSignup(BaseModel):
     name: str
+    username: str
     password: str
     birthday: str
     email: str
@@ -39,9 +40,13 @@ def signup(user: UserSignup):
     print("Received signup data:", user)
     # Always convert house_id to string
     house_id_str = str(user.house_id) if user.house_id is not None else ""
+    # Uniqueness check
+    if not is_unique_user(user.username, user.email, user.phone):
+        raise HTTPException(status_code=400, detail="Username, email, or phone already exists.")
     # Insert user into the database
     user_id = insertUser(
         user_Name=user.name,
+        username=user.username,
         user_password=user.password,
         user_birthday=user.birthday,
         user_email=user.email,
@@ -53,16 +58,13 @@ def signup(user: UserSignup):
         user_gender=user.gender,
         house_Id=house_id_str
     )
-
     if not user_id:
         raise HTTPException(status_code=500, detail="Signup failed")
-
     # Insert allergies
     allergies = user.allergy.split(",") if user.allergy else []
     for a in allergies:
         if a.strip():
             insertAllergy(allergy_name=a.strip(), user_Id=user_id)
-
     return {"message": "User signed up successfully", "user_id": user_id}
 
 
@@ -72,7 +74,7 @@ def signup(user: UserSignup):
 ################ user login ################
 
 class UserLogin(BaseModel):
-    email: str
+    username: str
     password: str
 
 
@@ -80,15 +82,13 @@ class UserLogin(BaseModel):
 @router.post("/login")
 async def login(user: UserLogin):
     try:
-        query = 'SELECT * FROM user_tbl WHERE user_email = "'+user.email + '"AND user_password = "'+ user.password + '"'
-        result = selectUser(query={"user_email": user.email, "user_password": user.password})
-
+        result = selectUser(query={"username": user.username, "user_password": user.password})
         if result:
             user_id = result[0]["_id"]
             house_id = result[0].get("house_Id", "")
             return {"status": "success", "user_id": user_id, "house_Id": house_id}
         else:
-            raise HTTPException(status_code=401, detail="Invalid email or password")
+            raise HTTPException(status_code=401, detail="Invalid username or password")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -947,6 +947,47 @@ async def update_user_house(data: dict):
     updated = updateUser(user_id, {"house_Id": house_id})
     if updated:
         return {"message": "User's household updated"}
+    else:
+        raise HTTPException(status_code=404, detail="User not found or not updated")
+
+@router.post("/check-uniqueness")
+def check_uniqueness(data: dict = Body(...)):
+    username = data.get("username", "")
+    email = data.get("email", "")
+    phone = data.get("phone", "")
+    result = check_user_uniqueness(username, email, phone)
+    return {"result": result}
+
+@router.get("/household-users/{user_id}")
+def get_household_users(user_id: str):
+    # Find the user's household
+    user_result = selectUser(query={"_id": user_id})
+    if not user_result:
+        raise HTTPException(status_code=404, detail="User not found")
+    house_id = user_result[0].get("house_Id", "")
+    if not house_id:
+        return []
+    # Find all users in the same household
+    users = selectUser(query={"house_Id": house_id})
+    return [
+        {
+            "user_id": u["_id"],
+            "name": u.get("user_Name", ""),
+            "username": u.get("username", ""),
+            "email": u.get("user_email", ""),
+            "profile_pic": u.get("user_profilePic", "")
+        }
+        for u in users
+    ]
+
+@router.post("/remove-from-household")
+def remove_from_household(data: dict = Body(...)):
+    user_id = data.get("user_id")
+    if not user_id:
+        raise HTTPException(status_code=400, detail="user_id required")
+    updated = updateUser(user_id, {"house_Id": ""})
+    if updated:
+        return {"message": "User removed from household"}
     else:
         raise HTTPException(status_code=404, detail="User not found or not updated")
 

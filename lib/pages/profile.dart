@@ -28,6 +28,7 @@ class _ProfilePageState extends State<ProfilePage> {
   String _feedbackStatus = '';
   int _feedbackRating = 0;
   String? _joinCode;
+  List<Map<String, dynamic>> _householdUsers = [];
 
   User user = User(
     name: "Loading...",
@@ -46,6 +47,7 @@ class _ProfilePageState extends State<ProfilePage> {
     _loadUserProfile();
     _loadFeedback();
     _loadJoinCode();
+    _loadHouseholdUsers();
   }
 
   Future<void> _loadUserProfile() async {
@@ -175,6 +177,23 @@ class _ProfilePageState extends State<ProfilePage> {
             });
           }
         }
+      }
+    } catch (e) {
+      // Optionally handle error
+    }
+  }
+
+  Future<void> _loadHouseholdUsers() async {
+    final userId = UserSession().getUserId();
+    if (userId == null || userId.isEmpty) return;
+    try {
+      final url = Uri.parse('http://10.0.2.2:8000/user/household-users/$userId');
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        setState(() {
+          _householdUsers = List<Map<String, dynamic>>.from(data);
+        });
       }
     } catch (e) {
       // Optionally handle error
@@ -622,6 +641,8 @@ class _ProfilePageState extends State<ProfilePage> {
                           padding: const EdgeInsets.all(16),
                           child: Column(
                             children: [
+                              _buildHouseholdUsersCard(),
+                              const SizedBox(height: 24),
                               _buildInfoCard(),
                               const SizedBox(height: 24),
                               _buildActionButtons(),
@@ -961,6 +982,255 @@ class _ProfilePageState extends State<ProfilePage> {
         ),
       ),
     );
+  }
+
+  Widget _buildHouseholdUsersCard() {
+    final myUserId = UserSession().getUserId();
+    if (_householdUsers.isEmpty) {
+      return Card(
+        elevation: 4,
+        shadowColor: Colors.black26,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: const [
+              Icon(Icons.group, color: Color(0xFF1F3354)),
+              SizedBox(width: 12),
+              Text('No other members in your household.',
+                  style: TextStyle(fontSize: 16, color: Color(0xFF1F3354))),
+            ],
+          ),
+        ),
+      );
+    }
+    return Card(
+      elevation: 4,
+      shadowColor: Colors.black26,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: const [
+                Icon(Icons.group, color: Color(0xFF1F3354)),
+                SizedBox(width: 8),
+                Text(
+                  'Household Members',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1F3354),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            ..._householdUsers.asMap().entries.map((entry) {
+              final i = entry.key;
+              final member = entry.value;
+              final isMe = member['user_id'] == myUserId;
+              return Column(
+                children: [
+                  ListTile(
+                    contentPadding: const EdgeInsets.symmetric(vertical: 4, horizontal: 0),
+                    leading: member['profile_pic'] != null && member['profile_pic'].toString().isNotEmpty
+                        ? CircleAvatar(
+                            backgroundImage: NetworkImage(member['profile_pic']),
+                            radius: 26,
+                          )
+                        : const CircleAvatar(
+                            backgroundColor: Color(0xFF3E5879),
+                            radius: 26,
+                            child: Icon(Icons.person, color: Colors.white, size: 28),
+                          ),
+                    title: Row(
+                      children: [
+                        Text(
+                          member['name'] ?? '',
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                        ),
+                        if (isMe)
+                          Container(
+                            margin: const EdgeInsets.only(left: 8),
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF3E5879),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Text('You', style: TextStyle(color: Colors.white, fontSize: 12)),
+                          ),
+                      ],
+                    ),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('@${member['username'] ?? ''}', style: const TextStyle(fontSize: 13)),
+                        Text(member['email'] ?? '', style: const TextStyle(fontSize: 13)),
+                      ],
+                    ),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.info_outline, color: Color(0xFF1F3354)),
+                          tooltip: 'View Profile',
+                          onPressed: () => _showMemberProfileDialog(member),
+                        ),
+                        if (!isMe)
+                          IconButton(
+                            icon: const Icon(Icons.remove_circle_outline, color: Colors.red),
+                            tooltip: 'Remove from household',
+                            onPressed: () => _confirmRemoveMember(member),
+                          ),
+                      ],
+                    ),
+                  ),
+                  if (i < _householdUsers.length - 1)
+                    const Divider(height: 16, thickness: 1, indent: 8, endIndent: 8),
+                ],
+              );
+            }),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showMemberProfileDialog(Map<String, dynamic> member) async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return FutureBuilder<http.Response>(
+          future: http.get(Uri.parse('http://10.0.2.2:8000/user/profile/${member['user_id']}')),
+          builder: (context, snapshot) {
+            if (!snapshot.hasData) {
+              return const AlertDialog(
+                content: SizedBox(
+                  height: 80,
+                  child: Center(child: CircularProgressIndicator()),
+                ),
+              );
+            }
+            if (snapshot.data!.statusCode != 200) {
+              return AlertDialog(
+                title: const Text('Error'),
+                content: const Text('Failed to load user info.'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text('Close'),
+                  ),
+                ],
+              );
+            }
+            final data = jsonDecode(snapshot.data!.body);
+            return AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              title: Row(
+                children: [
+                  data['profile_pic'] != null && data['profile_pic'].toString().isNotEmpty
+                      ? CircleAvatar(
+                          backgroundImage: NetworkImage(data['profile_pic']),
+                          radius: 24,
+                        )
+                      : const CircleAvatar(
+                          backgroundColor: Color(0xFF3E5879),
+                          radius: 24,
+                          child: Icon(Icons.person, color: Colors.white, size: 28),
+                        ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Text(
+                      data['name'] ?? '',
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                    ),
+                  ),
+                ],
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Username: @${data['username'] ?? ''}'),
+                    Text('Email: ${data['email'] ?? ''}'),
+                    Text('Phone: ${data['phone'] ?? ''}'),
+                    Text('Birthday: ${data['user_birthday'] ?? ''}'),
+                    Text('Height: ${data['height'] != null ? data['height'].toString() : ''}'),
+                    Text('Weight: ${data['weight'] != null ? data['weight'].toString() : ''}'),
+                    Text('Diet: ${data['diet'] ?? ''}'),
+                    Text('Gender: ${data['gender'] ?? ''}'),
+                    // Add more fields if needed
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Close'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _confirmRemoveMember(Map<String, dynamic> member) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Text('Remove Member'),
+          content: Text('Are you sure you want to remove ${member['name']} from the household?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              onPressed: () async {
+                Navigator.of(context).pop();
+                await _removeMember(member['user_id']);
+              },
+              child: const Text('Remove'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _removeMember(String userId) async {
+    try {
+      final url = Uri.parse('http://10.0.2.2:8000/user/remove-from-household');
+      final response = await http.post(
+        url,
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({"user_id": userId}),
+      );
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Member removed from household.')),
+        );
+        _loadHouseholdUsers();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to remove member.')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
   }
 }
 

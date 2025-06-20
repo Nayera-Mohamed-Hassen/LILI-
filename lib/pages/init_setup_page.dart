@@ -8,6 +8,7 @@ import '../user_session.dart';
 
 class InitSetupPage extends StatefulWidget {
   final String name;
+  final String username;
   final String email;
   final String password;
   final String phone;
@@ -15,6 +16,7 @@ class InitSetupPage extends StatefulWidget {
   const InitSetupPage({
     super.key,
     required this.name,
+    required this.username,
     required this.email,
     required this.password,
     required this.phone,
@@ -73,10 +75,7 @@ class _InitSetupPageState extends State<InitSetupPage> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              const Color(0xFF1F3354),
-              const Color(0xFF3E5879),
-            ],
+            colors: [const Color(0xFF1F3354), const Color(0xFF3E5879)],
           ),
         ),
         child: SafeArea(
@@ -103,10 +102,7 @@ class _InitSetupPageState extends State<InitSetupPage> {
                   const SizedBox(height: 16),
                   const Text(
                     'Add your details to personalize your experience',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 16,
-                    ),
+                    style: TextStyle(color: Colors.white70, fontSize: 16),
                   ),
                   const SizedBox(height: 32),
                   Center(
@@ -120,29 +116,31 @@ class _InitSetupPageState extends State<InitSetupPage> {
                         child: CircleAvatar(
                           radius: 50,
                           backgroundColor: Colors.white24,
-                          backgroundImage: _image != null
-                              ? FileImage(File(_image!.path))
-                              : null,
-                          child: _image == null
-                              ? Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: const [
-                                    Icon(
-                                      Icons.camera_alt,
-                                      size: 32,
-                                      color: Colors.white,
-                                    ),
-                                    SizedBox(height: 4),
-                                    Text(
-                                      'Add Photo',
-                                      style: TextStyle(
+                          backgroundImage:
+                              _image != null
+                                  ? FileImage(File(_image!.path))
+                                  : null,
+                          child:
+                              _image == null
+                                  ? Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: const [
+                                      Icon(
+                                        Icons.camera_alt,
+                                        size: 32,
                                         color: Colors.white,
-                                        fontSize: 12,
                                       ),
-                                    ),
-                                  ],
-                                )
-                              : null,
+                                      SizedBox(height: 4),
+                                      Text(
+                                        'Add Photo',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ],
+                                  )
+                                  : null,
                         ),
                       ),
                     ),
@@ -334,15 +332,13 @@ class _InitSetupPageState extends State<InitSetupPage> {
           filled: true,
           fillColor: Colors.transparent,
         ),
-        items: items.map((item) {
-          return DropdownMenuItem(
-            value: item,
-            child: Text(
-              item,
-              style: const TextStyle(color: Colors.white),
-            ),
-          );
-        }).toList(),
+        items:
+            items.map((item) {
+              return DropdownMenuItem(
+                value: item,
+                child: Text(item, style: const TextStyle(color: Colors.white)),
+              );
+            }).toList(),
         onChanged: onChanged,
       ),
     );
@@ -364,10 +360,7 @@ class _InitSetupPageState extends State<InitSetupPage> {
         ),
         child: const Text(
           'Finish Setup',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
       ),
     );
@@ -375,22 +368,22 @@ class _InitSetupPageState extends State<InitSetupPage> {
 
   Future<void> _handleFinish() async {
     try {
-      final url = Uri.parse('http://10.0.2.2:8000/user/signup');
       final response = await http.post(
-        url,
+        Uri.parse('http://10.0.2.2:8000/user/signup'),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({
           "name": widget.name,
+          "username": widget.username,
           "email": widget.email,
           "password": widget.password,
           "phone": widget.phone,
           "birthday": _dateController.text,
-          "profile_pic": "", // TODO: Implement image upload
+          "profile_pic": "",
           "height": double.tryParse(_height.text),
           "weight": double.tryParse(_weight.text),
           "diet": _selectedDiet,
           "gender": _selectedGender,
-          "house_id": "1",
+          "house_id": "",
           "allergy": _alergiesController.text,
         }),
       );

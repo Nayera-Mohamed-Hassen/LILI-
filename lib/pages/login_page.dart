@@ -14,7 +14,7 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final _emailController = TextEditingController();
+  final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
 
@@ -57,9 +57,9 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   const SizedBox(height: 48),
                   _buildTextField(
-                    controller: _emailController,
-                    label: 'Email',
-                    icon: Icons.email_outlined,
+                    controller: _usernameController,
+                    label: 'Username',
+                    icon: Icons.account_circle_outlined,
                   ),
                   const SizedBox(height: 24),
                   _buildTextField(
@@ -215,22 +215,19 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> _handleLogin() async {
-    final email = _emailController.text.trim();
-    final password = _passwordController.text.trim();
-
-    if (email.isEmpty || password.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill in both fields')),
-      );
+    if (_usernameController.text.isEmpty || _passwordController.text.isEmpty) {
+      _showError('Please enter your username and password');
       return;
     }
 
     try {
-      final url = Uri.parse('http://10.0.2.2:8000/user/login');
       final response = await http.post(
-        url,
+        Uri.parse('http://10.0.2.2:8000/user/login'),
         headers: {"Content-Type": "application/json"},
-        body: jsonEncode({"email": email, "password": password}),
+        body: jsonEncode({
+          "username": _usernameController.text,
+          "password": _passwordController.text,
+        }),
       );
 
       if (response.statusCode == 200) {
@@ -259,7 +256,7 @@ class _LoginPageState extends State<LoginPage> {
           _showError('Login response missing user ID');
         }
       } else {
-        _showError('Invalid email or password');
+        _showError('Invalid username or password');
       }
     } catch (e) {
       _showError('Connection error. Please try again.');

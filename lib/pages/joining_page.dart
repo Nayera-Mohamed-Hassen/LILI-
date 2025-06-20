@@ -17,101 +17,126 @@ class _JoiningPageState extends State<JoiningPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        leading: BackButton(),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
-      backgroundColor: const Color(0xFFF2F2F2),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(14.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 350,
-                height: 200,
-                clipBehavior: Clip.antiAlias,
-                decoration: BoxDecoration(color: const Color(0xFFF2F2F2)),
-                child: Stack(
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFF1F3354), Color(0xFF3E5879)],
+          ),
+        ),
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Positioned(
-                      // left: 10,
-                      top: 100,
-                      child: Text(
-                        'Scan the QR code',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: const Color(0xFF213555),
-                          fontSize: 40,
-                          fontFamily: 'Roboto',
-                          fontWeight: FontWeight.w400,
-                          height: 1.20,
-                        ),
+                    Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white.withOpacity(0.08),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.08),
+                            blurRadius: 16,
+                            offset: Offset(0, 8),
+                          ),
+                        ],
                       ),
+                      padding: const EdgeInsets.all(24),
+                      child: Icon(
+                        Icons.group_add_rounded,
+                        size: 64,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                    const Text(
+                      'Join a House',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 40,
+                        fontWeight: FontWeight.bold,
+                        height: 1.2,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Enter a join code to join a household',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.white70, fontSize: 18),
+                    ),
+                    const SizedBox(height: 40),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _codeController,
+                            decoration: InputDecoration(
+                              labelText: 'Join Code',
+                              labelStyle: const TextStyle(color: Colors.white70),
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                              filled: true,
+                              fillColor: Colors.white12,
+                              prefixIcon: const Icon(Icons.key, color: Colors.white70),
+                            ),
+                            style: const TextStyle(color: Colors.white),
+                            textCapitalization: TextCapitalization.characters,
+                            maxLength: 6,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 32),
+                    _buildButton(
+                      'Join House',
+                      onPressed: _isJoining ? null : _handleJoin,
+                    ),
+                    const SizedBox(height: 48),
+                    Text(
+                      'Ask a member of the house for the code! 🏡',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.white38, fontSize: 16),
                     ),
                   ],
                 ),
               ),
-
-              Align(
-                alignment: Alignment.center,
-                child: IconButton(
-                  icon: Icon(
-                    Icons.camera_alt,
-                    size: 30,
-                    color: Color(0xFF1D2345),
-                  ),
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder:
-                          (ctx) => AlertDialog(
-                            title: Text('Scanning'),
-                            content: Text('Scanning the QR code...'),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.of(ctx).pop(),
-                                child: Text('OK'),
-                              ),
-                            ],
-                          ),
-                    );
-                  },
-                ),
-              ),
-              const SizedBox(height: 20),
-              TextField(
-                controller: _codeController,
-                decoration: InputDecoration(
-                  labelText: 'Enter Join Code',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.key),
-                ),
-                textCapitalization: TextCapitalization.characters,
-                maxLength: 6,
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _isJoining ? null : _handleJoin,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF3E5879),
-
-                  // const Color(0xFF3E5879)
-                  minimumSize: Size(315, 55),
-                  shape: RoundedRectangleBorder(
-                    side: BorderSide(width: 1),
-                    borderRadius: BorderRadius.circular(5),
-                  ),
-                ),
-                child: Text(
-                  'Join House',
-                  style: TextStyle(color: Colors.white, fontSize: 18),
-                ),
-              ),
-            ],
+            ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildButton(
+    String text, {
+    required VoidCallback? onPressed,
+    Size? size,
+  }) {
+    final fixedSize = size ?? const Size(double.infinity, 56);
+
+    return SizedBox(
+      width: fixedSize.width,
+      height: fixedSize.height,
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.white24,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          elevation: 4,
+          shadowColor: Colors.black.withOpacity(0.15),
+        ),
+        child: Text(
+          text,
+          style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w600),
         ),
       ),
     );

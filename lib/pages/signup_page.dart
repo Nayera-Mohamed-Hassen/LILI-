@@ -16,6 +16,7 @@ class _SignUpPageState extends State<SignUpPage> {
   final _phoneNumber = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  final _username = TextEditingController();
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
 
@@ -61,6 +62,12 @@ class _SignUpPageState extends State<SignUpPage> {
                     controller: _name,
                     label: 'Full Name',
                     icon: Icons.person_outline,
+                  ),
+                  const SizedBox(height: 24),
+                  _buildTextField(
+                    controller: _username,
+                    label: 'Username',
+                    icon: Icons.account_circle_outlined,
                   ),
                   const SizedBox(height: 24),
                   _buildTextField(
@@ -212,8 +219,9 @@ class _SignUpPageState extends State<SignUpPage> {
     );
   }
 
-  void _handleNext() {
+  void _handleNext() async {
     if (_name.text.isEmpty ||
+        _username.text.isEmpty ||
         _email.text.isEmpty ||
         _phoneNumber.text.isEmpty ||
         _passwordController.text.isEmpty ||
@@ -227,12 +235,38 @@ class _SignUpPageState extends State<SignUpPage> {
       return;
     }
 
+    // Uniqueness check before proceeding
+    final response = await http.post(
+      Uri.parse('http://10.0.2.2:8000/user/check-uniqueness'),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({
+        "username": _username.text,
+        "email": _email.text,
+        "phone": _phoneNumber.text,
+      }),
+    );
+    final result = jsonDecode(response.body)["result"];
+    if (result == "username") {
+      _showError('Username already exists. Please choose another.');
+      return;
+    } else if (result == "email") {
+      _showError('Email already exists. Please use another.');
+      return;
+    } else if (result == "phone") {
+      _showError('Phone number already exists. Please use another.');
+      return;
+    } else if (result != "ok") {
+      _showError('Error checking uniqueness. Please try again.');
+      return;
+    }
+
     Navigator.push(
       context,
       MaterialPageRoute(
         builder:
             (context) => InitSetupPage(
               name: _name.text,
+              username: _username.text,
               email: _email.text,
               password: _passwordController.text,
               phone: _phoneNumber.text,
