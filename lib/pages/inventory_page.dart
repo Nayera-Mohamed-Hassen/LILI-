@@ -58,11 +58,16 @@ class _InventoryPageState extends State<InventoryPage> {
   }
 
   Future<void> getUserInventoryItems() async {
+    final userId = UserSession().getUserId();
+    if (userId == null || userId.isEmpty) {
+      print('User ID is missing. Please log in again.');
+      return;
+    }
     try {
       final response = await http.post(
         Uri.parse('http://10.0.2.2:8000/user/inventory/get-items'),
         headers: {"Content-Type": "application/json"},
-        body: jsonEncode({"user_id": UserSession().getUserId()}),
+        body: jsonEncode({"user_id": userId}),
       );
 
       if (response.statusCode == 200) {
@@ -107,7 +112,7 @@ class _InventoryPageState extends State<InventoryPage> {
   Future<void> updateItemQuantity(
     String name,
     int newQuantity,
-    int? userId,
+    String? userId,
   ) async {
     final response = await http.put(
       Uri.parse('http://10.0.2.2:8000/user/inventory/update-quantity'),
@@ -126,7 +131,7 @@ class _InventoryPageState extends State<InventoryPage> {
 
   Future<void> deleteItemFromBackend(
     String name,
-    int? userId,
+    String? userId,
     String? expiry,
   ) async {
     final response = await http.delete(

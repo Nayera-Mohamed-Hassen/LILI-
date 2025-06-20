@@ -35,24 +35,18 @@ class Card(BaseModel):
 async def add_transaction(transaction: Transaction):
     try:
         # Get house_id for the user
-        house_result = selectUser(f'SELECT house_Id FROM user_tbl WHERE user_Id = "{transaction.user_id}"')
-        if not house_result:
+        user_result = selectUser(id=transaction.user_id)
+        if not user_result:
+            raise HTTPException(status_code=404, detail="User not found")
+        house_id = user_result[0].get("house_Id")
+        if not house_id:
             raise HTTPException(status_code=404, detail="House ID not found for user")
-        
-        house_id = house_result[0]["house_Id"]
-        
-        # Prepare transaction document
         transaction_doc = transaction.dict()
         transaction_doc["house_id"] = house_id
         transaction_doc["date"] = transaction.date or datetime.now().isoformat()
-        
-        # Insert into MongoDB
         db.transactions.insert_one(transaction_doc)
-        
-        # Update budget estimation data
         if transaction.transaction_type == "expense":
             update_budget_estimation(transaction_doc)
-        
         return {"status": "success", "message": "Transaction added successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -60,19 +54,13 @@ async def add_transaction(transaction: Transaction):
 @router.get("/transactions/{user_id}")
 async def get_transactions(user_id: str):
     try:
-        # Get house_id for the user
-        house_result = selectUser(f'SELECT house_Id FROM user_tbl WHERE user_Id = "{user_id}"')
-        if not house_result:
+        user_result = selectUser(id=user_id)
+        if not user_result:
+            raise HTTPException(status_code=404, detail="User not found")
+        house_id = user_result[0].get("house_Id")
+        if not house_id:
             raise HTTPException(status_code=404, detail="House ID not found for user")
-        
-        house_id = house_result[0]["house_Id"]
-        
-        # Get transactions from MongoDB
-        transactions = list(db.transactions.find(
-            {"house_id": house_id},
-            {"_id": 0}  # Exclude MongoDB _id from results
-        ))
-        
+        transactions = list(db.transactions.find({"house_id": house_id}, {"_id": 0}))
         return transactions
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -80,24 +68,17 @@ async def get_transactions(user_id: str):
 @router.post("/card/add")
 async def add_card(card: Card):
     try:
-        # Get house_id for the user
-        house_result = selectUser(f'SELECT house_Id FROM user_tbl WHERE user_Id = "{card.user_id}"')
-        if not house_result:
+        user_result = selectUser(id=card.user_id)
+        if not user_result:
+            raise HTTPException(status_code=404, detail="User not found")
+        house_id = user_result[0].get("house_Id")
+        if not house_id:
             raise HTTPException(status_code=404, detail="House ID not found for user")
-        
-        house_id = house_result[0]["house_Id"]
-        
-        # Prepare card document
         card_doc = card.dict()
         card_doc["house_id"] = house_id
         card_doc["date_added"] = datetime.now().isoformat()
-        
-        # Store the full card number
         card_doc["last_four"] = card_doc["card_number"][-4:]
-        
-        # Insert into MongoDB
         db.cards.insert_one(card_doc)
-        
         return {"status": "success", "message": "Card added successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -105,60 +86,40 @@ async def add_card(card: Card):
 @router.get("/cards/{user_id}")
 async def get_cards(user_id: str):
     try:
-        # Get house_id for the user
-        house_result = selectUser(f'SELECT house_Id FROM user_tbl WHERE user_Id = "{user_id}"')
-        if not house_result:
+        user_result = selectUser(id=user_id)
+        if not user_result:
+            raise HTTPException(status_code=404, detail="User not found")
+        house_id = user_result[0].get("house_Id")
+        if not house_id:
             raise HTTPException(status_code=404, detail="House ID not found for user")
-        
-        house_id = house_result[0]["house_Id"]
-        
-        # Get cards from MongoDB
-        cards = list(db.cards.find(
-            {"house_id": house_id},
-            {"_id": 0}  # Exclude only MongoDB _id from results
-        ))
-        
+        cards = list(db.cards.find({"house_id": house_id}, {"_id": 0}))
         return cards
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 def update_budget_estimation(transaction: dict):
-    """Update budget estimation data with new transaction"""
     try:
-        # Get existing budget data for the month
         month = datetime.now().strftime("%Y-%m")
         budget_data = db.budget_estimation.find_one({
             "house_id": transaction["house_id"],
             "month": month
         })
-        
         if not budget_data:
-            # Create new budget data for the month
             budget_data = {
                 "house_id": transaction["house_id"],
                 "month": month,
                 "categories": {},
                 "total_spent": 0
             }
-        
-        # Update category spending
         category = transaction["category"]
         if category not in budget_data["categories"]:
             budget_data["categories"][category] = 0
         budget_data["categories"][category] += transaction["amount"]
-        
-        # Update total spending
         budget_data["total_spent"] = sum(budget_data["categories"].values())
-        
-        # Upsert budget data
         db.budget_estimation.update_one(
-            {
-                "house_id": transaction["house_id"],
-                "month": month
-            },
+            {"house_id": transaction["house_id"], "month": month},
             {"$set": budget_data},
             upsert=True
         )
-        
     except Exception as e:
         print(f"Error updating budget estimation: {e}") 

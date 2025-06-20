@@ -1,12 +1,12 @@
 import os
-from typing import List, Optional
+from typing import List, Optional, Union
 from datetime import datetime, timedelta
 from difflib import get_close_matches
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from pymongo import MongoClient
 from ..recipeAI import get_recipe_recommendations
-from ..mySQLConnection import selectUser, selectAllergy, insertUser, insertHouseHold, insertAllergy, executeWriteQuery
+from ..mySQLConnection import selectUser, selectAllergy, insertUser, insertHouseHold, insertAllergy, updateUser
 from bson import ObjectId
 import random
 import string
@@ -15,23 +15,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
 
-HouseHold_id = 1  # Default household ID, can be changed as needed
-user_id = 1  # Default user ID, can be changed as needed
-
 router = APIRouter(prefix="/user", tags=["User"])
-
-def get_household_id() -> int:
-    try:
-        HouseHold_id = selectUser("select house_Id from user_tbl where user_Id = " + str(user_id))
-        if not HouseHold_id:
-            raise HTTPException(status_code=404, detail="Household not found")
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-    if HouseHold_id:
-        HouseHold_id = HouseHold_id[0]["house_Id"]
-    else:
-        raise HTTPException(status_code=404, detail="Household not found")  
-    return HouseHold_id
 
 ################ User Signup  ################
 
@@ -46,13 +30,16 @@ class UserSignup(BaseModel):
     weight: float = None
     diet: str = "vegan"
     gender: str = "female"
-    house_id: int = 1
+    house_id: Union[str, int] = ""
     allergy: str = ""
 
 @router.post("/signup")
 def signup(user: UserSignup):
+    print("Received signup data:", user)
+    # Always convert house_id to string
+    house_id_str = str(user.house_id) if user.house_id is not None else ""
     # Insert user into the database
-    success = insertUser(
+    user_id = insertUser(
         user_Name=user.name,
         user_password=user.password,
         user_birthday=user.birthday,
@@ -63,23 +50,11 @@ def signup(user: UserSignup):
         user_weight=user.weight,
         user_diet=user.diet,
         user_gender=user.gender,
-        house_Id=user.house_id
+        house_Id=house_id_str
     )
 
-    if not success:
+    if not user_id:
         raise HTTPException(status_code=500, detail="Signup failed")
-
-    # Retrieve user ID based on email
-    print(user.email)
-    # Assuming selectUser is a function that retrieves user ID based on email
-    # Adjust the query to use parameterized queries to prevent SQL injection
-    result = selectUser(
-        'SELECT user_Id FROM user_tbl WHERE user_email = "' + user.email +'"' # use values or your function's correct arg
-    )
-    user_id = result[0]["user_Id"]
-
-    if user_id is None:
-        raise HTTPException(status_code=500, detail="Failed to retrieve user ID")
 
     # Insert allergies
     allergies = user.allergy.split(",") if user.allergy else []
@@ -105,11 +80,11 @@ class UserLogin(BaseModel):
 async def login(user: UserLogin):
     try:
         query = 'SELECT * FROM user_tbl WHERE user_email = "'+user.email + '"AND user_password = "'+ user.password + '"'
-        result = selectUser(query=query)
+        result = selectUser(query={"user_email": user.email, "user_password": user.password})
 
         if result:
-            user_id = result[0]["user_Id"]
-            return {"status": "success", "user_id": result[0]["user_Id"]}
+            user_id = result[0]["_id"]
+            return {"status": "success", "user_id": user_id}
         else:
             raise HTTPException(status_code=401, detail="Invalid email or password")
     except Exception as e:
@@ -128,26 +103,17 @@ class HouseHold(BaseModel):
 
 @router.post("/household/create")
 async def create_household(data: HouseHold):
-    
-    # 1. Insert the household
-    success = insertHouseHold(data.name, data.pic, data.address)
-    if not success:
+    # 1. Insert the household and get the new house_id
+    house_id = insertHouseHold(data.name, data.pic, data.address)
+    if not house_id:
         raise HTTPException(status_code=500, detail="Failed to create household")
 
-    # 2. Get household id by name (if insertHouseHold doesn't return it)
-    house_result = selectUser(query=f'SELECT house_Id FROM household_tbl WHERE house_Name = "{data.name}"')
-
-    if not house_result:
-        raise HTTPException(status_code=404, detail="Household not found")
-
-    house_id = house_result[0]["house_Id"]
-    print(f"Household ID: {house_id}")
-
-    # 3. Update the user's house_id
-    update_query = f'UPDATE user_tbl SET house_Id = {house_id} WHERE user_email = "{data.email}"'
-
-    print(f"Update Query: {update_query}")
-    executeWriteQuery(query=update_query)  # run update using existing query function
+    # 2. Update the user's house_Id with the new house_id
+    user_result = selectUser(query={"user_email": data.email})
+    if not user_result:
+        raise HTTPException(status_code=404, detail="User not found")
+    user_id = user_result[0]["_id"]
+    updateUser(user_id, {"house_Id": house_id})
 
     return {"message": "Household created", "house_id": house_id}
 
@@ -312,16 +278,16 @@ class InventoryItem(BaseModel):
     category: str
     quantity: int
     #image: Optional[str]
-    user_id: int  # Added user_id here
+    user_id: str  # Added user_id here
 
 
 @router.post("/inventory/add")
 async def add_item(item: InventoryItem):
     try:
-        expiry_info,name = estimate_expiry_date(item.name)
+        expiry_info, name = estimate_expiry_date(item.name)
 
         print(item.user_id)
-        house_result = selectUser(f'SELECT house_Id FROM user_tbl WHERE user_Id = "{item.user_id}"')
+        house_result = selectUser(query={"_id": item.user_id})
         if not house_result:
             raise HTTPException(status_code=404, detail="House ID not found for user")
 
@@ -329,7 +295,6 @@ async def add_item(item: InventoryItem):
         print(f"Household ID: {house_id}")
 
         item_dict = item.dict()
-        
         item_dict = {
             "name": name,
             "category": item.category,
@@ -338,33 +303,27 @@ async def add_item(item: InventoryItem):
             "expiry_date": expiry_info,
             "house_id": house_id
         }
-        
-
         inventory_collection.insert_one(item_dict)
-
         return {
             "status": "success",
             "message": "Item added successfully",
             "expiry_date": expiry_info,
         }
-
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
 class DeleteItemRequest(BaseModel):
-    user_id: int
+    user_id: str
     name: str
     expiry: str
 
 @router.delete("/inventory/delete")
 async def delete_inventory_item(data: DeleteItemRequest):
     try:
-        # Get house_id using user_id from MySQL
-        house_result = selectUser(f'SELECT house_Id FROM user_tbl WHERE user_Id = "{data.user_id}"')
+        house_result = selectUser(query={"_id": data.user_id})
         if not house_result:
             raise HTTPException(status_code=404, detail="House ID not found for user")
-
         house_id = house_result[0]["house_Id"]
 
         MONGO_URI = os.getenv("MONGO_URI")
@@ -394,18 +353,16 @@ async def delete_inventory_item(data: DeleteItemRequest):
     
 
 class UpdateQuantityRequest(BaseModel):
-    user_id: int
+    user_id: str
     name: str
     quantity: int
 
 @router.put("/inventory/update-quantity")
 async def update_inventory_quantity(data: UpdateQuantityRequest):
     try:
-        # Get house_id using user_id from MySQL
-        house_result = selectUser(f'SELECT house_Id FROM user_tbl WHERE user_Id = "{data.user_id}"')
+        house_result = selectUser(query={"_id": data.user_id})
         if not house_result:
             raise HTTPException(status_code=404, detail="House ID not found for user")
-
         house_id = house_result[0]["house_Id"]
 
 
@@ -434,15 +391,14 @@ async def update_inventory_quantity(data: UpdateQuantityRequest):
 
 
 class UserRequest(BaseModel):
-    user_id: int
+    user_id: str
 
 @router.post("/inventory/get-items")
 async def get_inventory_items(data: UserRequest):
     try:
-        house_result = selectUser(f'SELECT house_Id FROM user_tbl WHERE user_Id = "{data.user_id}"')
+        house_result = selectUser(query={"_id": data.user_id})
         if not house_result:
             raise HTTPException(status_code=404, detail="House ID not found for user")
-
         house_id = house_result[0]["house_Id"]
         
         print(f"Household ID: {house_id}")
@@ -565,7 +521,7 @@ recipes = [
 
 
 class UserRequest(BaseModel):
-    user_id: int
+    user_id: str
     recipeCount: int
 
 
@@ -584,32 +540,28 @@ async def get_recipes(request: UserRequest):
 
 
 class UpdateProfilePicture(BaseModel):
-    user_id: int
+    user_id: str
     profile_pic: str
 
 @router.put("/update-profile-picture")
 async def update_profile_picture(data: UpdateProfilePicture):
     try:
-        query = f'UPDATE user_tbl SET user_profilePic = "{data.profile_pic}" WHERE user_Id = {data.user_id}'
-        success = executeWriteQuery(query=query)
+        update_fields_dict = {"user_profilePic": data.profile_pic}
+        updateUser(data.user_id, update_fields_dict)
         
-        if not success:
-            raise HTTPException(status_code=500, detail="Failed to update profile picture")
-            
         return {"message": "Profile picture updated successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/profile/{user_id}")
-async def get_user_profile(user_id: int):
+async def get_user_profile(user_id: str):
     try:
-        result = selectUser(id=user_id)
+        result = selectUser(query={"_id": user_id})
         if not result:
             raise HTTPException(status_code=404, detail="User not found")
-            
         user_data = result[0]
         return {
-            "user_id": user_data["user_Id"],
+            "user_id": user_data["_id"],
             "name": user_data["user_Name"],
             "email": user_data["user_email"],
             "phone": user_data["user_phone"],
@@ -629,7 +581,7 @@ class Task(BaseModel):
     due_date: str
     assigned_to: str
     category: str
-    user_id: int
+    user_id: str
     is_completed: bool = False
 
 @router.post("/tasks/create")
@@ -660,7 +612,7 @@ async def create_task(task: Task):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/tasks/{user_id}")
-async def get_tasks(user_id: int):
+async def get_tasks(user_id: str):
     try:
         # Initialize MongoDB connection
         client = MongoClient(os.getenv("MONGO_URI"))
@@ -794,7 +746,7 @@ class ResetPasswordRequest(BaseModel):
 async def forgot_password(request: ForgotPasswordRequest):
     try:
         # Check if email exists in database
-        user_result = selectUser(f'SELECT * FROM user_tbl WHERE user_email = "{request.email}"')
+        user_result = selectUser(query={"user_email": request.email})
         if not user_result:
             raise HTTPException(status_code=404, detail="Email not found")
         
@@ -848,9 +800,8 @@ async def reset_password(request: ResetPasswordRequest):
             raise HTTPException(status_code=400, detail="Invalid or expired code")
         
         # Update password in database
-        query = f'UPDATE user_tbl SET user_password = "{request.new_password}" WHERE user_email = "{request.email}"'
-        if not executeWriteQuery(query):
-            raise HTTPException(status_code=500, detail="Failed to update password")
+        update_fields_dict = {"user_password": request.new_password}
+        updateUser(request.email, update_fields_dict)
         
         # Delete used token
         reset_tokens_collection.delete_many({"email": request.email})
@@ -860,7 +811,7 @@ async def reset_password(request: ResetPasswordRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 class UpdateProfileRequest(BaseModel):
-    user_id: int
+    user_id: str
     name: str
     email: str
     phone: str
@@ -875,25 +826,22 @@ class UpdateProfileRequest(BaseModel):
 async def update_profile(data: UpdateProfileRequest):
     try:
         # Update user data
-        query = f'''
-            UPDATE user_tbl 
-            SET user_Name = "{data.name}",
-                user_email = "{data.email}",
-                user_phone = "{data.phone}",
-                user_Height = {data.height if data.height is not None else 'NULL'},
-                user_weight = {data.weight if data.weight is not None else 'NULL'},
-                user_diet = "{data.diet if data.diet is not None else 'NULL'}",
-                user_gender = "{data.gender if data.gender is not None else 'NULL'}",
-                user_birthday = "{data.birthday if data.birthday is not None else 'NULL'}"
-            WHERE user_Id = {data.user_id}
-        '''
+        update_fields_dict = {
+            "user_Name": data.name,
+            "user_email": data.email,
+            "user_phone": data.phone,
+            "user_Height": data.height if data.height is not None else 'NULL',
+            "user_weight": data.weight if data.weight is not None else 'NULL',
+            "user_diet": data.diet if data.diet is not None else 'NULL',
+            "user_gender": data.gender if data.gender is not None else 'NULL',
+            "user_birthday": data.birthday if data.birthday is not None else 'NULL'
+        }
         
-        if not executeWriteQuery(query):
-            raise HTTPException(status_code=500, detail="Failed to update user profile")
+        updateUser(data.user_id, update_fields_dict)
 
         # Delete existing allergies
-        delete_query = f'DELETE FROM allergy_tbl WHERE user_Id = {data.user_id}'
-        executeWriteQuery(delete_query)
+        delete_query = f'DELETE FROM allergy_tbl WHERE user_Id = "{data.user_id}"'
+        updateUser(data.user_id, {"allergies": []})
 
         # Insert new allergies
         for allergy in data.allergies:
@@ -905,9 +853,9 @@ async def update_profile(data: UpdateProfileRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/allergies/{user_id}")
-async def get_user_allergies(user_id: int):
+async def get_user_allergies(user_id: str):
     try:
-        result = selectAllergy(f'SELECT allergy_name FROM allergy_tbl WHERE user_Id = {user_id}')
+        result = selectAllergy(query={"user_Id": user_id})
         if not result:
             return {"allergies": []}
             

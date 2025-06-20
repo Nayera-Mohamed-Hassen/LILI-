@@ -1,4 +1,3 @@
-
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 
@@ -14,30 +13,4 @@ try:
 except Exception as e:
     print(e)
 
-
-
-import mysql.connector
-from mysql.connector import Error
-
-try:
-    conn = mysql.connector.connect(
-        host="maglev.proxy.rlwy.net",
-        port=48289,
-        user="root",
-        password="kjtNngDcdosjnqdZmdADZIxOpyiiVKWF",
-        database="railway"
-    )
-
-    cursor = conn.cursor()
-    # cursor.execute("INSERT INTO household_tbl (house_Name, house_pic, house_address) VALUES (%s, %s, %s)", ("H1", "sss", "H1Adress"))
-    # conn.commit()
-
-    cursor.execute(("Select * from household_tbl"))
-    data= cursor.fetchall()
-    for i in data:
-        print(i)
-
-
-except Error as e:
-    print("❌ Error while connecting to MySQL:", e)
 

@@ -389,7 +389,7 @@ class _InitSetupPageState extends State<InitSetupPage> {
           "weight": double.tryParse(_weight.text),
           "diet": _selectedDiet,
           "gender": _selectedGender,
-          "house_id": 1,
+          "house_id": "1",
           "allergy": _alergiesController.text,
         }),
       );

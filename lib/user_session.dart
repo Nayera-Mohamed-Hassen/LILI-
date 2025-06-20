@@ -8,13 +8,13 @@ class UserSession {
   UserSession._internal();
 
   int recipesCount = 1;
-  int? userId = 0;
+  String? userId = '';
 
-  void setUserId(int id) {
+  void setUserId(String id) {
     userId = id;
   }
 
-  int? getUserId() {
+  String? getUserId() {
     return userId;
   }
 

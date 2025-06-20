@@ -77,8 +77,8 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
       return;
     }
 
-    final int? userId = UserSession().getUserId();
-    if (userId == null || userId == 0) {
+    final String? userId = UserSession().getUserId();
+    if (userId == null || userId.isEmpty) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('User not logged in')));

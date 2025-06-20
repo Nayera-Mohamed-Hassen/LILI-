@@ -23,11 +23,16 @@ class TaskService extends ChangeNotifier {
       _error = null;
       notifyListeners();
 
+      final userId = UserSession().getUserId();
+      if (userId == null || userId.isEmpty) {
+        _error = 'User ID is missing. Please log in again.';
+        _isLoading = false;
+        notifyListeners();
+        return;
+      }
+
       final response = await http.get(
-        Uri.parse(
-          'http://10.0.2.2:8000/user/tasks/' +
-              (UserSession().getUserId().toString() ?? ''),
-        ),
+        Uri.parse('http://10.0.2.2:8000/user/tasks/' + userId),
       );
 
       if (response.statusCode == 200) {

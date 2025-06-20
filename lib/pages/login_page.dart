@@ -243,9 +243,9 @@ class _LoginPageState extends State<LoginPage> {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        final userId = data['user_id'];
+        final userId = data['user_id']?.toString();
 
-        if (userId != 0) {
+        if (userId != null && userId.isNotEmpty) {
           UserSession().setUserId(userId);
           UserSession().setRecipeCount(1);
           Navigator.pushNamed(context, '/homepage');

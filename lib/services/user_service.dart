@@ -5,8 +5,8 @@ class UserService {
   // For Android Emulator, use 10.0.2.2 instead of localhost
   static const String baseUrl = 'http://10.0.2.2:8000/user';
 
-  Future<Map<String, dynamic>> getUserProfile(int? userId) async {
-    if (userId == null || userId == 0) {
+  Future<Map<String, dynamic>> getUserProfile(String? userId) async {
+    if (userId == null || userId.isEmpty) {
       throw Exception('Invalid user ID');
     }
 
@@ -54,7 +54,7 @@ class UserService {
     }
   }
 
-  Future<List<String>> getUserAllergies(int userId) async {
+  Future<List<String>> getUserAllergies(String userId) async {
     try {
       final url = Uri.parse('$baseUrl/allergies/$userId');
       final response = await http.get(
@@ -78,7 +78,7 @@ class UserService {
   }
 
   Future<void> updateProfile({
-    required int userId,
+    required String userId,
     required String name,
     required String email,
     required String phone,

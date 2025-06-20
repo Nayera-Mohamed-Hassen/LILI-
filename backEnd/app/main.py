@@ -1,6 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .routes import user_routes, transaction_routes  # Add transaction_routes import
+from fastapi.exception_handlers import RequestValidationError
+from fastapi.requests import Request
+from fastapi.responses import JSONResponse
 
 app = FastAPI()
 
@@ -20,3 +23,12 @@ app.include_router(transaction_routes.router)  # Add transaction routes
 @app.get("/")
 async def root():
     return {"message": "Welcome to LILI API"}
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    print("Validation error:", exc.errors())
+    print("Request body:", await request.body())
+    return JSONResponse(
+        status_code=422,
+        content={"detail": exc.errors(), "body": exc.body},
+    )

@@ -181,7 +181,7 @@ class _ProfilePageState extends State<ProfilePage> {
               child: Text("Logout"),
               onPressed: () {
                 // Clear the user session
-                UserSession().setUserId(0);
+                UserSession().setUserId('');
                 UserSession().setRecipeCount(1);
 
                 // Close the dialog

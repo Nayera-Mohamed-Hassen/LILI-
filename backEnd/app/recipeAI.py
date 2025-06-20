@@ -155,10 +155,10 @@ def get_recipe_recommendations(user_id, count=1):
         inventory_col = mongo_client["lili"]["inventory"]
 
         try:
-            house_result = selectUser(f'SELECT house_Id FROM user_tbl WHERE user_Id = "{user_id}"')
-            if not house_result:
+            user_result = selectUser(id=str(user_id))
+            if not user_result:
                 raise HTTPException(status_code=404, detail="House ID not found for user")
-            house_id = house_result[0]["house_Id"]
+            house_id = user_result[0]["house_Id"]
         except Exception as e:
             logging.error(f"Error fetching house ID: {e}")
             raise

@@ -1,373 +1,132 @@
 import os
 from datetime import datetime
 from dotenv import load_dotenv
-import mysql.connector
+from pymongo import MongoClient
+import uuid
 
 load_dotenv()
 
-
-###########  insert house  #############
-def insertHouseHold(name: str, pic: str, address: str) -> bool:
-    try:
-        conn = mysql.connector.connect(
-            host=os.getenv("MYSQL_HOST"),
-            port=os.getenv("MYSQL_PORT"),
-            user=os.getenv("MYSQL_USER"),
-            password=os.getenv("MYSQL_PASSWORD"),
-            database=os.getenv("MYSQL_DATABASE")
-        )
-        cursor = conn.cursor()
-
-        query = "INSERT INTO household_tbl (house_Name, house_pic, house_address) VALUES (%s, %s, %s)"
-        values = (name, pic, address)
-        cursor.execute(query, values)
-        conn.commit()
-
-        cursor.close()
-        conn.close()
-        return True
-    except Exception as e:
-        print("Error inserting user:", e)
-        return False
-
-
-
-
-############ select house ################
-def selectHouseHold(query:str = "") -> list:
-    data = []
-    try:
-        conn = mysql.connector.connect(
-            host=os.getenv("MYSQL_HOST"),
-            port=os.getenv("MYSQL_PORT"),
-            user=os.getenv("MYSQL_USER"),
-            password=os.getenv("MYSQL_PASSWORD"),
-            database=os.getenv("MYSQL_DATABASE")
-        )
-
-        cursor = conn.cursor()
-        if query == "":
-            cursor.execute("SELECT * FROM household_tbl")
-            data = cursor.fetchall()
-
-        else:
-            cursor.execute(query)  # Ensure `query` is safe or use parameters
-            data = cursor.fetchall()
-
-        cursor.close()
-        conn.close()
-        return data
-    except Exception as e:
-        print("Error fetching data:", e)
-
-
-
-############ insert user #############
-
-def insertUser(
-    user_Name: str,
-    user_password: str,
-    user_birthday: str,  # Format: "YYYY-MM-DD"
-    user_profilePic: str = None,
-    user_email: str = "",
-    user_phone: str = "",
-    user_Height: float = None,
-    user_weight: float = None,
-    user_diet: str = "",
-    user_gender: str = "",
-    house_Id: int = None
-) -> bool:
-    try:
-        conn = mysql.connector.connect(
-            host=os.getenv("MYSQL_HOST"),
-            port=os.getenv("MYSQL_PORT"),
-            user=os.getenv("MYSQL_USER"),
-            password=os.getenv("MYSQL_PASSWORD"),
-            database=os.getenv("MYSQL_DATABASE")
-        )
-        cursor = conn.cursor()
-
-        sql = """
-        INSERT INTO user_tbl (
-            user_Name, user_role, user_password, user_birthday,
-            user_profilePic, user_email, user_phone,
-            user_Height, user_weight, user_diet, user_gender, house_Id
-        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-        """
-
-        values = (
-            user_Name,
-            "user",
-            user_password,
-            user_birthday,
-            user_profilePic,
-            user_email,
-            user_phone,
-            user_Height,
-            user_weight,
-            user_diet,
-            user_gender,
-            house_Id
-        )
-
-        cursor.execute(sql, values)
-        conn.commit()
-        cursor.close()
-        conn.close()
-        return True
-
-    except Exception as e:
-        print("Error inserting user:", e)
-        return False
-
-
-########## select user ##################
-
-
-def selectUser(query: str = "",id:int = 0) -> list:
-    data = []
-    try:
-        conn = mysql.connector.connect(
-            host=os.getenv("MYSQL_HOST"),
-            port=os.getenv("MYSQL_PORT"),
-            user=os.getenv("MYSQL_USER"),
-            password=os.getenv("MYSQL_PASSWORD"),
-            database=os.getenv("MYSQL_DATABASE")
-        )
-
-        cursor = conn.cursor(dictionary=True)
-
-        if query != "":
-            cursor.execute(query)
-        elif id!=0:
-            cursor.execute("SELECT * FROM user_tbl where user_Id = %s",(id,))
-        else:
-            cursor.execute("SELECT * FROM user_tbl")
-
-
-        data = cursor.fetchall()
-        cursor.close()
-        conn.close()
-        return data
-
-    except Exception as e:
-        print("Error fetching user data:", e)
-        return []
-    
-
-############ update user #############
-
-def executeWriteQuery(query: str) -> bool:
-    try:
-        conn = mysql.connector.connect(
-            host=os.getenv("MYSQL_HOST"),
-            port=os.getenv("MYSQL_PORT"),
-            user=os.getenv("MYSQL_USER"),
-            password=os.getenv("MYSQL_PASSWORD"),
-            database=os.getenv("MYSQL_DATABASE")
-        )
-
-        cursor = conn.cursor()
-        cursor.execute(query)
-        conn.commit()
-
-        cursor.close()
-        conn.close()
-        return True
-
-    except Exception as e:
-        print("Error executing write query:", e)
-        return False
-
-
-
-
-
-######### insert notification   #################
-
-def insert_notification(title: str, body: str, user_id: int, is_read: bool = False) -> bool:
-    try:
-        conn = mysql.connector.connect(
-            host=os.getenv("MYSQL_HOST"),
-            port=os.getenv("MYSQL_PORT"),
-            user=os.getenv("MYSQL_USER"),
-            password=os.getenv("MYSQL_PASSWORD"),
-            database=os.getenv("MYSQL_DATABASE")
-        )
-        cursor = conn.cursor()
-
-        current_time = datetime.now().time().strftime('%H:%M:%S')  # 'HH:MM:SS'
-
-        query = """
-        INSERT INTO notification_tbl (not_title, not_body, not_isRead, not_timeStamp, user_Id)
-        VALUES (%s, %s, %s, %s, %s)
-        """
-        values = (title, body, is_read, current_time, user_id)
-
-        cursor.execute(query, values)
-        conn.commit()
-
-        cursor.close()
-        conn.close()
-        return True
-    except Exception as e:
-        print("Error inserting notification:", e)
-        return False
-
-
-################## select notification ######
-def selectNotifications(query: str = "", id:int = 0) -> list:
-    data = []
-    try:
-        conn = mysql.connector.connect(
-            host=os.getenv("MYSQL_HOST"),
-            port=os.getenv("MYSQL_PORT"),
-            user=os.getenv("MYSQL_USER"),
-            password=os.getenv("MYSQL_PASSWORD"),
-            database=os.getenv("MYSQL_DATABASE")
-        )
-        cursor = conn.cursor()
-
-        if query != "":
-            cursor.execute(query)
-        elif id!=0:
-            cursor.execute("SELECT * FROM task_tbl where user_Id = %s",(id,))
-        else:
-            cursor.execute("SELECT * FROM  notification_tbl")
-
-
-        data = cursor.fetchall()
-        cursor.close()
-        conn.close()
-        return data
-
-    except Exception as e:
-        print("Error fetching notifications:", e)
-        return []
-
-
-
-
-
-########### insert task #############
-def insert_task(title: str, description: str, status: str, deadline: str, assigner_id: int, assigned_to_id: int) -> bool:
-    try:
-        conn = mysql.connector.connect(
-            host=os.getenv("MYSQL_HOST"),
-            port=os.getenv("MYSQL_PORT"),
-            user=os.getenv("MYSQL_USER"),
-            password=os.getenv("MYSQL_PASSWORD"),
-            database=os.getenv("MYSQL_DATABASE")
-        )
-        cursor = conn.cursor()
-
-        query = """
-        INSERT INTO task_tbl (task_title, task_description, task_status, task_deadline, assigner_Id, assignedTo_Id)
-        VALUES (%s, %s, %s, %s, %s, %s)
-        """
-        values = (title, description, status, deadline, assigner_id, assigned_to_id)
-        cursor.execute(query, values)
-        conn.commit()
-
-        cursor.close()
-        conn.close()
-        return True
-    except Exception as e:
-        print("Error inserting task:", e)
-        return False
-
-
-
-
-######### select task #########
-def selectTasks(query: str = "",id: int = 0) -> list:
-    data = []
-    try:
-        conn = mysql.connector.connect(
-            host=os.getenv("MYSQL_HOST"),
-            port=os.getenv("MYSQL_PORT"),
-            user=os.getenv("MYSQL_USER"),
-            password=os.getenv("MYSQL_PASSWORD"),
-            database=os.getenv("MYSQL_DATABASE")
-        )
-        cursor = conn.cursor()
-
-        if query != "":
-            cursor.execute(query)
-        elif id!=0:
-            cursor.execute("SELECT * FROM task_tbl where assignedTo_Id = %s",(id,))
-        else:
-            cursor.execute("SELECT * FROM task_tbl")
-
-
-        data = cursor.fetchall()
-        cursor.close()
-        conn.close()
-        return data
-
-    except Exception as e:
-        print("Error fetching tasks:", e)
-        return []
-
-############# insert allergy #############
-def insertAllergy(allergy_name: str, user_Id: int) -> bool:
-    try:
-        conn = mysql.connector.connect(
-            host=os.getenv("MYSQL_HOST"),
-            port=os.getenv("MYSQL_PORT"),
-            user=os.getenv("MYSQL_USER"),
-            password=os.getenv("MYSQL_PASSWORD"),
-            database=os.getenv("MYSQL_DATABASE")
-        )
-
-        cursor = conn.cursor()
-        cursor.execute("""
-            INSERT INTO allergy_tbl (allergy_name, user_Id)
-            VALUES (%s, %s)
-        """, (allergy_name, user_Id))
-
-        conn.commit()
-        cursor.close()
-        conn.close()
-        return True
-    except Exception as e:
-        print("Error inserting allergy:", e)
-        return False
-
-################# select allergy #####################
-def selectAllergy(query: str = "",id: int = 0) -> list:
-    data = []
-    try:
-        conn = mysql.connector.connect(
-            host=os.getenv("MYSQL_HOST"),
-            port=os.getenv("MYSQL_PORT"),
-            user=os.getenv("MYSQL_USER"),
-            password=os.getenv("MYSQL_PASSWORD"),
-            database=os.getenv("MYSQL_DATABASE")
-        )
-
-        cursor = conn.cursor(dictionary=True)
-
-        if query != "":
-            cursor.execute(query)
-            print("entered")
-        elif not id == 0:
-            cursor.execute("SELECT * FROM allergy_tbl where user_Id = %s", (id,))
-        else:
-            cursor.execute("SELECT * FROM allergy_tbl")
-
-        data = cursor.fetchall()
-        cursor.close()
-        conn.close()
-        return data
-
-    except Exception as e:
-        print("Error fetching allergy data:", e)
-        return []
-
-
-
-
+MONGO_URI = os.getenv("MONGO_URI")
+client = MongoClient(MONGO_URI)
+db = client["lili"]
+
+def generate_id():
+    return str(uuid.uuid4())
+
+# Household CRUD
+
+def insertHouseHold(name: str, pic: str, address: str) -> str:
+    doc = {
+        "_id": generate_id(),
+        "house_Name": name,
+        "house_pic": pic,
+        "house_address": address
+    }
+    db["household_tbl"].insert_one(doc)
+    return doc["_id"]
+
+def selectHouseHold(query: dict = None) -> list:
+    if query is None:
+        query = {}
+    return list(db["household_tbl"].find(query))
+
+# User CRUD
+
+def insertUser(user_Name: str, user_password: str, user_birthday: str, user_profilePic: str = None, user_email: str = "", user_phone: str = "", user_Height: float = None, user_weight: float = None, user_diet: str = "", user_gender: str = "", house_Id: str = None) -> str:
+    doc = {
+        "_id": generate_id(),
+        "user_Name": user_Name,
+        "user_role": "user",
+        "user_password": user_password,
+        "user_birthday": user_birthday,
+        "user_profilePic": user_profilePic,
+        "user_email": user_email,
+        "user_phone": user_phone,
+        "user_Height": user_Height,
+        "user_weight": user_weight,
+        "user_diet": user_diet,
+        "user_gender": user_gender,
+        "house_Id": house_Id,
+        "user_isLoggedIn": True
+    }
+    db["user_tbl"].insert_one(doc)
+    return doc["_id"]
+
+def selectUser(query: dict = None, id: str = None) -> list:
+    if query is not None:
+        return list(db["user_tbl"].find(query))
+    elif id is not None:
+        return list(db["user_tbl"].find({"_id": id}))
+    else:
+        return list(db["user_tbl"].find())
+
+def updateUser(user_id: str, update_fields: dict) -> bool:
+    result = db["user_tbl"].update_one({"_id": user_id}, {"$set": update_fields})
+    return result.modified_count > 0
+
+# Notification CRUD
+
+def insert_notification(title: str, body: str, user_id: str, is_read: bool = False) -> bool:
+    doc = {
+        "_id": generate_id(),
+        "not_title": title,
+        "not_body": body,
+        "not_isRead": is_read,
+        "not_timeStamp": datetime.now().strftime('%H:%M:%S'),
+        "user_Id": user_id
+    }
+    db["notification_tbl"].insert_one(doc)
+    return True
+
+def selectNotifications(query: dict = None, id: str = None) -> list:
+    if query is not None:
+        return list(db["notification_tbl"].find(query))
+    elif id is not None:
+        return list(db["notification_tbl"].find({"user_Id": id}))
+    else:
+        return list(db["notification_tbl"].find())
+
+# Task CRUD
+
+def insert_task(title: str, description: str, status: str, deadline: str, assigner_id: str, assigned_to_id: str) -> str:
+    doc = {
+        "_id": generate_id(),
+        "task_title": title,
+        "task_description": description,
+        "task_status": status,
+        "task_deadline": deadline,
+        "assigner_Id": assigner_id,
+        "assignedTo_Id": assigned_to_id
+    }
+    db["task_tbl"].insert_one(doc)
+    return doc["_id"]
+
+def selectTasks(query: dict = None, id: str = None) -> list:
+    if query is not None:
+        return list(db["task_tbl"].find(query))
+    elif id is not None:
+        return list(db["task_tbl"].find({"assignedTo_Id": id}))
+    else:
+        return list(db["task_tbl"].find())
+
+# Allergy CRUD
+
+def insertAllergy(allergy_name: str, user_Id: str) -> bool:
+    doc = {
+        "_id": generate_id(),
+        "allergy_name": allergy_name,
+        "user_Id": user_Id
+    }
+    db["allergy_tbl"].insert_one(doc)
+    return True
+
+def selectAllergy(query: dict = None, id: str = None) -> list:
+    if query is not None:
+        return list(db["allergy_tbl"].find(query))
+    elif id is not None:
+        return list(db["allergy_tbl"].find({"user_Id": id}))
+    else:
+        return list(db["allergy_tbl"].find())
 
 if __name__ == '__main__':
     #print(insertUser("hana","AppAdminstrator","1234","2003-06-24","sss","hanabassem@gmail.com","01111111",'169',"60","vegan","female","2"))

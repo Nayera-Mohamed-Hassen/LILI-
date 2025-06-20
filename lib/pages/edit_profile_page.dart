@@ -98,8 +98,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
     setState(() => _isLoading = true);
 
     try {
-      int? userId = UserSession().getUserId();
-      if (userId == null || userId == 0) {
+      String? userId = UserSession().getUserId();
+      if (userId == null || userId.isEmpty) {
         throw Exception('Invalid user ID');
       }
 
