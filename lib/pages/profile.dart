@@ -8,6 +8,9 @@ import 'package:LILI/pages/edit_profile_page.dart';
 import 'package:LILI/pages/wave2.dart'; // <-- Import WaveClipper here
 import 'package:LILI/pages/signing_page.dart';
 import 'package:LILI/services/user_service.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'dart:async';
 
 class ProfilePage extends StatefulWidget {
   @override
@@ -19,6 +22,10 @@ class _ProfilePageState extends State<ProfilePage> {
   final UserService _userService = UserService();
   bool _isLoading = true;
   String _error = '';
+  final TextEditingController _feedbackController = TextEditingController();
+  bool _isSavingFeedback = false;
+  String _feedbackStatus = '';
+  int _feedbackRating = 0;
 
   User user = User(
     name: "Loading...",
@@ -28,10 +35,14 @@ class _ProfilePageState extends State<ProfilePage> {
     allergies: [],
   );
 
+  bool _showProfileToOthers = true;
+  bool _enableActivityStatus = true;
+
   @override
   void initState() {
     super.initState();
     _loadUserProfile();
+    _loadFeedback();
   }
 
   Future<void> _loadUserProfile() async {
@@ -73,6 +84,69 @@ class _ProfilePageState extends State<ProfilePage> {
       setState(() {
         _error = 'Failed to load profile: $e';
         _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _loadFeedback() async {
+    final userId = UserSession().getUserId();
+    if (userId == null || userId.isEmpty) return;
+    try {
+      final url = Uri.parse('http://10.0.2.2:8000/user/feedback/$userId');
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        _feedbackController.text = data['feedback'] ?? '';
+        _feedbackRating = data['rating'] ?? 0;
+      }
+    } catch (e) {
+      // Optionally handle error
+    }
+  }
+
+  Future<void> _saveFeedback() async {
+    setState(() {
+      _isSavingFeedback = true;
+      _feedbackStatus = '';
+    });
+    final userId = UserSession().getUserId();
+    if (userId == null || userId.isEmpty) return;
+    try {
+      final url = Uri.parse('http://10.0.2.2:8000/user/feedback');
+      final response = await http.post(
+        url,
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({
+          "user_id": userId,
+          "feedback": _feedbackController.text.trim(),
+          "rating": _feedbackRating,
+        }),
+      );
+      if (response.statusCode == 200) {
+        setState(() {
+          _feedbackStatus = 'Feedback saved!';
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Thank you for your feedback!')),
+        );
+      } else {
+        setState(() {
+          _feedbackStatus = 'Failed to save feedback.';
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to save feedback.')),
+        );
+      }
+    } catch (e) {
+      setState(() {
+        _feedbackStatus = 'Error saving feedback.';
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    } finally {
+      setState(() {
+        _isSavingFeedback = false;
       });
     }
   }
@@ -179,7 +253,16 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
             TextButton(
               child: Text("Logout"),
-              onPressed: () {
+              onPressed: () async {
+                // Set isLoggedIn to false in the database
+                final userId = UserSession().getUserId();
+                if (userId != null && userId.isNotEmpty) {
+                  try {
+                    await logoutUser(userId);
+                  } catch (e) {
+                    // Optionally handle error
+                  }
+                }
                 // Clear the user session
                 UserSession().setUserId('');
                 UserSession().setRecipeCount(1);
@@ -195,6 +278,165 @@ class _ProfilePageState extends State<ProfilePage> {
               },
             ),
           ],
+        );
+      },
+    );
+  }
+
+  Future<void> logoutUser(String userId) async {
+    final url = Uri.parse('http://10.0.2.2:8000/user/logout');
+    await http.post(
+      url,
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({"user_id": userId}),
+    );
+  }
+
+  void _showResetPasswordDialog() {
+    final _newPasswordController = TextEditingController();
+    final _confirmPasswordController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Reset Password'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: _newPasswordController,
+                obscureText: true,
+                decoration: const InputDecoration(labelText: 'New Password'),
+              ),
+              TextField(
+                controller: _confirmPasswordController,
+                obscureText: true,
+                decoration: const InputDecoration(labelText: 'Confirm Password'),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final newPassword = _newPasswordController.text.trim();
+                final confirmPassword = _confirmPasswordController.text.trim();
+                if (newPassword.isEmpty || confirmPassword.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Please fill in both fields')),
+                  );
+                  return;
+                }
+                if (newPassword != confirmPassword) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Passwords do not match')),
+                  );
+                  return;
+                }
+                // Call backend to update password
+                try {
+                  final userId = UserSession().getUserId();
+                  final response = await resetPassword(userId, newPassword);
+                  if (response) {
+                    Navigator.of(context).pop();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Password updated successfully')),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Failed to update password')),
+                    );
+                  }
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error: $e')),
+                  );
+                }
+              },
+              child: const Text('Update'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<bool> resetPassword(String? userId, String newPassword) async {
+    if (userId == null || userId.isEmpty) return false;
+    final url = Uri.parse('http://10.0.2.2:8000/user/reset-password');
+    final response = await http.post(
+      url,
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({
+        "user_id": userId,
+        "new_password": newPassword,
+      }),
+    );
+    return response.statusCode == 200;
+  }
+
+  void _showPrivacySheet() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        bool showProfile = _showProfileToOthers;
+        bool activityStatus = _enableActivityStatus;
+        return StatefulBuilder(
+          builder: (context, setState) => Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Privacy Settings',
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 24),
+                SwitchListTile(
+                  value: showProfile,
+                  onChanged: (val) => setState(() => showProfile = val),
+                  title: const Text('Show my profile to others'),
+                  subtitle: const Text('Allow your profile to be visible to other users.'),
+                ),
+                SwitchListTile(
+                  value: activityStatus,
+                  onChanged: (val) => setState(() => activityStatus = val),
+                  title: const Text('Enable activity status'),
+                  subtitle: const Text('Let others see when you are active.'),
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: const Text('Cancel'),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          _showProfileToOthers = showProfile;
+                          _enableActivityStatus = activityStatus;
+                        });
+                        Navigator.of(context).pop();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Privacy settings updated')),
+                        );
+                      },
+                      child: const Text('Save'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
         );
       },
     );
@@ -355,6 +597,8 @@ class _ProfilePageState extends State<ProfilePage> {
                               _buildActionButtons(),
                               const SizedBox(height: 24),
                               _buildSettingsSection(),
+                              const SizedBox(height: 24),
+                              _buildFeedbackCard(),
                             ],
                           ),
                         ),
@@ -537,9 +781,13 @@ class _ProfilePageState extends State<ProfilePage> {
           _buildSettingsTile(
             'Privacy',
             Icons.lock_outline,
-            onTap: () {
-              // Handle privacy settings
-            },
+            onTap: _showPrivacySheet,
+          ),
+          const Divider(height: 1),
+          _buildSettingsTile(
+            'Reset Password',
+            Icons.lock_reset,
+            onTap: _showResetPasswordDialog,
           ),
           const Divider(height: 1),
           _buildSettingsTile(
@@ -584,6 +832,106 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
       trailing: const Icon(Icons.chevron_right),
       onTap: onTap,
+    );
+  }
+
+  Widget _buildFeedbackCard() {
+    return Card(
+      elevation: 4,
+      shadowColor: Colors.black26,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      color: Colors.white,
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: const [
+                Icon(Icons.feedback, color: Color(0xFF1F3354)),
+                SizedBox(width: 8),
+                Text(
+                  'Your Feedback',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1F3354),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                ...List.generate(5, (index) => IconButton(
+                  icon: Icon(
+                    _feedbackRating > index ? Icons.star : Icons.star_border,
+                    color: Colors.amber,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _feedbackRating = index + 1;
+                    });
+                  },
+                )),
+                const SizedBox(width: 8),
+                Text(_feedbackRating > 0 ? '$_feedbackRating/5' : 'Rate us'),
+              ],
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _feedbackController,
+              maxLines: 3,
+              decoration: InputDecoration(
+                hintText: 'Let us know your thoughts or suggestions...',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Color(0xFF1F3354)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Color(0xFF1F3354)),
+                ),
+                fillColor: Colors.white,
+                filled: true,
+              ),
+              style: const TextStyle(color: Color(0xFF1F3354)),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: _isSavingFeedback ? null : _saveFeedback,
+                  icon: _isSavingFeedback
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        )
+                      : const Icon(Icons.save),
+                  label: const Text('Save'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF1F3354),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+              ],
+            ),
+            if (_feedbackStatus.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0),
+                child: Text(
+                  _feedbackStatus,
+                  style: TextStyle(
+                    color: _feedbackStatus.contains('saved') ? Colors.green : Colors.red,
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 }

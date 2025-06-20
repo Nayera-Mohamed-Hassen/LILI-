@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../models/user.dart';
 import 'package:LILI/pages/profile.dart';
+import 'package:LILI/services/user_service.dart';
 
 class MoreInfoPage extends StatefulWidget {
   final User user;
@@ -12,6 +13,37 @@ class MoreInfoPage extends StatefulWidget {
 }
 
 class _MoreInfoPageState extends State<MoreInfoPage> {
+  List<String> _allergies = [];
+  bool _isLoadingAllergies = true;
+  final UserService _userService = UserService();
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchAllergies();
+  }
+
+  Future<void> _fetchAllergies() async {
+    setState(() {
+      _isLoadingAllergies = true;
+    });
+    try {
+      final userId = widget.user.email.isNotEmpty ? widget.user.email : null;
+      // Try to get userId from profile if available
+      // If you have userId in User, use that instead
+      final id = userId ?? '';
+      if (id.isNotEmpty) {
+        _allergies = await _userService.getUserAllergies(id);
+      }
+    } catch (e) {
+      _allergies = [];
+    } finally {
+      setState(() {
+        _isLoadingAllergies = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -185,11 +217,13 @@ class _MoreInfoPageState extends State<MoreInfoPage> {
               ),
             ),
             const SizedBox(height: 16),
-            _buildInfoRow(
-              Icons.no_food,
-              'Allergies',
-              widget.user.allergies.isEmpty ? 'None' : widget.user.allergies.join(", "),
-            ),
+            _isLoadingAllergies
+                ? const Center(child: CircularProgressIndicator())
+                : _buildInfoRow(
+                    Icons.no_food,
+                    'Allergies',
+                    _allergies.isEmpty ? 'None' : _allergies.join(", "),
+                  ),
           ],
         ),
       ),

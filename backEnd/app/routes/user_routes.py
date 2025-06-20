@@ -2,7 +2,7 @@ import os
 from typing import List, Optional, Union
 from datetime import datetime, timedelta
 from difflib import get_close_matches
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 from pymongo import MongoClient
 from ..recipeAI import get_recipe_recommendations
@@ -13,6 +13,7 @@ import string
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+import json
 
 
 router = APIRouter(prefix="/user", tags=["User"])
@@ -740,8 +741,7 @@ class VerifyCodeRequest(BaseModel):
     code: str
 
 class ResetPasswordRequest(BaseModel):
-    email: str
-    code: str
+    user_id: str
     new_password: str
 
 @router.post("/forgot-password")
@@ -791,24 +791,13 @@ async def verify_reset_code(request: VerifyCodeRequest):
 @router.post("/reset-password")
 async def reset_password(request: ResetPasswordRequest):
     try:
-        # Verify code again
-        token = reset_tokens_collection.find_one({
-            "email": request.email,
-            "code": request.code,
-            "expires_at": {"$gt": datetime.utcnow()}
-        })
-        
-        if not token:
-            raise HTTPException(status_code=400, detail="Invalid or expired code")
-        
-        # Update password in database
-        update_fields_dict = {"user_password": request.new_password}
-        updateUser(request.email, update_fields_dict)
-        
-        # Delete used token
-        reset_tokens_collection.delete_many({"email": request.email})
-        
-        return {"message": "Password updated successfully"}
+        user_id = request.user_id
+        new_password = request.new_password
+        updated = updateUser(user_id, {"user_password": new_password})
+        if updated:
+            return {"message": "Password updated successfully"}
+        else:
+            raise HTTPException(status_code=404, detail="User not found or password not updated")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -865,4 +854,57 @@ async def get_user_allergies(user_id: str):
         return {"allergies": allergies}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+class LogoutRequest(BaseModel):
+    user_id: str
+
+@router.post("/logout")
+async def logout(request: LogoutRequest):
+    try:
+        user_id = request.user_id
+        updated = updateUser(user_id, {"user_isLoggedIn": False})
+        if updated:
+            return {"message": "User logged out successfully"}
+        else:
+            raise HTTPException(status_code=404, detail="User not found or not updated")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+FEEDBACK_FILE = 'feedbacks.json'
+
+def load_feedbacks():
+    try:
+        with open(FEEDBACK_FILE, 'r') as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+def save_feedbacks(feedbacks):
+    with open(FEEDBACK_FILE, 'w') as f:
+        json.dump(feedbacks, f)
+
+class FeedbackRequest(BaseModel):
+    user_id: str
+    feedback: str
+    rating: int = 0
+
+@router.post("/feedback")
+async def submit_feedback(request: FeedbackRequest):
+    feedbacks = load_feedbacks()
+    feedbacks[request.user_id] = {
+        "feedback": request.feedback,
+        "rating": request.rating
+    }
+    save_feedbacks(feedbacks)
+    return {"message": "Feedback saved successfully"}
+
+@router.get("/feedback/{user_id}")
+async def get_feedback(user_id: str):
+    feedbacks = load_feedbacks()
+    entry = feedbacks.get(user_id, {})
+    return {
+        "user_id": user_id,
+        "feedback": entry.get("feedback", ""),
+        "rating": entry.get("rating", 0)
+    }
 
