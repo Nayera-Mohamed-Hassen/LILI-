@@ -8,6 +8,8 @@ class TaskModel {
   final bool isCompleted;
   final String assignedTo;
   final String category; // Category name
+  final String assignerId;
+  final String assigneeId;
 
   TaskModel({
     required this.id,
@@ -17,6 +19,8 @@ class TaskModel {
     this.isCompleted = false,
     required this.assignedTo,
     required this.category,
+    required this.assignerId,
+    required this.assigneeId,
   });
 
   TaskModel copyWith({bool? isCompleted}) {
@@ -28,6 +32,8 @@ class TaskModel {
       isCompleted: isCompleted ?? this.isCompleted,
       assignedTo: assignedTo,
       category: category,
+      assignerId: assignerId,
+      assigneeId: assigneeId,
     );
   }
 
@@ -39,6 +45,8 @@ class TaskModel {
     'isCompleted': isCompleted,
     'assignedTo': assignedTo,
     'category': category,
+    'assignerId': assignerId,
+    'assigneeId': assigneeId,
   };
 
   factory TaskModel.fromJson(Map<String, dynamic> json) => TaskModel(
@@ -49,5 +57,7 @@ class TaskModel {
     isCompleted: json['isCompleted'],
     assignedTo: json['assignedTo'],
     category: json['category'],
+    assignerId: json['assignerId'],
+    assigneeId: json['assigneeId'],
   );
 }

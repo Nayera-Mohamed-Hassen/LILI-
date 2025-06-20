@@ -4,6 +4,9 @@ import 'package:LILI/models/category_task.dart';
 import 'package:LILI/user_session.dart';
 import 'package:provider/provider.dart';
 import 'package:LILI/services/task_service.dart';
+import 'package:LILI/services/user_service.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class CreateNewTaskPage extends StatefulWidget {
   final List<CategoryModel> categories;
@@ -20,9 +23,14 @@ class _CreateNewTaskPageState extends State<CreateNewTaskPage> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _titleController;
   late TextEditingController _descriptionController;
-  late TextEditingController _assignedToController;
   late DateTime _selectedDate;
   late String _selectedCategory;
+  String? _selectedAssignee;
+  List<Map<String, dynamic>> _householdUsers = [];
+  bool _isLoadingMembers = false;
+  final UserService _userService = UserService();
+  late TextEditingController _otherAssigneeController;
+  bool _showOtherAssignee = false;
 
   @override
   void initState() {
@@ -33,20 +41,44 @@ class _CreateNewTaskPageState extends State<CreateNewTaskPage> {
     _descriptionController = TextEditingController(
       text: widget.taskToEdit?.description ?? '',
     );
-    _assignedToController = TextEditingController(
-      text: widget.taskToEdit?.assignedTo ?? '',
-    );
     _selectedDate = widget.taskToEdit?.dueDate ?? DateTime.now();
     _selectedCategory =
         widget.taskToEdit?.category ?? widget.categories[0].name;
+    _otherAssigneeController = TextEditingController();
+    _selectedAssignee = widget.taskToEdit?.assignedTo;
+    _loadHouseholdUsers();
   }
 
   @override
   void dispose() {
     _titleController.dispose();
     _descriptionController.dispose();
-    _assignedToController.dispose();
+    _otherAssigneeController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadHouseholdUsers() async {
+    setState(() => _isLoadingMembers = true);
+    final userId = UserSession().getUserId();
+    if (userId == null || userId.isEmpty) {
+      setState(() => _isLoadingMembers = false);
+      return;
+    }
+    try {
+      final url = Uri.parse('http://10.0.2.2:8000/user/household-users/$userId');
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        setState(() {
+          _householdUsers = List<Map<String, dynamic>>.from(data);
+          _isLoadingMembers = false;
+        });
+      } else {
+        setState(() => _isLoadingMembers = false);
+      }
+    } catch (e) {
+      setState(() => _isLoadingMembers = false);
+    }
   }
 
   Future<void> _selectDate(BuildContext context) async {
@@ -108,16 +140,21 @@ class _CreateNewTaskPageState extends State<CreateNewTaskPage> {
                 maxLines: 3,
               ),
               SizedBox(height: 16),
-              _buildTextField(
-                controller: _assignedToController,
-                label: 'Assigned To',
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter an assignee';
-                  }
-                  return null;
-                },
-              ),
+              _buildAssigneeDropdown(),
+              if (_showOtherAssignee)
+                Padding(
+                  padding: const EdgeInsets.only(top: 12.0),
+                  child: _buildTextField(
+                    controller: _otherAssigneeController,
+                    label: 'Enter Name',
+                    validator: (value) {
+                      if (_showOtherAssignee && (value == null || value.isEmpty)) {
+                        return 'Please enter a name';
+                      }
+                      return null;
+                    },
+                  ),
+                ),
               SizedBox(height: 16),
               _buildDatePicker(),
               SizedBox(height: 16),
@@ -130,35 +167,63 @@ class _CreateNewTaskPageState extends State<CreateNewTaskPage> {
                       context,
                       listen: false,
                     );
+                    final assignerId = UserSession().getUserId() ?? '';
+                    String assigneeId = assignerId;
+                    String assignedToDisplay = '';
+                    if (_showOtherAssignee) {
+                      assignedToDisplay = _otherAssigneeController.text;
+                      assigneeId = assignerId; // fallback: assign to self if not in household
+                    } else {
+                      // Find the selected household user by name
+                      final selectedMember = _householdUsers.firstWhere(
+                        (member) =>
+                          (member['name'] ?? member['username'] ?? member['email'] ?? '') == _selectedAssignee,
+                        orElse: () => {},
+                      );
+                      assignedToDisplay = _selectedAssignee ?? '';
+                      if (selectedMember.isNotEmpty && selectedMember['user_id'] != null) {
+                        assigneeId = selectedMember['user_id'];
+                      }
+                    }
                     final taskData = {
                       'title': _titleController.text,
                       'description': _descriptionController.text,
                       'due_date': _selectedDate.toIso8601String(),
-                      'assigned_to': _assignedToController.text,
+                      'assigned_to': assignedToDisplay,
                       'category': _selectedCategory,
-                      'user_id': UserSession().getUserId(),
+                      'user_id': assignerId,
                       'is_completed': widget.taskToEdit?.isCompleted ?? false,
+                      'assignerId': assignerId,
+                      'assigneeId': assigneeId,
                     };
 
-                    TaskModel? result;
                     if (widget.taskToEdit != null) {
                       // Update existing task
                       taskData['task_id'] = widget.taskToEdit!.id;
-                      result = await taskService.createTask(taskData);
+                      final success = await taskService.updateTask(taskData);
+                      if (success) {
+                        Navigator.pop(context, true);
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Failed to update task'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
                     } else {
                       // Create new task
-                      result = await taskService.createTask(taskData);
-                    }
-
-                    if (result != null) {
-                      Navigator.pop(context, result);
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Failed to save task'),
-                          backgroundColor: Colors.red,
-                        ),
-                      );
+                      final result = await taskService.createTask(taskData);
+                      if (result != null) {
+                        Navigator.pop(context, result);
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Failed to save task'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
                     }
                   }
                 },
@@ -265,6 +330,57 @@ class _CreateNewTaskPageState extends State<CreateNewTaskPage> {
                 _selectedCategory = value;
               });
             }
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAssigneeDropdown() {
+    if (_isLoadingMembers) {
+      return Center(child: CircularProgressIndicator());
+    }
+    final List<DropdownMenuItem<String>> items = [
+      ..._householdUsers.map((member) {
+        final name = member['name'] ?? member['username'] ?? member['email'] ?? '';
+        return DropdownMenuItem<String>(
+          value: name,
+          child: Text(name),
+        );
+      }),
+      DropdownMenuItem<String>(
+        value: '__other__',
+        child: Text('Other'),
+      ),
+    ];
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.white24),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: _selectedAssignee != null &&
+                  items.any((item) => item.value == _selectedAssignee)
+              ? _selectedAssignee
+              : null,
+          hint: Text('Assigned To', style: TextStyle(color: Colors.white70)),
+          isExpanded: true,
+          dropdownColor: Color(0xFF1F3354),
+          style: TextStyle(color: Colors.white),
+          icon: Icon(Icons.arrow_drop_down, color: Colors.white70),
+          items: items,
+          onChanged: (value) {
+            setState(() {
+              if (value == '__other__') {
+                _showOtherAssignee = true;
+                _selectedAssignee = null;
+              } else {
+                _showOtherAssignee = false;
+                _selectedAssignee = value;
+              }
+            });
           },
         ),
       ),

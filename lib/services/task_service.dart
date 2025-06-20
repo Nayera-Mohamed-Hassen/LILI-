@@ -45,6 +45,8 @@ class TaskService extends ChangeNotifier {
           assignedTo: json['assigned_to'],
           category: json['category'],
           isCompleted: json['is_completed'],
+          assignerId: json['assignerId'] ?? json['user_id'] ?? '',
+          assigneeId: json['assigneeId'] ?? json['assigned_to_id'] ?? '',
         )).toList();
         _error = null;
       } else {
@@ -120,6 +122,8 @@ class TaskService extends ChangeNotifier {
           assignedTo: taskData['assigned_to'],
           category: taskData['category'],
           isCompleted: taskData['is_completed'] ?? false,
+          assignerId: taskData['assignerId'] ?? '',
+          assigneeId: taskData['assigneeId'] ?? '',
         );
         _tasks.add(newTask);
         notifyListeners();
@@ -169,5 +173,19 @@ class TaskService extends ChangeNotifier {
 
   int getPendingTasksCount() {
     return _tasks.where((t) => !t.isCompleted).length;
+  }
+
+  Future<bool> updateTask(Map<String, dynamic> taskData) async {
+    try {
+      final response = await http.put(
+        Uri.parse('http://10.0.2.2:8000/user/tasks/update-full'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(taskData),
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Error updating task: $e');
+      return false;
+    }
   }
 } 

@@ -244,131 +244,171 @@ class _TasksHomePageState extends State<TasksHomePage> {
       );
     }
 
+    final currentUserId = UserSession().getUserId() ?? '';
+    final myTasks = tasks.where((t) => t.assigneeId == currentUserId).toList();
+    final othersTasks =
+        tasks
+            .where(
+              (t) =>
+                  t.assignerId == currentUserId &&
+                  t.assigneeId != currentUserId,
+            )
+            .toList();
+
     return RefreshIndicator(
       onRefresh: () => taskService.fetchTasks(),
-      child: ListView.builder(
+      child: ListView(
         padding: EdgeInsets.all(16),
-        itemCount: tasks.length,
-        itemBuilder: (context, index) {
-          final task = tasks[index];
-          return Dismissible(
-            key: Key(task.id),
-            background: _buildDismissBackground(),
-            secondaryBackground: _buildDismissBackground(isEndToStart: true),
-            onDismissed: (direction) async {
-              final success = await taskService.deleteTask(task);
-              if (!success) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Failed to delete task'),
-                    backgroundColor: Colors.red,
-                  ),
-                );
-              }
-            },
-            child: Card(
-              margin: EdgeInsets.only(bottom: 12),
-              color: Colors.white.withOpacity(0.1),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-                side: BorderSide(color: Colors.white24),
-              ),
-              child: InkWell(
-                onTap: () => _showTaskDetails(task),
-                borderRadius: BorderRadius.circular(16),
-                child: Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              task.title,
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
-                                decoration:
-                                    task.isCompleted
-                                        ? TextDecoration.lineThrough
-                                        : null,
-                              ),
-                            ),
-                          ),
-                          Transform.scale(
-                            scale: 1.2,
-                            child: Checkbox(
-                              value: task.isCompleted,
-                              onChanged: (val) async {
-                                if (val != null) {
-                                  final success = await taskService
-                                      .updateTaskStatus(task, val);
-                                  if (!success) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                          'Failed to update task status',
-                                        ),
-                                        backgroundColor: Colors.red,
-                                      ),
-                                    );
-                                  }
-                                }
-                              },
-                              checkColor: Colors.white,
-                              fillColor: MaterialStateProperty.resolveWith<
-                                Color
-                              >((Set<MaterialState> states) {
-                                if (states.contains(MaterialState.selected)) {
-                                  return Colors.white24;
-                                }
-                                return Colors.transparent;
-                              }),
-                              side: BorderSide(color: Colors.white60),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      if (task.description.isNotEmpty) ...[
-                        SizedBox(height: 8),
-                        Text(
-                          task.description,
-                          style: TextStyle(color: Colors.white70),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                      SizedBox(height: 12),
-                      Row(
-                        children: [
-                          _buildTaskChip(
-                            task.category,
-                            icon: Icons.category_outlined,
-                          ),
-                          SizedBox(width: 8),
-                          _buildTaskChip(
-                            task.assignedTo,
-                            icon: Icons.person_outline,
-                          ),
-                          Spacer(),
-                          _buildTaskChip(
-                            DateFormat('MMM d').format(task.dueDate),
-                            icon: Icons.calendar_today_outlined,
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
+        children: [
+          if (myTasks.isNotEmpty) ...[
+            Text(
+              'My Tasks',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
               ),
             ),
+            SizedBox(height: 8),
+            ...myTasks.map((task) => _buildTaskCard(taskService, task)),
+            SizedBox(height: 24),
+          ],
+          if (othersTasks.isNotEmpty) ...[
+            Text(
+              "Others' Tasks",
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 8),
+            ...othersTasks.map(
+              (task) => _buildTaskCard(taskService, task, showAssignee: true),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTaskCard(
+    TaskService taskService,
+    TaskModel task, {
+    bool showAssignee = false,
+  }) {
+    return Dismissible(
+      key: Key(task.id),
+      background: _buildDismissBackground(),
+      secondaryBackground: _buildDismissBackground(isEndToStart: true),
+      onDismissed: (direction) async {
+        final success = await taskService.deleteTask(task);
+        if (!success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to delete task'),
+              backgroundColor: Colors.red,
+            ),
           );
-        },
+        }
+      },
+      child: Card(
+        margin: EdgeInsets.only(bottom: 12),
+        color: Colors.white.withOpacity(0.1),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: Colors.white24),
+        ),
+        child: InkWell(
+          onTap: () => _showTaskDetails(task),
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        task.title,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          decoration:
+                              task.isCompleted
+                                  ? TextDecoration.lineThrough
+                                  : null,
+                        ),
+                      ),
+                    ),
+                    Transform.scale(
+                      scale: 1.2,
+                      child: Checkbox(
+                        value: task.isCompleted,
+                        onChanged: (val) async {
+                          if (val != null) {
+                            final success = await taskService.updateTaskStatus(
+                              task,
+                              val,
+                            );
+                            if (!success) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Failed to update task status'),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
+                          }
+                        },
+                        checkColor: Colors.white,
+                        fillColor: MaterialStateProperty.resolveWith<Color>((
+                          Set<MaterialState> states,
+                        ) {
+                          if (states.contains(MaterialState.selected)) {
+                            return Colors.white24;
+                          }
+                          return Colors.transparent;
+                        }),
+                        side: BorderSide(color: Colors.white60),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                if (task.description.isNotEmpty) ...[
+                  SizedBox(height: 8),
+                  Text(
+                    task.description,
+                    style: TextStyle(color: Colors.white70),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+                SizedBox(height: 12),
+                Row(
+                  children: [
+                    _buildTaskChip(
+                      task.category,
+                      icon: Icons.category_outlined,
+                    ),
+                    SizedBox(width: 8),
+                    _buildTaskChip(task.assignedTo, icon: Icons.person_outline),
+                    Spacer(),
+                    _buildTaskChip(
+                      DateFormat('MMM d').format(task.dueDate),
+                      icon: Icons.calendar_today_outlined,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -462,7 +502,7 @@ class _TasksHomePageState extends State<TasksHomePage> {
                                 Navigator.pop(
                                   context,
                                 ); // Close the bottom sheet
-                                final editedTask = await Navigator.push(
+                                final editResult = await Navigator.push(
                                   context,
                                   MaterialPageRoute(
                                     builder:
@@ -472,16 +512,12 @@ class _TasksHomePageState extends State<TasksHomePage> {
                                         ),
                                   ),
                                 );
-                                if (editedTask != null &&
-                                    editedTask is TaskModel) {
-                                  setState(() {
-                                    final index = allTasks.indexWhere(
-                                      (t) => t.id == task.id,
-                                    );
-                                    if (index != -1) {
-                                      allTasks[index] = editedTask;
-                                    }
-                                  });
+                                if (editResult != null && mounted) {
+                                  // Always refresh after edit
+                                  Provider.of<TaskService>(
+                                    context,
+                                    listen: false,
+                                  ).fetchTasks();
                                 }
                               },
                               style: ElevatedButton.styleFrom(
@@ -550,10 +586,9 @@ class _TasksHomePageState extends State<TasksHomePage> {
               builder: (context) => CreateNewTaskPage(categories: categories),
             ),
           );
-          if (newTask != null && newTask is TaskModel) {
-            setState(() {
-              allTasks.add(newTask);
-            });
+          if (newTask != null && mounted) {
+            // Always refresh after create
+            Provider.of<TaskService>(context, listen: false).fetchTasks();
           }
         } else if (value == 'category') {
           final newCategory = await Navigator.pushNamed(

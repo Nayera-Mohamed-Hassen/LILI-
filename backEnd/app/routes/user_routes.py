@@ -588,6 +588,8 @@ class Task(BaseModel):
     category: str
     user_id: str
     is_completed: bool = False
+    assignerId: str
+    assigneeId: str
 
 @router.post("/tasks/create")
 async def create_task(task: Task):
@@ -600,19 +602,18 @@ async def create_task(task: Task):
         # Create task document
         task_dict = task.dict()
         task_dict["created_at"] = datetime.now().isoformat()
-        
+        # Store assignerId and assigneeId
+        task_dict["assignerId"] = task.assignerId
+        task_dict["assigneeId"] = task.assigneeId
         # Insert task into MongoDB
         result = tasks_collection.insert_one(task_dict)
-        
         if not result.inserted_id:
             raise HTTPException(status_code=500, detail="Failed to create task")
-
         return {
             "status": "success",
             "message": "Task created successfully",
             "task_id": str(result.inserted_id)
         }
-
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -623,16 +624,18 @@ async def get_tasks(user_id: str):
         client = MongoClient(os.getenv("MONGO_URI"))
         db = client["lili"]
         tasks_collection = db["tasks"]
-
-        # Get all tasks for the user
-        tasks = list(tasks_collection.find({"user_id": user_id}))
-        
+        # Get all tasks where user is assigner or assignee
+        tasks = list(tasks_collection.find({
+            "$or": [
+                {"assignerId": user_id},
+                {"assigneeId": user_id},
+                {"user_id": user_id}  # fallback for old tasks
+            ]
+        }))
         # Convert ObjectId to string for JSON serialization
         for task in tasks:
             task["_id"] = str(task["_id"])
-        
         return tasks
-
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -990,4 +993,42 @@ def remove_from_household(data: dict = Body(...)):
         return {"message": "User removed from household"}
     else:
         raise HTTPException(status_code=404, detail="User not found or not updated")
+
+class UpdateTaskRequest(BaseModel):
+    task_id: str
+    title: str
+    description: str
+    due_date: str
+    assigned_to: str
+    category: str
+    is_completed: bool
+    assignerId: str
+    assigneeId: str
+
+@router.put("/tasks/update-full")
+async def update_task_full(data: UpdateTaskRequest):
+    try:
+        client = MongoClient(os.getenv("MONGO_URI"))
+        db = client["lili"]
+        tasks_collection = db["tasks"]
+        object_id = ObjectId(data.task_id)
+        update_fields = {
+            "title": data.title,
+            "description": data.description,
+            "due_date": data.due_date,
+            "assigned_to": data.assigned_to,
+            "category": data.category,
+            "is_completed": data.is_completed,
+            "assignerId": data.assignerId,
+            "assigneeId": data.assigneeId,
+        }
+        result = tasks_collection.update_one(
+            {"_id": object_id},
+            {"$set": update_fields}
+        )
+        if result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Task not found")
+        return {"status": "success", "message": "Task updated successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
