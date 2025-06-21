@@ -6,6 +6,7 @@ from pymongo import MongoClient
 import os
 from dotenv import load_dotenv
 from ..mySQLConnection import selectUser
+from ..notification_utils import create_notification
 
 load_dotenv()
 MONGO_URI = os.getenv("MONGO_URI")
@@ -47,6 +48,14 @@ async def add_transaction(transaction: Transaction):
         db.transactions.insert_one(transaction_doc)
         if transaction.transaction_type == "expense":
             update_budget_estimation(transaction_doc)
+            create_notification(
+                user_id=transaction.user_id,
+                notif_type="spending",
+                title="New Expense Added",
+                body=f"You added a new expense in {transaction.category}.",
+                data={"amount": transaction.amount, "category": transaction.category},
+                icon="spending"
+            )
         return {"status": "success", "message": "Transaction added successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -121,5 +130,30 @@ def update_budget_estimation(transaction: dict):
             {"$set": budget_data},
             upsert=True
         )
+        # Pseudo-code for spending irregularity and budget exceeded (to be run in analytics/budget logic)
+        check_spending_alerts()
     except Exception as e:
-        print(f"Error updating budget estimation: {e}") 
+        print(f"Error updating budget estimation: {e}")
+
+# Pseudo-code for spending irregularity and budget exceeded (to be run in analytics/budget logic)
+def check_spending_alerts():
+    # For each user/category, check for irregularity or budget exceeded
+    # Example:
+    # if irregularity_detected:
+    create_notification(
+        user_id="<user_id>",
+        notif_type="spending",
+        title="Spending Irregularity Detected",
+        body="Irregular spending detected in category: Groceries.",
+        data={"category": "Groceries"},
+        icon="spending"
+    )
+    # if budget_exceeded:
+    create_notification(
+        user_id="<user_id>",
+        notif_type="spending",
+        title="Budget Exceeded",
+        body="You have exceeded your budget for category: Groceries.",
+        data={"category": "Groceries"},
+        icon="spending"
+    ) 

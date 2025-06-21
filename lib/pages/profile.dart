@@ -12,6 +12,10 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
 import 'package:flutter/services.dart';
+import 'package:LILI/pages/notifications_page.dart';
+import '../services/notification_service.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import '../models/notification.dart';
 
 class ProfilePage extends StatefulWidget {
   @override
@@ -29,6 +33,9 @@ class _ProfilePageState extends State<ProfilePage> {
   int _feedbackRating = 0;
   String? _joinCode;
   List<Map<String, dynamic>> _householdUsers = [];
+  List<NotificationModel> _latestNotifications = [];
+  bool _dropdownOpen = false;
+  bool _loadingNotifications = false;
 
   User user = User(
     name: "Loading...",
@@ -48,6 +55,7 @@ class _ProfilePageState extends State<ProfilePage> {
     _loadFeedback();
     _loadJoinCode();
     _loadHouseholdUsers();
+    _fetchNotifications();
   }
 
   Future<void> _loadUserProfile() async {
@@ -491,206 +499,255 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [const Color(0xFF1F3354), const Color(0xFF3E5879)],
+  void _fetchNotifications() async {
+    setState(() => _loadingNotifications = true);
+    try {
+      final notifs = await NotificationService().fetchNotifications(UserSession().getUserId().toString());
+      setState(() {
+        _latestNotifications = notifs.take(5).toList();
+        _loadingNotifications = false;
+      });
+    } catch (e) {
+      setState(() => _loadingNotifications = false);
+    }
+  }
+
+  Widget _buildNotificationDropdown() {
+    return Positioned(
+      right: 10,
+      top: 60,
+      child: Material(
+        elevation: 8,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          width: 320,
+          padding: EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
           ),
-        ),
-        child: SafeArea(
-          child:
-              _isLoading
-                  ? const Center(
-                    child: CircularProgressIndicator(color: Colors.white),
-                  )
-                  : _error.isNotEmpty
-                  ? Center(
-                    child: Text(
-                      _error,
-                      style: const TextStyle(color: Colors.red),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (_loadingNotifications)
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: CircularProgressIndicator(),
+                )
+              else if (_latestNotifications.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text('No notifications'),
+                )
+              else ..._latestNotifications.map((notif) => ListTile(
+                leading: Icon(_iconForType(notif.type), color: notif.isRead ? Colors.grey : Colors.blue),
+                title: Text(notif.title, style: TextStyle(fontWeight: notif.isRead ? FontWeight.normal : FontWeight.bold)),
+                onTap: () async {
+                  await NotificationService().markAsRead(notif.id);
+                  _fetchNotifications();
+                  setState(() => _dropdownOpen = false);
+                  _handleNotificationTap(notif);
+                },
+              )),
+              Divider(),
+              TextButton.icon(
+                icon: Icon(Icons.arrow_forward),
+                label: Text('See all notifications'),
+                onPressed: () {
+                  setState(() => _dropdownOpen = false);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => NotificationsPage(
+                        userId: UserSession().getUserId().toString(),
+                      ),
                     ),
-                  )
-                  : CustomScrollView(
-                    slivers: [
-                      SliverAppBar(
-                        backgroundColor: Colors.transparent,
-                        elevation: 0,
-                        pinned: true,
-                        expandedHeight: 200,
-                        automaticallyImplyLeading: false,
-                        flexibleSpace: FlexibleSpaceBar(
-                          background: Stack(
-                            children: [
-                              Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Container(
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        border: Border.all(
-                                          color: Colors.white,
-                                          width: 4,
-                                        ),
-                                      ),
-                                      child: CircleAvatar(
-                                        radius: 50,
-                                        backgroundColor: Colors.white24,
-                                        child: Text(
-                                          user.name.isNotEmpty
-                                              ? user.name[0].toUpperCase()
-                                              : '?',
-                                          style: const TextStyle(
-                                            fontSize: 40,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 16),
-                                    Text(
-                                      user.name,
-                                      style: const TextStyle(
-                                        fontSize: 24,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Positioned(
-                                top: 8,
-                                right: 8,
-                                child: GestureDetector(
-                                  onTapDown: (details) {
-                                    showMenu(
-                                      context: context,
-                                      position: RelativeRect.fromLTRB(
-                                        details.globalPosition.dx,
-                                        details.globalPosition.dy,
-                                        0,
-                                        0,
-                                      ),
-                                      items: [
-                                        PopupMenuItem(
-                                          child: _buildNotificationItem(
-                                            icon: Icons.notification_important,
-                                            color: const Color(0xFF3E5879),
-                                            title: 'Project UI is due today',
-                                            subtitle: '2 hours remaining',
-                                          ),
-                                        ),
-                                        PopupMenuItem(
-                                          child: _buildNotificationItem(
-                                            icon: Icons.new_releases,
-                                            color: Colors.orange,
-                                            title: 'New task assigned',
-                                            subtitle: 'Check your tasks list',
-                                          ),
-                                        ),
-                                      ],
-                                    );
-                                  },
-                                  child: Container(
-                                    padding: const EdgeInsets.all(8),
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: Colors.white24,
-                                      border: Border.all(color: Colors.white38),
-                                    ),
-                                    child: Stack(
-                                      children: [
-                                        const Icon(
-                                          Icons.notifications,
-                                          color: Colors.white,
-                                          size: 28,
-                                        ),
-                                        Positioned(
-                                          right: 0,
-                                          top: 0,
-                                          child: Container(
-                                            padding: const EdgeInsets.all(4),
-                                            decoration: const BoxDecoration(
-                                              color: Colors.red,
-                                              shape: BoxShape.circle,
-                                            ),
-                                            constraints: const BoxConstraints(
-                                              minWidth: 12,
-                                              minHeight: 12,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      SliverToBoxAdapter(
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            children: [
-                              _buildHouseholdUsersCard(),
-                              const SizedBox(height: 24),
-                              _buildInfoCard(),
-                              const SizedBox(height: 24),
-                              _buildActionButtons(),
-                              const SizedBox(height: 24),
-                              _buildSettingsSection(),
-                              const SizedBox(height: 24),
-                              _buildFeedbackCard(),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                  );
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildNotificationItem({
-    required IconData icon,
-    required Color color,
-    required String title,
-    required String subtitle,
-  }) {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
-            shape: BoxShape.circle,
-          ),
-          child: Icon(icon, color: color),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
-              Text(
-                subtitle,
-                style: TextStyle(color: Colors.grey[600], fontSize: 12),
+  void _handleNotificationTap(NotificationModel notif) {
+    if (notif.type == 'task' && notif.data['task_id'] != null) {
+      Navigator.pushNamed(context, '/task home', arguments: notif.data['task_id']);
+    } else if (notif.type == 'recipe' && notif.data['recipe_id'] != null) {
+      Navigator.pushNamed(context, '/Recipe', arguments: notif.data['recipe_id']);
+    } else if (notif.type == 'inventory' && notif.data['item_name'] != null) {
+      Navigator.pushNamed(context, '/inventory', arguments: notif.data['item_name']);
+    } else if (notif.type == 'spending' && notif.data['category'] != null) {
+      Navigator.pushNamed(context, '/budget home', arguments: notif.data['category']);
+    }
+  }
+
+  IconData _iconForType(String type) {
+    switch (type) {
+      case 'task':
+        return FontAwesomeIcons.clipboardCheck;
+      case 'recipe':
+        return FontAwesomeIcons.utensils;
+      case 'inventory':
+        return FontAwesomeIcons.boxOpen;
+      case 'spending':
+        return FontAwesomeIcons.wallet;
+      case 'system':
+        return FontAwesomeIcons.userEdit;
+      default:
+        return FontAwesomeIcons.bell;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Stack(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [const Color(0xFF1F3354), const Color(0xFF3E5879)],
               ),
-            ],
+            ),
+            child: SafeArea(
+              child:
+                  _isLoading
+                      ? const Center(
+                          child: CircularProgressIndicator(color: Colors.white),
+                        )
+                      : _error.isNotEmpty
+                          ? Center(
+                              child: Text(
+                                _error,
+                                style: const TextStyle(color: Colors.red),
+                              ),
+                            )
+                          : CustomScrollView(
+                              slivers: [
+                                SliverAppBar(
+                                  backgroundColor: Colors.transparent,
+                                  elevation: 0,
+                                  pinned: true,
+                                  expandedHeight: 200,
+                                  automaticallyImplyLeading: false,
+                                  flexibleSpace: FlexibleSpaceBar(
+                                    background: Center(
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Container(
+                                            decoration: BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              border: Border.all(
+                                                color: Colors.white,
+                                                width: 4,
+                                              ),
+                                            ),
+                                            child: CircleAvatar(
+                                              radius: 50,
+                                              backgroundColor: Colors.white24,
+                                              child: Text(
+                                                user.name.isNotEmpty
+                                                    ? user.name[0].toUpperCase()
+                                                    : '?',
+                                                style: const TextStyle(
+                                                  fontSize: 40,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 16),
+                                          Text(
+                                            user.name,
+                                            style: const TextStyle(
+                                              fontSize: 24,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                SliverToBoxAdapter(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(16),
+                                    child: Column(
+                                      children: [
+                                        _buildHouseholdUsersCard(),
+                                        const SizedBox(height: 24),
+                                        _buildInfoCard(),
+                                        const SizedBox(height: 24),
+                                        _buildActionButtons(),
+                                        const SizedBox(height: 24),
+                                        _buildSettingsSection(),
+                                        const SizedBox(height: 24),
+                                        _buildFeedbackCard(),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+            ),
           ),
-        ),
-      ],
+          // Notification bell and dropdown overlay
+          Positioned(
+            top: 30,
+            right: 20,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    setState(() => _dropdownOpen = !_dropdownOpen);
+                    if (!_dropdownOpen) _fetchNotifications();
+                  },
+                  child: Stack(
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.25),
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.2),
+                              blurRadius: 8,
+                              offset: Offset(0, 4),
+                            ),
+                          ],
+                          border: Border.all(color: Colors.white.withOpacity(0.4), width: 2),
+                        ),
+                        padding: EdgeInsets.all(10),
+                        child: Icon(FontAwesomeIcons.bell, size: 28, color: Colors.white),
+                      ),
+                      if (_latestNotifications.any((n) => !n.isRead))
+                        Positioned(
+                          right: 0,
+                          child: Container(
+                            padding: EdgeInsets.all(2),
+                            decoration: BoxDecoration(color: Colors.red, borderRadius: BorderRadius.circular(6)),
+                            constraints: BoxConstraints(minWidth: 12, minHeight: 12),
+                            child: Text('!', style: TextStyle(color: Colors.white, fontSize: 8), textAlign: TextAlign.center),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                if (_dropdownOpen) _buildNotificationDropdown(),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 

@@ -1,11 +1,13 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .routes import user_routes, transaction_routes  # Add transaction_routes import
+from .routes import user_routes, transaction_routes, notification_routes  # Add notification_routes import
 from fastapi.exception_handlers import RequestValidationError
 from fastapi.requests import Request
 from fastapi.responses import JSONResponse
+from .notification_jobs import start_scheduler
 
 app = FastAPI()
+start_scheduler()
 
 # Configure CORS
 app.add_middleware(
@@ -19,6 +21,7 @@ app.add_middleware(
 # Include routers
 app.include_router(user_routes.router)
 app.include_router(transaction_routes.router)  # Add transaction routes
+app.include_router(notification_routes.router)  # Add notification routes
 
 @app.get("/")
 async def root():

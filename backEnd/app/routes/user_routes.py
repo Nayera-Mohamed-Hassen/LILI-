@@ -14,6 +14,7 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import json
+from ..notification_utils import create_notification
 
 
 router = APIRouter(prefix="/user", tags=["User"])
@@ -324,6 +325,15 @@ async def add_item(item: InventoryItem):
         
         inventory_collection.insert_one(item_dict)
         
+        create_notification(
+            user_id=item.user_id,
+            notif_type="inventory",
+            title="Item Added",
+            body=f"{item.name} was added to your inventory.",
+            data={"item_name": item.name},
+            icon="inventory"
+        )
+        
         return {
             "status": "success",
             "message": "Item added successfully",
@@ -367,6 +377,15 @@ async def delete_inventory_item(data: DeleteItemRequest):
 
         if delete_result.deleted_count == 0:
             return {"status": "not_found", "message": "No matching items found to delete"}
+
+        create_notification(
+            user_id=data.user_id,
+            notif_type="inventory",
+            title="Item Removed",
+            body=f"{data.name} was removed from your inventory.",
+            data={"item_name": data.name},
+            icon="inventory"
+        )
 
         return {
             "status": "success",
@@ -651,6 +670,15 @@ async def create_task(task: Task):
         result = tasks_collection.insert_one(task_dict)
         if not result.inserted_id:
             raise HTTPException(status_code=500, detail="Failed to create task")
+        # After task creation, send notification to assignee
+        create_notification(
+            user_id=task.assigneeId,
+            notif_type="task",
+            title="New Task Assigned",
+            body=f"You have been assigned a new task: {task.title}",
+            data={"task_id": str(result.inserted_id)},
+            icon="task"
+        )
         return {
             "status": "success",
             "message": "Task created successfully",
@@ -705,6 +733,30 @@ async def update_task_status(data: UpdateTaskStatus):
         if result.matched_count == 0:
             raise HTTPException(status_code=404, detail="Task not found")
 
+        # If task is marked completed, send notification to assigner
+        if data.is_completed:
+            # Fetch task to get assignerId (pseudo-code, adjust as needed)
+            # task = ...
+            create_notification(
+                user_id="<assignerId>",
+                notif_type="task",
+                title="Task Completed",
+                body="A task you assigned has been completed.",
+                data={"task_id": data.task_id},
+                icon="task"
+            )
+        # If task is updated (not completed), notify assignee
+        else:
+            # Fetch task to get assigneeId (pseudo-code, adjust as needed)
+            # task = ...
+            create_notification(
+                user_id="<assigneeId>",
+                notif_type="task",
+                title="Task Updated",
+                body="A task assigned to you has been updated.",
+                data={"task_id": data.task_id},
+                icon="task"
+            )
         return {"status": "success", "message": "Task status updated successfully"}
 
     except Exception as e:
@@ -885,6 +937,15 @@ async def update_profile(data: UpdateProfileRequest):
         for allergy in data.allergies:
             if allergy.strip():
                 insertAllergy(allergy_name=allergy.strip(), user_Id=data.user_id)
+
+        create_notification(
+            user_id=data.user_id,
+            notif_type="system",
+            title="Profile Updated",
+            body="Your profile information was updated.",
+            data={},
+            icon="person"
+        )
 
         return {"message": "Profile updated successfully"}
     except Exception as e:
@@ -1142,6 +1203,27 @@ async def update_recipe_shared(data: UpdateRecipeSharedRequest):
         )
         if result.matched_count == 0:
             raise HTTPException(status_code=404, detail="Recipe not found")
+        # If recipe is shared, notify all household users except the sharer
+        if data.shared:
+            recipe_doc = recipes_collection.find_one({"_id": object_id})
+            sharer_id = recipe_doc.get("user_id")
+            # Get sharer's household
+            user_result = selectUser(query={"_id": sharer_id})
+            if user_result:
+                house_id = user_result[0].get("house_Id", "")
+                if house_id:
+                    users = selectUser(query={"house_Id": house_id})
+                    for u in users:
+                        uid = u["_id"]
+                        if str(uid) != str(sharer_id):
+                            create_notification(
+                                user_id=uid,
+                                notif_type="recipe",
+                                title="Recipe Shared",
+                                body="A new recipe has been shared with your household.",
+                                data={"recipe_id": data.recipe_id},
+                                icon="recipe"
+                            )
         return {"status": "success", "message": "Recipe sharing updated"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -1276,4 +1358,39 @@ async def check_favorite_status(user_id: str, recipe_name: str):
         return {"is_favorite": favorite is not None}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+# Scheduled job for near expiry, expired, and low stock (pseudo-code)
+def check_inventory_alerts():
+    now = datetime.utcnow()
+    # items = ... # Fetch all inventory items
+    for item in items:
+        expiry = datetime.fromisoformat(item['expiry']) if 'expiry' in item else None
+        if expiry:
+            if expiry < now:
+                create_notification(
+                    user_id=item['user_id'],
+                    notif_type="inventory",
+                    title="Item Expired",
+                    body=f"{item['name']} has expired!",
+                    data={"item_name": item['name']},
+                    icon="inventory"
+                )
+            elif expiry - now < timedelta(days=3):
+                create_notification(
+                    user_id=item['user_id'],
+                    notif_type="inventory",
+                    title="Item Near Expiry",
+                    body=f"{item['name']} will expire soon.",
+                    data={"item_name": item['name']},
+                    icon="inventory"
+                )
+        if item['quantity'] < 2:  # Example threshold
+            create_notification(
+                user_id=item['user_id'],
+                notif_type="inventory",
+                title="Low Stock Alert",
+                body=f"{item['name']} is running low.",
+                data={"item_name": item['name']},
+                icon="inventory"
+            )
 

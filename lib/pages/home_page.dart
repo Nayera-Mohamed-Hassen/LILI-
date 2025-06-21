@@ -6,6 +6,11 @@ import 'package:provider/provider.dart';
 import 'package:LILI/services/task_service.dart';
 import 'package:LILI/models/task.dart';
 import 'navbar.dart'; // Import your Navbar
+import 'package:LILI/pages/notifications_page.dart';
+import '../services/notification_service.dart';
+import 'package:LILI/user_session.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import '../models/notification.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -24,6 +29,10 @@ class _HomePageState extends State<HomePage> {
   bool _checkbox2 = false;
   bool _checkbox3 = false;
 
+  List<NotificationModel> _latestNotifications = [];
+  bool _dropdownOpen = false;
+  bool _loadingNotifications = false;
+
   @override
   void initState() {
     super.initState();
@@ -32,6 +41,20 @@ class _HomePageState extends State<HomePage> {
     _selectedDay = DateTime.now();
     // Fetch tasks when the page loads
     Provider.of<TaskService>(context, listen: false).fetchTasks();
+    _fetchNotifications();
+  }
+
+  void _fetchNotifications() async {
+    setState(() => _loadingNotifications = true);
+    try {
+      final notifs = await NotificationService().fetchNotifications(UserSession().getUserId().toString());
+      setState(() {
+        _latestNotifications = notifs.take(5).toList();
+        _loadingNotifications = false;
+      });
+    } catch (e) {
+      setState(() => _loadingNotifications = false);
+    }
   }
 
   // This function will be used for navigation when the navbar items are tapped
@@ -69,256 +92,288 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              const Color(0xFF1F3354),
-              const Color(0xFF3E5879),
-            ],
-          ),
-        ),
-        child: SafeArea(
-          child: CustomScrollView(
-            slivers: [
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Header Section
-                      Row(
+      body: Stack(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  const Color(0xFF1F3354),
+                  const Color(0xFF3E5879),
+                ],
+              ),
+            ),
+            child: SafeArea(
+              child: CustomScrollView(
+                slivers: [
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Container(
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: Colors.white,
-                                width: 2,
-                              ),
-                            ),
-                            child: const CircleAvatar(
-                              radius: 30,
-                              backgroundColor: Colors.white24,
-                              child: Icon(
-                                Icons.person,
-                                size: 35,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  _getGreeting(),
-                                  style: const TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.w600,
+                          // Header Section
+                          Row(
+                            children: [
+                              Container(
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: Colors.white,
+                                    width: 2,
+                                  ),
+                                ),
+                                child: const CircleAvatar(
+                                  radius: 30,
+                                  backgroundColor: Colors.white24,
+                                  child: Icon(
+                                    Icons.person,
+                                    size: 35,
                                     color: Colors.white,
                                   ),
                                 ),
-                                const Text(
-                                  'Ganna',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.white70,
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      _getGreeting(),
+                                      style: const TextStyle(
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    const Text(
+                                      'Ganna',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        color: Colors.white70,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 24),
+
+                          // Calendar Card
+                          Card(
+                            elevation: 8,
+                            shadowColor: Colors.black26,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(12),
+                              child: TableCalendar(
+                                firstDay: DateTime.utc(2020, 1, 1),
+                                lastDay: DateTime.utc(2030, 12, 31),
+                                focusedDay: _focusedDay,
+                                selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+                                calendarFormat: _calendarFormat,
+                                onFormatChanged: (format) {
+                                  setState(() {
+                                    _calendarFormat = format;
+                                  });
+                                },
+                                onDaySelected: (selectedDay, focusedDay) {
+                                  setState(() {
+                                    _selectedDay = selectedDay;
+                                    _focusedDay = focusedDay;
+                                  });
+                                },
+                                onPageChanged: (focusedDay) {
+                                  _focusedDay = focusedDay;
+                                },
+                                headerStyle: const HeaderStyle(
+                                  formatButtonVisible: false,
+                                  titleCentered: true,
+                                  titleTextStyle: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
                                   ),
                                 ),
-                              ],
+                                calendarStyle: CalendarStyle(
+                                  todayDecoration: BoxDecoration(
+                                    color: const Color(0xFF1F3354).withOpacity(0.7),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  selectedDecoration: const BoxDecoration(
+                                    color: Color(0xFF1F3354),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  markersMaxCount: 1,
+                                  outsideDaysVisible: false,
+                                ),
+                              ),
                             ),
                           ),
-                          _buildNotificationButton(),
+                          const SizedBox(height: 24),
+
+                          // Tasks Section
+                          const Text(
+                            'Today\'s Tasks',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          _buildTasksList(),
                         ],
                       ),
-                      const SizedBox(height: 24),
-
-                      // Calendar Card
-                      Card(
-                        elevation: 8,
-                        shadowColor: Colors.black26,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          // Notification bell and dropdown overlay
+          Positioned(
+            top: 30,
+            right: 20,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    setState(() => _dropdownOpen = !_dropdownOpen);
+                    if (!_dropdownOpen) _fetchNotifications();
+                  },
+                  child: Stack(
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.25),
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.2),
+                              blurRadius: 8,
+                              offset: Offset(0, 4),
+                            ),
+                          ],
+                          border: Border.all(color: Colors.white.withOpacity(0.4), width: 2),
                         ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(12),
-                          child: TableCalendar(
-                            firstDay: DateTime.utc(2020, 1, 1),
-                            lastDay: DateTime.utc(2030, 12, 31),
-                            focusedDay: _focusedDay,
-                            selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-                            calendarFormat: _calendarFormat,
-                            onFormatChanged: (format) {
-                              setState(() {
-                                _calendarFormat = format;
-                              });
-                            },
-                            onDaySelected: (selectedDay, focusedDay) {
-                              setState(() {
-                                _selectedDay = selectedDay;
-                                _focusedDay = focusedDay;
-                              });
-                            },
-                            onPageChanged: (focusedDay) {
-                              _focusedDay = focusedDay;
-                            },
-                            headerStyle: const HeaderStyle(
-                              formatButtonVisible: false,
-                              titleCentered: true,
-                              titleTextStyle: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            calendarStyle: CalendarStyle(
-                              todayDecoration: BoxDecoration(
-                                color: const Color(0xFF1F3354).withOpacity(0.7),
-                                shape: BoxShape.circle,
-                              ),
-                              selectedDecoration: const BoxDecoration(
-                                color: Color(0xFF1F3354),
-                                shape: BoxShape.circle,
-                              ),
-                              markersMaxCount: 1,
-                              outsideDaysVisible: false,
-                            ),
+                        padding: EdgeInsets.all(10),
+                        child: Icon(FontAwesomeIcons.bell, size: 28, color: Colors.white),
+                      ),
+                      if (_latestNotifications.any((n) => !n.isRead))
+                        Positioned(
+                          right: 0,
+                          child: Container(
+                            padding: EdgeInsets.all(2),
+                            decoration: BoxDecoration(color: Colors.red, borderRadius: BorderRadius.circular(6)),
+                            constraints: BoxConstraints(minWidth: 12, minHeight: 12),
+                            child: Text('!', style: TextStyle(color: Colors.white, fontSize: 8), textAlign: TextAlign.center),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Tasks Section
-                      const Text(
-                        'Today\'s Tasks',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      _buildTasksList(),
                     ],
                   ),
                 ),
-              ),
-            ],
+                if (_dropdownOpen) _buildNotificationDropdown(),
+              ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
 
-  Widget _buildNotificationButton() {
-    return GestureDetector(
-      onTapDown: (details) {
-        showMenu(
-          context: context,
-          position: RelativeRect.fromLTRB(
-            details.globalPosition.dx,
-            details.globalPosition.dy,
-            0,
-            0,
-          ),
-          items: [
-            PopupMenuItem(
-              child: _buildNotificationItem(
-                icon: Icons.notification_important,
-                color: const Color(0xFF3E5879),
-                title: 'Project UI is due today',
-                subtitle: '2 hours remaining',
-              ),
-            ),
-            PopupMenuItem(
-              child: _buildNotificationItem(
-                icon: Icons.new_releases,
-                color: Colors.orange,
-                title: 'New task assigned',
-                subtitle: 'Check your tasks list',
-              ),
-            ),
-          ],
-        );
-      },
-      child: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: Colors.white24,
-          border: Border.all(color: Colors.white38),
-        ),
-        child: Stack(
-          children: [
-            const Icon(
-              Icons.notifications,
-              color: Colors.white,
-              size: 28,
-            ),
-            Positioned(
-              right: 0,
-              top: 0,
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: const BoxDecoration(
-                  color: Colors.red,
-                  shape: BoxShape.circle,
-                ),
-                constraints: const BoxConstraints(
-                  minWidth: 12,
-                  minHeight: 12,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNotificationItem({
-    required IconData icon,
-    required Color color,
-    required String title,
-    required String subtitle,
-  }) {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(8),
+  Widget _buildNotificationDropdown() {
+    return Positioned(
+      right: 10,
+      top: 60,
+      child: Material(
+        elevation: 8,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          width: 320,
+          padding: EdgeInsets.symmetric(vertical: 8, horizontal: 8),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
-            shape: BoxShape.circle,
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
           ),
-          child: Icon(icon, color: color),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              Text(
-                subtitle,
-                style: TextStyle(
-                  color: Colors.grey[600],
-                  fontSize: 12,
-                ),
+              if (_loadingNotifications)
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: CircularProgressIndicator(),
+                )
+              else if (_latestNotifications.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text('No notifications'),
+                )
+              else ..._latestNotifications.map((notif) => ListTile(
+                leading: Icon(_iconForType(notif.type), color: notif.isRead ? Colors.grey : Colors.blue),
+                title: Text(notif.title, style: TextStyle(fontWeight: notif.isRead ? FontWeight.normal : FontWeight.bold)),
+                onTap: () async {
+                  await NotificationService().markAsRead(notif.id);
+                  _fetchNotifications();
+                  setState(() => _dropdownOpen = false);
+                  _handleNotificationTap(notif);
+                },
+              )),
+              Divider(),
+              TextButton.icon(
+                icon: Icon(Icons.arrow_forward),
+                label: Text('See all notifications'),
+                onPressed: () {
+                  setState(() => _dropdownOpen = false);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => NotificationsPage(
+                        userId: UserSession().getUserId().toString(),
+                      ),
+                    ),
+                  );
+                },
               ),
             ],
           ),
         ),
-      ],
+      ),
     );
+  }
+
+  void _handleNotificationTap(NotificationModel notif) {
+    if (notif.type == 'task' && notif.data['task_id'] != null) {
+      Navigator.pushNamed(context, '/task home', arguments: notif.data['task_id']);
+    } else if (notif.type == 'recipe' && notif.data['recipe_id'] != null) {
+      Navigator.pushNamed(context, '/Recipe', arguments: notif.data['recipe_id']);
+    } else if (notif.type == 'inventory' && notif.data['item_name'] != null) {
+      Navigator.pushNamed(context, '/inventory', arguments: notif.data['item_name']);
+    } else if (notif.type == 'spending' && notif.data['category'] != null) {
+      Navigator.pushNamed(context, '/budget home', arguments: notif.data['category']);
+    }
+  }
+
+  IconData _iconForType(String type) {
+    switch (type) {
+      case 'task':
+        return FontAwesomeIcons.clipboardCheck;
+      case 'recipe':
+        return FontAwesomeIcons.utensils;
+      case 'inventory':
+        return FontAwesomeIcons.boxOpen;
+      case 'spending':
+        return FontAwesomeIcons.wallet;
+      case 'system':
+        return FontAwesomeIcons.userEdit;
+      default:
+        return FontAwesomeIcons.bell;
+    }
   }
 
   Widget _buildTasksList() {

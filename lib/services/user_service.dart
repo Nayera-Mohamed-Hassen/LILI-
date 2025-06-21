@@ -91,25 +91,25 @@ class UserService {
   }) async {
     try {
       final url = Uri.parse('$baseUrl/update-profile');
+      final Map<String, dynamic> body = {
+        'user_id': userId,
+        'name': name,
+        'email': email,
+        'phone': phone,
+        'height': height,
+        'weight': weight,
+        'birthday': birthday,
+        'allergies': allergies,
+      };
+      if (diet != null) body['diet'] = diet;
+      if (gender != null) body['gender'] = gender;
       final response = await http.put(
         url,
         headers: {
           'Content-Type': 'application/json',
         },
-        body: jsonEncode({
-          'user_id': userId,
-          'name': name,
-          'email': email,
-          'phone': phone,
-          'height': height,
-          'weight': weight,
-          'diet': diet,
-          'gender': gender,
-          'birthday': birthday,
-          'allergies': allergies,
-        }),
+        body: jsonEncode(body),
       );
-
       if (response.statusCode != 200) {
         throw Exception('Failed to update profile: ${response.body}');
       }
