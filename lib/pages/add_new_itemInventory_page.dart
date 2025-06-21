@@ -108,12 +108,19 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
         final result = jsonDecode(response.body);
         String expiryDate = result["expiry_date"];
 
+        String message;
+        if (expiryDate.isEmpty) {
+          message = "Item saved successfully! (No expiry date for non-food items)";
+        } else {
+          message = "Item saved successfully!\nExpiry Date: $expiryDate";
+        }
+
         showDialog(
           context: context,
           builder:
               (ctx) => AlertDialog(
                 title: Text("Item Saved"),
-                content: Text("Expiry Date: $expiryDate"),
+                content: Text(message),
                 actions: [
                   TextButton(
                     onPressed: () {
@@ -124,6 +131,7 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
                         category: _selectedCategory!,
                         quantity: int.tryParse(_quantityController.text) ?? 0,
                         image: _pickedImage?.path,
+                        expiryDate: expiryDate.isEmpty ? null : expiryDate,
                       );
                       Navigator.of(context).pop(newItem);
                     },

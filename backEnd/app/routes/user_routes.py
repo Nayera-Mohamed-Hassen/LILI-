@@ -241,7 +241,11 @@ EXPIRY_KEYWORDS = {
 }
 
 
-def estimate_expiry_date(item_name: str) -> dict:
+def estimate_expiry_date(item_name: str, category: str = "Food") -> dict:
+    # Only apply text correction and expiry date for food category
+    if category != "Food":
+        return "", item_name
+    
     item_name_lower = item_name.lower()
     all_keywords = []
     keyword_to_category = {}
@@ -288,7 +292,13 @@ class InventoryItem(BaseModel):
 @router.post("/inventory/add")
 async def add_item(item: InventoryItem):
     try:
-        expiry_info, name = estimate_expiry_date(item.name)
+        # Only apply text correction and expiry date for food category
+        if item.category == "Food":
+            expiry_info, name = estimate_expiry_date(item.name, item.category)
+        else:
+            # For non-food items, no text correction or expiry date
+            expiry_info = ""
+            name = item.name
 
         print(item.user_id)
         house_result = selectUser(query={"_id": item.user_id})
@@ -307,7 +317,9 @@ async def add_item(item: InventoryItem):
             "expiry_date": expiry_info,
             "house_id": house_id
         }
+        
         inventory_collection.insert_one(item_dict)
+        
         return {
             "status": "success",
             "message": "Item added successfully",
@@ -320,7 +332,7 @@ async def add_item(item: InventoryItem):
 class DeleteItemRequest(BaseModel):
     user_id: str
     name: str
-    expiry: str
+    expiry: Optional[str] = None
 
 @router.delete("/inventory/delete")
 async def delete_inventory_item(data: DeleteItemRequest):
@@ -335,13 +347,19 @@ async def delete_inventory_item(data: DeleteItemRequest):
         db = client["lili"]
         inventory_collection = db["inventory"]
 
-        print(data.expiry)
-        # Delete inventory items that match name and house_id
-        delete_result = inventory_collection.delete_many({
+        # Build delete query based on whether expiry is provided
+        delete_query = {
             "house_id": house_id,
-            "name": data.name,
-            "expiry_date": data.expiry  # Assuming expiry is a string in the format "YYYY-MM-DD"
-        })
+            "name": data.name
+        }
+        
+        # Only include expiry_date in query if it's provided
+        if data.expiry:
+            delete_query["expiry_date"] = data.expiry
+
+        print(f"Delete query: {delete_query}")
+        # Delete inventory items that match name and house_id
+        delete_result = inventory_collection.delete_many(delete_query)
 
         if delete_result.deleted_count == 0:
             return {"status": "not_found", "message": "No matching items found to delete"}

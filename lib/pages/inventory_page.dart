@@ -49,7 +49,7 @@ class _InventoryPageState extends State<InventoryPage> {
   final List<InventoryItem> allItems = [];
 
   int? calculateDaysLeft(String? expiryDateStr) {
-    if (expiryDateStr == null) return null;
+    if (expiryDateStr == null || expiryDateStr.isEmpty) return null;
     final expiryDate = DateTime.tryParse(expiryDateStr);
     if (expiryDate == null) return null;
     final now = DateTime.now();
@@ -301,11 +301,36 @@ class _InventoryPageState extends State<InventoryPage> {
       );
     }
 
+    // Define the priority order for categories
+    final List<String> categoryPriority = [
+      'Food',
+      'Cleaning Supplies',
+      'Toiletries & Personal Care',
+      'Medications & First Aid',
+    ];
+
+    // Sort categories based on priority order
+    final List<String> sortedCategories = groupedItems.keys.toList()
+      ..sort((a, b) {
+        final aIndex = categoryPriority.indexOf(a);
+        final bIndex = categoryPriority.indexOf(b);
+        
+        // If both categories are in the priority list, sort by their position
+        if (aIndex != -1 && bIndex != -1) {
+          return aIndex.compareTo(bIndex);
+        }
+        // If only one is in the priority list, prioritize it
+        if (aIndex != -1) return -1;
+        if (bIndex != -1) return 1;
+        // If neither is in the priority list, sort alphabetically
+        return a.compareTo(b);
+      });
+
     return ListView.builder(
       padding: EdgeInsets.all(16),
-      itemCount: groupedItems.length,
+      itemCount: sortedCategories.length,
       itemBuilder: (context, index) {
-        final category = groupedItems.keys.elementAt(index);
+        final category = sortedCategories[index];
         final items = groupedItems[category]!;
 
         return Column(
@@ -331,7 +356,7 @@ class _InventoryPageState extends State<InventoryPage> {
 
   Widget _buildItemCard(InventoryItem item) {
     final daysLeft = calculateDaysLeft(item.expiryDate);
-    final bool isLowStock = item.quantity <= 1;
+    final bool isLowStock = item.category == "Food" && item.quantity <= 1;
     final bool isExpiringSoon = daysLeft != null && daysLeft <= 7;
 
     return Card(
@@ -495,6 +520,11 @@ class _InventoryPageState extends State<InventoryPage> {
                         Text(
                           '$daysLeft days left',
                           style: TextStyle(color: Colors.white60, fontSize: 12),
+                        )
+                      else if (item.expiryDate != null && item.expiryDate!.isEmpty)
+                        Text(
+                          'No expiry',
+                          style: TextStyle(color: Colors.white60, fontSize: 12),
                         ),
                     ],
                   ),
@@ -549,11 +579,17 @@ class _InventoryPageState extends State<InventoryPage> {
                         Icons.inventory_2_outlined,
                         'Quantity: ${item.quantity}',
                       ),
-                      if (item.expiryDate != null) ...[
+                      if (item.expiryDate != null && item.expiryDate!.isNotEmpty) ...[
                         SizedBox(height: 12),
                         _buildDetailRow(
                           Icons.event_outlined,
                           'Expires in ${calculateDaysLeft(item.expiryDate)} days',
+                        ),
+                      ] else ...[
+                        SizedBox(height: 12),
+                        _buildDetailRow(
+                          Icons.event_outlined,
+                          'No expiry',
                         ),
                       ],
                       SizedBox(height: 24),
