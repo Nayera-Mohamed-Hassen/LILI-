@@ -35,15 +35,11 @@ class Card(BaseModel):
 @router.post("/transaction/add")
 async def add_transaction(transaction: Transaction):
     try:
-        # Get house_id for the user
+        # Get user for validation
         user_result = selectUser(id=transaction.user_id)
         if not user_result:
             raise HTTPException(status_code=404, detail="User not found")
-        house_id = user_result[0].get("house_Id")
-        if not house_id:
-            raise HTTPException(status_code=404, detail="House ID not found for user")
         transaction_doc = transaction.dict()
-        transaction_doc["house_id"] = house_id
         transaction_doc["date"] = transaction.date or datetime.now().isoformat()
         db.transactions.insert_one(transaction_doc)
         if transaction.transaction_type == "expense":
@@ -66,10 +62,7 @@ async def get_transactions(user_id: str):
         user_result = selectUser(id=user_id)
         if not user_result:
             raise HTTPException(status_code=404, detail="User not found")
-        house_id = user_result[0].get("house_Id")
-        if not house_id:
-            raise HTTPException(status_code=404, detail="House ID not found for user")
-        transactions = list(db.transactions.find({"house_id": house_id}, {"_id": 0}))
+        transactions = list(db.transactions.find({"user_id": user_id}, {"_id": 0}))
         return transactions
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -110,12 +103,12 @@ def update_budget_estimation(transaction: dict):
     try:
         month = datetime.now().strftime("%Y-%m")
         budget_data = db.budget_estimation.find_one({
-            "house_id": transaction["house_id"],
+            "user_id": transaction["user_id"],
             "month": month
         })
         if not budget_data:
             budget_data = {
-                "house_id": transaction["house_id"],
+                "user_id": transaction["user_id"],
                 "month": month,
                 "categories": {},
                 "total_spent": 0
@@ -126,7 +119,7 @@ def update_budget_estimation(transaction: dict):
         budget_data["categories"][category] += transaction["amount"]
         budget_data["total_spent"] = sum(budget_data["categories"].values())
         db.budget_estimation.update_one(
-            {"house_id": transaction["house_id"], "month": month},
+            {"user_id": transaction["user_id"], "month": month},
             {"$set": budget_data},
             upsert=True
         )

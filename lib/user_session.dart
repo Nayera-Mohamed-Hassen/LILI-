@@ -9,13 +9,31 @@ class UserSession {
 
   int recipesCount = 1;
   String? userId = '';
+  String? username = '';
+  String? name = '';
 
   void setUserId(String id) {
     userId = id;
   }
 
+  void setUsername(String name) {
+    username = name;
+  }
+
+  void setName(String n) {
+    name = n;
+  }
+
   String? getUserId() {
     return userId;
+  }
+
+  String? getUsername() {
+    return username;
+  }
+
+  String? getName() {
+    return name;
   }
 
   void setRecipeCount(int count) {

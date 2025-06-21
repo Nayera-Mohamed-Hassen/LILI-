@@ -82,6 +82,29 @@ class _NotificationsPageState extends State<NotificationsPage> {
         title: Text('Notifications', style: TextStyle(color: Colors.white)),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        actions: [
+          FutureBuilder<List<NotificationModel>>(
+            future: _notificationsFuture,
+            builder: (context, snapshot) {
+              if (snapshot.hasData && snapshot.data!.any((n) => !n.isRead)) {
+                return IconButton(
+                  icon: Icon(Icons.mark_email_read, color: Colors.white),
+                  tooltip: 'Mark All as Read',
+                  onPressed: () async {
+                    final success = await notificationService.markAllAsRead(widget.userId);
+                    if (success) {
+                      _refresh();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('All notifications marked as read!')),
+                      );
+                    }
+                  },
+                );
+              }
+              return SizedBox.shrink();
+            },
+          ),
+        ],
       ),
       extendBodyBehindAppBar: true,
       body: Container(

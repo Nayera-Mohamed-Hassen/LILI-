@@ -1,6 +1,14 @@
-from fastapi import APIRouter, HTTPException, Body
+from fastapi import APIRouter, HTTPException, Body, Request
 from pydantic import BaseModel
 from ..notification_utils import get_notifications, mark_notification_read, delete_notification
+from pymongo import MongoClient
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+MONGO_URI = os.getenv("MONGO_URI")
+client = MongoClient(MONGO_URI)
+db = client["lili"]
 
 router = APIRouter(prefix="/notifications", tags=["Notifications"])
 
@@ -24,4 +32,16 @@ def mark_read(req: MarkReadRequest):
 def delete_notif(notification_id: str):
     if delete_notification(notification_id):
         return {"status": "success"}
-    raise HTTPException(status_code=404, detail="Notification not found") 
+    raise HTTPException(status_code=404, detail="Notification not found")
+
+@router.post("/mark_all_read")
+async def mark_all_notifications_as_read(request: Request):
+    data = await request.json()
+    user_id = data.get("user_id")
+    if not user_id:
+        raise HTTPException(status_code=400, detail="Missing user_id")
+    result = db["notifications"].update_many(
+        {"user_id": user_id, "is_read": False},
+        {"$set": {"is_read": True}}
+    )
+    return {"marked_count": result.modified_count} 

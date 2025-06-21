@@ -28,4 +28,13 @@ class NotificationService {
     final response = await http.delete(Uri.parse('$baseUrl/notifications/$notificationId'));
     return response.statusCode == 200;
   }
+
+  Future<bool> markAllAsRead(String userId) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/notifications/mark_all_read'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({'user_id': userId}),
+    );
+    return response.statusCode == 200;
+  }
 } 

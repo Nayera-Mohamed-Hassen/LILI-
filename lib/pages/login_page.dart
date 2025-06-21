@@ -242,6 +242,12 @@ class _LoginPageState extends State<LoginPage> {
           final userService = UserService();
           try {
             final profile = await userService.getUserProfile(userId);
+            if (profile['username'] != null) {
+              UserSession().setUsername(profile['username']);
+            }
+            if (profile['name'] != null) {
+              UserSession().setName(profile['name']);
+            }
             final houseId = profile['house_Id']?.toString() ?? '';
             print(houseId);
             if (houseId.isEmpty) {

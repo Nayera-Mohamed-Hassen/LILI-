@@ -393,6 +393,8 @@ class _InitSetupPageState extends State<InitSetupPage> {
         final userId = data['user_id'];
         if (userId != null && userId is String) {
           UserSession().setUserId(userId);
+          UserSession().setUsername(widget.username);
+          UserSession().setName(widget.name);
         }
         Navigator.pushNamed(context, '/hosting');
       } else {

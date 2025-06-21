@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 
 class OCRService {
   static const String baseUrl = 'http://10.0.2.2:8000'; // Update with your backend URL
@@ -8,17 +9,31 @@ class OCRService {
   /// Scan receipt image and extract text using OCR
   static Future<Map<String, dynamic>> scanReceipt(File imageFile) async {
     try {
+      // Debug: Print file path and existence
+      print('Uploading file: \\${imageFile.path}');
+      print('File exists: \\${await imageFile.exists()}');
+
+      // Determine content type based on file extension
+      String ext = imageFile.path.split('.').last.toLowerCase();
+      MediaType contentType;
+      if (ext == 'png') {
+        contentType = MediaType('image', 'png');
+      } else {
+        contentType = MediaType('image', 'jpeg'); // default to jpeg
+      }
+
       // Create multipart request
       var request = http.MultipartRequest(
         'POST',
         Uri.parse('$baseUrl/ocr/receipt'),
       );
 
-      // Add the image file
+      // Add the image file with explicit content type
       request.files.add(
         await http.MultipartFile.fromPath(
           'file',
           imageFile.path,
+          contentType: contentType,
         ),
       );
 
@@ -29,10 +44,12 @@ class OCRService {
       if (response.statusCode == 200) {
         return json.decode(responseData);
       } else {
-        throw Exception('OCR failed: ${response.statusCode} - $responseData');
+        print('OCR failed: \\${response.statusCode} - \\${responseData}');
+        throw Exception('OCR failed: \\${response.statusCode} - \\${responseData}');
       }
     } catch (e) {
-      throw Exception('Error scanning receipt: $e');
+      print('Error scanning receipt: \\${e.toString()}');
+      throw Exception('Error scanning receipt: \\${e.toString()}');
     }
   }
 

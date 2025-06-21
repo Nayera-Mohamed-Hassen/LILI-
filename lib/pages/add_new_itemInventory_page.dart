@@ -336,29 +336,10 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
     );
   }
 
-  // Function to process selected items from OCR
-  Future<void> _processSelectedItems(List<OCRItem> selectedItems) async {
-    for (OCRItem item in selectedItems) {
-      // Pre-fill the form with the first item
-      if (item == selectedItems.first) {
-        setState(() {
-          _titleController.text = item.name.isNotEmpty ? item.name : 'Unknown Item';
-          _quantityController.text = item.quantity.toString();
-          _amountController.text = item.unitPrice > 0 ? item.unitPrice.toString() : item.amount.toString();
-        });
-      }
-
-      // Show confirmation dialog for each item
-      bool shouldAdd = await _showItemConfirmationDialog(item);
-      if (shouldAdd) {
-        await _addItemFromOCR(item);
-      }
-    }
-  }
-
-  // Function to show confirmation dialog for each item
-  Future<bool> _showItemConfirmationDialog(OCRItem item) async {
-    return await showDialog<bool>(
+  // Function to show confirmation dialog for each item with category selection
+  Future<Map<String, dynamic>?> _showItemConfirmationDialogWithCategory(OCRItem item) async {
+    String selectedCategory = 'Food';
+    return await showDialog<Map<String, dynamic>>(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Color(0xFF1F3354),
@@ -384,6 +365,35 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
             ),
             SizedBox(height: 16),
             Text(
+              'Category:',
+              style: TextStyle(color: Colors.white),
+            ),
+            SizedBox(height: 8),
+            StatefulBuilder(
+              builder: (context, setState) {
+                return DropdownButton<String>(
+                  value: selectedCategory,
+                  dropdownColor: Color(0xFF1F3354),
+                  style: TextStyle(color: Colors.white),
+                  icon: Icon(Icons.arrow_drop_down, color: Colors.white70),
+                  items: CategoryManager().categories
+                      .map((cat) => DropdownMenuItem(
+                            value: cat,
+                            child: Text(cat, style: TextStyle(color: Colors.white)),
+                          ))
+                      .toList(),
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() {
+                        selectedCategory = value;
+                      });
+                    }
+                  },
+                );
+              },
+            ),
+            SizedBox(height: 16),
+            Text(
               'Would you like to add this item to your inventory?',
               style: TextStyle(color: Colors.white),
             ),
@@ -391,11 +401,14 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
+            onPressed: () => Navigator.of(context).pop(null),
             child: Text('Skip', style: TextStyle(color: Colors.white70)),
           ),
           ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(true),
+            onPressed: () => Navigator.of(context).pop({
+              'add': true,
+              'category': selectedCategory,
+            }),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.white24,
             ),
@@ -403,11 +416,31 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
           ),
         ],
       ),
-    ) ?? false;
+    );
   }
 
-  // Function to add item from OCR to inventory
-  Future<void> _addItemFromOCR(OCRItem item) async {
+  // Function to process selected items from OCR
+  Future<void> _processSelectedItems(List<OCRItem> selectedItems) async {
+    for (OCRItem item in selectedItems) {
+      // Pre-fill the form with the first item
+      if (item == selectedItems.first) {
+        setState(() {
+          _titleController.text = item.name.isNotEmpty ? item.name : 'Unknown Item';
+          _quantityController.text = item.quantity.toString();
+          _amountController.text = item.unitPrice > 0 ? item.unitPrice.toString() : item.amount.toString();
+        });
+      }
+
+      // Show confirmation dialog for each item with category selection
+      final result = await _showItemConfirmationDialogWithCategory(item);
+      if (result != null && result['add'] == true) {
+        await _addItemFromOCR(item, result['category'] ?? 'Food');
+      }
+    }
+  }
+
+  // Function to add item from OCR to inventory (now takes category)
+  Future<void> _addItemFromOCR(OCRItem item, String category) async {
     final String? userId = UserSession().getUserId();
     if (userId == null || userId.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -418,7 +451,7 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
 
     final newItem = {
       "name": item.name.isNotEmpty ? item.name : 'Unknown Item',
-      "category": _selectedCategory ?? "Other",
+      "category": category,
       "quantity": item.quantity,
       "unit": _selectedUnit,
       "amount": item.unitPrice > 0 ? item.unitPrice : item.amount,

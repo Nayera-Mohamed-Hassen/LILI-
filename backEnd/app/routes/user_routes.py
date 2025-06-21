@@ -326,14 +326,18 @@ async def add_item(item: InventoryItem):
         
         inventory_collection.insert_one(item_dict)
         
-        create_notification(
-            user_id=item.user_id,
-            notif_type="inventory",
-            title="Item Added",
-            body=f"{item.name} was added to your inventory.",
-            data={"item_name": item.name},
-            icon="inventory"
-        )
+        # Notify all household members
+        users_in_house = selectUser(query={"house_Id": house_id})
+        for u in users_in_house:
+            uid = u["_id"]
+            create_notification(
+                user_id=uid,
+                notif_type="inventory",
+                title="Item Added",
+                body=f"{item.name} was added to your inventory.",
+                data={"item_name": item.name},
+                icon="inventory"
+            )
         
         return {
             "status": "success",
@@ -1491,14 +1495,27 @@ async def get_expense_goals_with_progress(data: ExpenseGoalRequest):
             # Get transactions for this category within the goal period
             start_date = datetime.fromisoformat(goal["start_date"])
             end_date = datetime.fromisoformat(goal["end_date"])
-            
+            # For monthly goals, always use the 1st to last day of the month
+            if goal["period"].lower() == "monthly":
+                month_start = start_date.replace(day=1)
+                if start_date.month == 12:
+                    next_month = start_date.replace(year=start_date.year+1, month=1, day=1)
+                else:
+                    next_month = start_date.replace(month=start_date.month+1, day=1)
+                month_end = next_month - timedelta(days=1)
+                query_start = month_start.isoformat()
+                query_end = month_end.isoformat()
+            else:
+                query_start = start_date.isoformat()
+                query_end = end_date.isoformat()
+
             transactions = list(transactions_collection.find({
                 "user_id": data.user_id,
                 "category": goal["category"],
                 "transaction_type": "expense",
                 "date": {
-                    "$gte": start_date.isoformat(),
-                    "$lte": end_date.isoformat()
+                    "$gte": query_start,
+                    "$lte": query_end
                 }
             }))
             

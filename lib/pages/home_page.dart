@@ -148,9 +148,9 @@ class _HomePageState extends State<HomePage> {
                                         color: Colors.white,
                                       ),
                                     ),
-                                    const Text(
-                                      'Ganna',
-                                      style: TextStyle(
+                                    Text(
+                                      UserSession().getName() ?? 'User',
+                                      style: const TextStyle(
                                         fontSize: 16,
                                         color: Colors.white70,
                                       ),
@@ -325,6 +325,21 @@ class _HomePageState extends State<HomePage> {
                 },
               )),
               Divider(),
+              if (_latestNotifications.any((n) => !n.isRead))
+                TextButton.icon(
+                  icon: Icon(Icons.mark_email_read),
+                  label: Text('Mark All as Read'),
+                  onPressed: () async {
+                    final userId = UserSession().getUserId().toString();
+                    final success = await NotificationService().markAllAsRead(userId);
+                    if (success) {
+                      _fetchNotifications();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('All notifications marked as read!')),
+                      );
+                    }
+                  },
+                ),
               TextButton.icon(
                 icon: Icon(Icons.arrow_forward),
                 label: Text('See all notifications'),
