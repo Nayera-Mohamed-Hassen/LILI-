@@ -12,7 +12,9 @@ class InventoryItem {
   final String category;
   int quantity;
   final String? image;
-  final String? expiryDate; // add this
+  final String? expiryDate;
+  final String unit;
+  final double amount;
 
   InventoryItem({
     required this.name,
@@ -20,6 +22,8 @@ class InventoryItem {
     required this.quantity,
     this.image,
     this.expiryDate,
+    this.unit = "pieces",
+    this.amount = 1.0,
   });
 }
 
@@ -80,6 +84,8 @@ class _InventoryPageState extends State<InventoryPage> {
                 quantity: item['quantity'],
                 image: item['image'],
                 expiryDate: item['expiry_date'],
+                unit: item['unit'] ?? "pieces",
+                amount: item['amount'] ?? 1.0,
               );
             }).toList();
 
@@ -112,8 +118,10 @@ class _InventoryPageState extends State<InventoryPage> {
   Future<void> updateItemQuantity(
     String name,
     int newQuantity,
-    String? userId,
-  ) async {
+    String? userId, {
+    String unit = "pieces",
+    double amount = 1.0,
+  }) async {
     final response = await http.put(
       Uri.parse('http://10.0.2.2:8000/user/inventory/update-quantity'),
       headers: {"Content-Type": "application/json"},
@@ -121,10 +129,21 @@ class _InventoryPageState extends State<InventoryPage> {
         "user_id": userId,
         "name": name,
         "quantity": newQuantity,
+        "unit": unit,
+        "amount": amount,
       }),
     );
 
-    if (response.statusCode != 200) {
+    if (response.statusCode == 200) {
+      final result = jsonDecode(response.body);
+      
+      // If the item was deleted (quantity reached 0), remove it from the UI
+      if (result["status"] == "deleted") {
+        setState(() {
+          allItems.removeWhere((item) => item.name == name);
+        });
+      }
+    } else {
       throw Exception('Failed to update quantity: ${response.body}');
     }
   }
@@ -142,6 +161,54 @@ class _InventoryPageState extends State<InventoryPage> {
 
     if (response.statusCode != 200) {
       throw Exception('Failed to delete item: ${response.body}');
+    }
+  }
+
+  // Smart low stock detection based on units and amounts
+  bool isLowStock(InventoryItem item) {
+    if (item.category != "Food") return false;
+    
+    // Define low stock thresholds for different units
+    switch (item.unit.toLowerCase()) {
+      case 'kg':
+      case 'kilograms':
+        return item.quantity * item.amount < 0.5; // Less than 0.5kg total
+      case 'l':
+      case 'liters':
+      case 'litres':
+        return item.quantity * item.amount < 0.5; // Less than 0.5L total
+      case 'g':
+      case 'grams':
+        return item.quantity * item.amount < 100; // Less than 100g total
+      case 'ml':
+      case 'milliliters':
+        return item.quantity * item.amount < 100; // Less than 100ml total
+      case 'pieces':
+      case 'pcs':
+      case 'units':
+        return item.quantity <= 1; // 1 or fewer pieces
+      case 'packets':
+      case 'packs':
+        return item.quantity <= 1; // 1 or fewer packets
+      case 'bottles':
+      case 'cans':
+        return item.quantity <= 1; // 1 or fewer bottles/cans
+      default:
+        return item.quantity <= 1; // Default to 1 or fewer
+    }
+  }
+
+  // Format quantity display with units
+  String formatQuantity(InventoryItem item) {
+    if (item.unit.toLowerCase() == 'pieces' || item.unit.toLowerCase() == 'pcs') {
+      return '${item.quantity}';
+    } else {
+      double totalAmount = item.quantity * item.amount;
+      if (totalAmount == totalAmount.toInt()) {
+        return '${totalAmount.toInt()} ${item.unit}';
+      } else {
+        return '${totalAmount.toStringAsFixed(1)} ${item.unit}';
+      }
     }
   }
 
@@ -356,7 +423,7 @@ class _InventoryPageState extends State<InventoryPage> {
 
   Widget _buildItemCard(InventoryItem item) {
     final daysLeft = calculateDaysLeft(item.expiryDate);
-    final bool isLowStock = item.category == "Food" && item.quantity <= 1;
+    final bool isLowStock = this.isLowStock(item);
     final bool isExpiringSoon = daysLeft != null && daysLeft <= 7;
 
     return Card(
@@ -465,13 +532,15 @@ class _InventoryPageState extends State<InventoryPage> {
                           IconButton(
                             icon: Icon(Icons.remove, color: Colors.white70),
                             onPressed: () async {
-                              if (item.quantity > 0) {
+                              if (item.quantity > 1) {
                                 setState(() => item.quantity--);
                                 try {
                                   await updateItemQuantity(
                                     item.name,
                                     item.quantity,
                                     UserSession().getUserId(),
+                                    unit: item.unit,
+                                    amount: item.amount,
                                   );
                                 } catch (e) {
                                   ScaffoldMessenger.of(context).showSnackBar(
@@ -482,11 +551,71 @@ class _InventoryPageState extends State<InventoryPage> {
                                     ),
                                   );
                                 }
+                              } else if (item.quantity == 1) {
+                                // Show confirmation dialog when quantity would reach 0
+                                showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return AlertDialog(
+                                      backgroundColor: Color(0xFF1F3354),
+                                      title: Text(
+                                        'Delete Item?',
+                                        style: TextStyle(color: Colors.white),
+                                      ),
+                                      content: Text(
+                                        'Setting quantity to 0 will delete "${item.name}" from your inventory. Continue?',
+                                        style: TextStyle(color: Colors.white70),
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () => Navigator.of(context).pop(),
+                                          child: Text(
+                                            'Cancel',
+                                            style: TextStyle(color: Colors.white70),
+                                          ),
+                                        ),
+                                        TextButton(
+                                          onPressed: () async {
+                                            Navigator.of(context).pop();
+                                            setState(() => item.quantity = 0);
+                                            try {
+                                              await updateItemQuantity(
+                                                item.name,
+                                                0,
+                                                UserSession().getUserId(),
+                                                unit: item.unit,
+                                                amount: item.amount,
+                                              );
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                SnackBar(
+                                                  content: Text('${item.name} removed from inventory'),
+                                                  backgroundColor: Colors.green.withOpacity(0.8),
+                                                ),
+                                              );
+                                            } catch (e) {
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                SnackBar(
+                                                  content: Text(
+                                                    'Failed to delete item: $e',
+                                                  ),
+                                                ),
+                                              );
+                                            }
+                                          },
+                                          child: Text(
+                                            'Delete',
+                                            style: TextStyle(color: Colors.red[300]),
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
                               }
                             },
                           ),
                           Text(
-                            '${item.quantity}',
+                            this.formatQuantity(item),
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 18,
@@ -502,6 +631,8 @@ class _InventoryPageState extends State<InventoryPage> {
                                   item.name,
                                   item.quantity,
                                   UserSession().getUserId(),
+                                  unit: item.unit,
+                                  amount: item.amount,
                                 );
                               } catch (e) {
                                 ScaffoldMessenger.of(context).showSnackBar(
@@ -577,7 +708,7 @@ class _InventoryPageState extends State<InventoryPage> {
                       SizedBox(height: 12),
                       _buildDetailRow(
                         Icons.inventory_2_outlined,
-                        'Quantity: ${item.quantity}',
+                        'Quantity: ${this.formatQuantity(item)}',
                       ),
                       if (item.expiryDate != null && item.expiryDate!.isNotEmpty) ...[
                         SizedBox(height: 12),

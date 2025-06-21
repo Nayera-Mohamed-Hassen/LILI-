@@ -285,6 +285,8 @@ class InventoryItem(BaseModel):
     name: str
     category: str
     quantity: int
+    unit: str = "pieces"  # Default unit
+    amount: float = 1.0   # Default amount
     #image: Optional[str]
     user_id: str  # Added user_id here
 
@@ -313,6 +315,8 @@ async def add_item(item: InventoryItem):
             "name": name,
             "category": item.category,
             "quantity": item.quantity,
+            "unit": item.unit,
+            "amount": item.amount,
             "user_id": item.user_id,
             "expiry_date": expiry_info,
             "house_id": house_id
@@ -378,6 +382,8 @@ class UpdateQuantityRequest(BaseModel):
     user_id: str
     name: str
     quantity: int
+    unit: str = "pieces"
+    amount: float = 1.0
 
 @router.put("/inventory/update-quantity")
 async def update_inventory_quantity(data: UpdateQuantityRequest):
@@ -387,16 +393,34 @@ async def update_inventory_quantity(data: UpdateQuantityRequest):
             raise HTTPException(status_code=404, detail="House ID not found for user")
         house_id = house_result[0]["house_Id"]
 
-
         MONGO_URI = os.getenv("MONGO_URI")
         client = MongoClient(MONGO_URI)
         db = client["lili"]
         inventory_collection = db["inventory"]
 
-        # Update the quantity of the matching item
+        # If quantity is 0, delete the item
+        if data.quantity <= 0:
+            delete_result = inventory_collection.delete_one({
+                "house_id": house_id,
+                "name": data.name
+            })
+            
+            if delete_result.deleted_count == 0:
+                return {"status": "not_found", "message": "No matching item found to delete"}
+            
+            return {
+                "status": "deleted",
+                "message": "Item deleted successfully (quantity reached 0)"
+            }
+
+        # Update the quantity, unit, and amount of the matching item
         update_result = inventory_collection.update_one(
             {"house_id": house_id, "name": data.name},
-            {"$set": {"quantity": data.quantity}}
+            {"$set": {
+                "quantity": data.quantity,
+                "unit": data.unit,
+                "amount": data.amount
+            }}
         )
 
         if update_result.matched_count == 0:

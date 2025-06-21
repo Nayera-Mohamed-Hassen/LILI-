@@ -17,8 +17,22 @@ class CreateNewItemPage extends StatefulWidget {
 class _CreateNewItemPageState extends State<CreateNewItemPage> {
   final _titleController = TextEditingController();
   final _quantityController = TextEditingController();
+  final _amountController = TextEditingController();
   String? _selectedCategory;
+  String _selectedUnit = "pieces";
   File? _pickedImage;
+
+  final List<String> units = [
+    "pieces",
+    "kg",
+    "grams",
+    "liters",
+    "ml",
+    "packets",
+    "bottles",
+    "cans",
+    "boxes",
+  ];
 
   Future<void> _pickImage() async {
     final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
@@ -82,7 +96,6 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
         filled: true,
         fillColor: Colors.white12,
         contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-
         hintStyle: TextStyle(color: Colors.white60),
       ),
       dropdownColor: Color(0xFF1F3354),
@@ -104,12 +117,66 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
     );
   }
 
+  Widget _buildUnitDropdown() {
+    return DropdownButtonFormField<String>(
+      value: _selectedUnit,
+      style: TextStyle(color: Colors.white),
+      decoration: InputDecoration(
+        labelText: 'Unit',
+        labelStyle: TextStyle(color: Colors.white70),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: Colors.white24),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: Colors.white24),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: Colors.white),
+        ),
+        filled: true,
+        fillColor: Colors.white12,
+        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        hintStyle: TextStyle(color: Colors.white60),
+      ),
+      dropdownColor: Color(0xFF1F3354),
+      icon: Icon(Icons.arrow_drop_down, color: Colors.white70, size: 28),
+      items:
+          units
+              .map(
+                (unit) => DropdownMenuItem(
+                  value: unit,
+                  child: Text(unit, style: TextStyle(color: Colors.white)),
+                ),
+              )
+              .toList(),
+      onChanged: (value) {
+        setState(() {
+          _selectedUnit = value!;
+        });
+      },
+    );
+  }
+
   void _saveItem() async {
     if (_titleController.text.isEmpty ||
         _quantityController.text.isEmpty ||
         _selectedCategory == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Please fill in all required fields')),
+      );
+      return;
+    }
+
+    final quantity = int.tryParse(_quantityController.text) ?? 0;
+    if (quantity <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Quantity must be greater than 0'),
+          backgroundColor: Colors.red.withOpacity(0.8),
+        ),
       );
       return;
     }
@@ -125,10 +192,12 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
     final newItem = {
       "name": _titleController.text,
       "category": _selectedCategory!,
-      "quantity":
-          _quantityController.text.isNotEmpty
-              ? int.tryParse(_quantityController.text) ?? 0
-              : 0,
+      "quantity": quantity,
+      "unit": _selectedUnit,
+      "amount":
+          _amountController.text.isNotEmpty
+              ? double.tryParse(_amountController.text) ?? 1.0
+              : 1.0,
       "user_id": userId,
     };
 
@@ -170,6 +239,8 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
                         quantity: int.tryParse(_quantityController.text) ?? 0,
                         image: _pickedImage?.path,
                         expiryDate: expiryDate.isEmpty ? null : expiryDate,
+                        unit: _selectedUnit,
+                        amount: double.tryParse(_amountController.text) ?? 1.0,
                       );
                       Navigator.of(context).pop(newItem);
                     },
@@ -187,26 +258,6 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
       ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
     }
   }
-
-  // void _saveItem() {
-  //   if (_titleController.text.isEmpty ||
-  //       _quantityController.text.isEmpty ||
-  //       _selectedCategory == null) {
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(content: Text('Please fill in all required fields')),
-  //     );
-  //     return;
-  //   }
-  //
-  //   final newItem = InventoryItem(
-  //     name: _titleController.text,
-  //     category: _selectedCategory!,
-  //     quantity: int.tryParse(_quantityController.text) ?? 0,
-  //     image: _pickedImage?.path,
-  //   );
-  //
-  //   Navigator.pop(context, newItem);
-  // }
 
   void _discardItem() {
     Navigator.pop(context);
@@ -403,9 +454,17 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
                       SizedBox(height: 16),
                       _buildDropdown('Choose Category'),
                       SizedBox(height: 16),
+                      _buildUnitDropdown(),
+                      SizedBox(height: 16),
                       _buildTextField(
                         _quantityController,
-                        'Quantity',
+                        'Quantity (Number of items)',
+                        isNumber: true,
+                      ),
+                      SizedBox(height: 16),
+                      _buildTextField(
+                        _amountController,
+                        'Amount per item (e.g., 5 for 5kg bag, 1 for 1L bottle)',
                         isNumber: true,
                       ),
                       SizedBox(height: 32),
