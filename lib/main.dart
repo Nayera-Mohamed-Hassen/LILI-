@@ -30,7 +30,6 @@ import 'pages/my_card_page.dart';
 import 'pages/add_new_expenses.dart';
 import 'pages/create_new_category_budget.dart';
 import 'pages/on_boarding.dart';
-import 'pages/google_sign_in_sevice.dart';
 import 'pages/host_house.dart';
 import 'pages/menuItem.dart';
 import 'pages/RecipeNavBar.dart';
@@ -38,8 +37,15 @@ import 'pages/dash_board_page.dart';
 import 'pages/expenses_page.dart';
 import 'package:provider/provider.dart';
 import 'package:LILI/services/task_service.dart';
+import 'pages/newlib_workout_screen_wrapper.dart';
+import 'pages/newlib_calendar_screen_wrapper.dart';
+import 'new Lib/firebase_options.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(
     MultiProvider(
       providers: [ChangeNotifierProvider(create: (_) => TaskService())],
@@ -94,10 +100,14 @@ class LiliApp extends StatelessWidget {
         '/create new category budget':
             (context) => CreateNewCategoryBudgetPage(),
         '/host house': (context) => HostHousePage(),
-        '/dash board ': (context) => ReportDashboard(userId: UserSession().getUserId().toString()),
+        '/dash board ':
+            (context) =>
+                ReportDashboard(userId: UserSession().getUserId().toString()),
         '/Expenses ':
             (context) =>
                 ExpensesPage(userId: UserSession().getUserId().toString()),
+        '/workout_planner': (context) => NewLibWorkoutScreenWrapper(),
+        '/family_calendar': (context) => NewLibCalendarScreenWrapper(),
       },
     );
   }

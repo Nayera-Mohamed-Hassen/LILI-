@@ -32,16 +32,13 @@ dependencies:
     sdk: flutter
   curved_navigation_bar: ^1.0.0
   cupertino_icons: ^1.0.8
-  table_calendar: ^3.0.0
+  table_calendar: ^3.0.8
   gif_view: ^1.0.2
   gif: ^2.3.0
   image_picker: ^0.8.5+3
   pie_chart: ^5.4.0
   progress_bar_chart: ^0.0.12
   flutter_onboarding_slider: ^1.0.11
-  google_sign_in: ^6.1.6  # Use latest version
-  firebase_auth: ^4.7.2   # Optional if you're using Firebase
-  firebase_core: ^2.31.0  # Optional
   percent_indicator: ^4.2.2
   http: ^1.2.0
   fl_chart: ^0.65.0
@@ -49,6 +46,16 @@ dependencies:
   font_awesome_flutter: ^10.7.0
   camera: ^0.10.5+9
   permission_handler: ^11.3.1
+  firebase_core: ^3.14.0
+  firebase_messaging: ^15.1.3
+  geolocator: ^14.0.1
+  shared_preferences: ^2.5.3
+  device_calendar: ^4.3.3
+  flutter_map: ^6.1.0
+  latlong2: ^0.9.0
+  uuid: ^4.3.3
+  url_launcher: ^6.2.4
+  get: ^4.6.5
 
 dev_dependencies:
   flutter_test:
@@ -147,5 +154,6 @@ flutter:
     - assets/images/visa.png
     - assets/images/LOGO.PNG
     - assets/images/expenses2.png
+    - assets/assets/images/
 
 

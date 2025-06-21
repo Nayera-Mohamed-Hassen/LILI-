@@ -34,7 +34,9 @@ class _MainMenuPageState extends State<MainMenuPage> {
   void _fetchNotifications() async {
     setState(() => _loadingNotifications = true);
     try {
-      final notifs = await NotificationService().fetchNotifications(UserSession().getUserId().toString());
+      final notifs = await NotificationService().fetchNotifications(
+        UserSession().getUserId().toString(),
+      );
       setState(() {
         _latestNotifications = notifs.take(5).toList();
         _loadingNotifications = false;
@@ -71,16 +73,28 @@ class _MainMenuPageState extends State<MainMenuPage> {
                   padding: const EdgeInsets.all(16.0),
                   child: Text('No notifications'),
                 )
-              else ..._latestNotifications.map((notif) => ListTile(
-                leading: Icon(_iconForType(notif.type), color: notif.isRead ? Colors.grey : Colors.blue),
-                title: Text(notif.title, style: TextStyle(fontWeight: notif.isRead ? FontWeight.normal : FontWeight.bold)),
-                onTap: () async {
-                  await NotificationService().markAsRead(notif.id);
-                  _fetchNotifications();
-                  setState(() => _dropdownOpen = false);
-                  _handleNotificationTap(notif);
-                },
-              )),
+              else
+                ..._latestNotifications.map(
+                  (notif) => ListTile(
+                    leading: Icon(
+                      _iconForType(notif.type),
+                      color: notif.isRead ? Colors.grey : Colors.blue,
+                    ),
+                    title: Text(
+                      notif.title,
+                      style: TextStyle(
+                        fontWeight:
+                            notif.isRead ? FontWeight.normal : FontWeight.bold,
+                      ),
+                    ),
+                    onTap: () async {
+                      await NotificationService().markAsRead(notif.id);
+                      _fetchNotifications();
+                      setState(() => _dropdownOpen = false);
+                      _handleNotificationTap(notif);
+                    },
+                  ),
+                ),
               Divider(),
               if (_latestNotifications.any((n) => !n.isRead))
                 TextButton.icon(
@@ -88,11 +102,15 @@ class _MainMenuPageState extends State<MainMenuPage> {
                   label: Text('Mark All as Read'),
                   onPressed: () async {
                     final userId = UserSession().getUserId().toString();
-                    final success = await NotificationService().markAllAsRead(userId);
+                    final success = await NotificationService().markAllAsRead(
+                      userId,
+                    );
                     if (success) {
                       _fetchNotifications();
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('All notifications marked as read!')),
+                        SnackBar(
+                          content: Text('All notifications marked as read!'),
+                        ),
                       );
                     }
                   },
@@ -105,9 +123,10 @@ class _MainMenuPageState extends State<MainMenuPage> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => NotificationsPage(
-                        userId: UserSession().getUserId().toString(),
-                      ),
+                      builder:
+                          (context) => NotificationsPage(
+                            userId: UserSession().getUserId().toString(),
+                          ),
                     ),
                   );
                 },
@@ -121,13 +140,29 @@ class _MainMenuPageState extends State<MainMenuPage> {
 
   void _handleNotificationTap(NotificationModel notif) {
     if (notif.type == 'task' && notif.data['task_id'] != null) {
-      Navigator.pushNamed(context, '/task home', arguments: notif.data['task_id']);
+      Navigator.pushNamed(
+        context,
+        '/task home',
+        arguments: notif.data['task_id'],
+      );
     } else if (notif.type == 'recipe' && notif.data['recipe_id'] != null) {
-      Navigator.pushNamed(context, '/Recipe', arguments: notif.data['recipe_id']);
+      Navigator.pushNamed(
+        context,
+        '/Recipe',
+        arguments: notif.data['recipe_id'],
+      );
     } else if (notif.type == 'inventory' && notif.data['item_name'] != null) {
-      Navigator.pushNamed(context, '/inventory', arguments: notif.data['item_name']);
+      Navigator.pushNamed(
+        context,
+        '/inventory',
+        arguments: notif.data['item_name'],
+      );
     } else if (notif.type == 'spending' && notif.data['category'] != null) {
-      Navigator.pushNamed(context, '/Expenses ', arguments: notif.data['category']);
+      Navigator.pushNamed(
+        context,
+        '/Expenses ',
+        arguments: notif.data['category'],
+      );
     }
   }
 
@@ -158,16 +193,16 @@ class _MainMenuPageState extends State<MainMenuPage> {
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [
-                  const Color(0xFF1F3354),
-                  const Color(0xFF3E5879),
-                ],
+                colors: [const Color(0xFF1F3354), const Color(0xFF3E5879)],
               ),
             ),
             child: Center(
               child: Column(
                 children: [
-                  SizedBox(height: 50, width: MediaQuery.of(context).size.width),
+                  SizedBox(
+                    height: 50,
+                    width: MediaQuery.of(context).size.width,
+                  ),
                   SizedBox(
                     width: MediaQuery.of(context).size.width - 50,
                     child: Row(
@@ -217,6 +252,20 @@ class _MainMenuPageState extends State<MainMenuPage> {
                             text: "Track Expenses",
                             image: "assets/images/money.gif",
                           ),
+                          Menuitem(
+                            onPressed: () {
+                              Navigator.pushNamed(context, '/workout_planner');
+                            },
+                            text: "Workout Planner",
+                            image: "assets/images/food.gif",
+                          ),
+                          Menuitem(
+                            onPressed: () {
+                              Navigator.pushNamed(context, '/family_calendar');
+                            },
+                            text: "Family Calendar",
+                            image: "assets/images/food.gif",
+                          ),
                         ],
                       ),
                     ),
@@ -251,19 +300,39 @@ class _MainMenuPageState extends State<MainMenuPage> {
                               offset: Offset(0, 4),
                             ),
                           ],
-                          border: Border.all(color: Colors.white.withOpacity(0.4), width: 2),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.4),
+                            width: 2,
+                          ),
                         ),
                         padding: EdgeInsets.all(10),
-                        child: Icon(FontAwesomeIcons.bell, size: 28, color: Colors.white),
+                        child: Icon(
+                          FontAwesomeIcons.bell,
+                          size: 28,
+                          color: Colors.white,
+                        ),
                       ),
                       if (_latestNotifications.any((n) => !n.isRead))
                         Positioned(
                           right: 0,
                           child: Container(
                             padding: EdgeInsets.all(2),
-                            decoration: BoxDecoration(color: Colors.red, borderRadius: BorderRadius.circular(6)),
-                            constraints: BoxConstraints(minWidth: 12, minHeight: 12),
-                            child: Text('!', style: TextStyle(color: Colors.white, fontSize: 8), textAlign: TextAlign.center),
+                            decoration: BoxDecoration(
+                              color: Colors.red,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            constraints: BoxConstraints(
+                              minWidth: 12,
+                              minHeight: 12,
+                            ),
+                            child: Text(
+                              '!',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 8,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
                           ),
                         ),
                     ],

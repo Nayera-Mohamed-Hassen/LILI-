@@ -7,6 +7,7 @@ import 'emergency.dart';
 import 'profile.dart';
 import 'dash_board_page.dart';
 import '../user_session.dart';
+import 'newlib_sos_screen_wrapper.dart';
 
 class Navbar extends StatefulWidget {
   @override
@@ -27,7 +28,7 @@ class _NavbarState extends State<Navbar> {
     HomePage(),
     MainMenuPage(),
     ReportDashboard(userId: userId),
-    EmergencyPage(),
+    NewLibSosScreenWrapper(),
     ProfilePage(),
   ];
 
