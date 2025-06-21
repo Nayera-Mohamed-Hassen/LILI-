@@ -8,6 +8,9 @@ import '../user_session.dart';
 import 'create_new_categoryInventory_page.dart';
 import 'inventory_page.dart';
 import 'package:LILI/models/category_manager.dart';
+import 'receipt_scan_dialog.dart';
+import 'extracted_items_dialog.dart';
+import '../services/ocr_service.dart';
 
 class CreateNewItemPage extends StatefulWidget {
   @override
@@ -311,11 +314,145 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
     );
   }
 
-  // Function to simulate scanning receipt
-  void _scanReceipt() {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('Scanning receipt...')));
+  // Function to handle receipt scanning
+  void _scanReceipt() async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => ReceiptScanDialog(
+        onItemsExtracted: (items) async {
+          // Show extracted items dialog
+          final selectedItems = await showDialog<List<OCRItem>>(
+            context: context,
+            builder: (context) => ExtractedItemsDialog(items: items),
+          );
+
+          if (selectedItems != null && selectedItems.isNotEmpty) {
+            // Process selected items
+            await _processSelectedItems(selectedItems);
+          }
+        },
+      ),
+    );
+  }
+
+  // Function to process selected items from OCR
+  Future<void> _processSelectedItems(List<OCRItem> selectedItems) async {
+    for (OCRItem item in selectedItems) {
+      // Pre-fill the form with the first item
+      if (item == selectedItems.first) {
+        setState(() {
+          _titleController.text = item.name.isNotEmpty ? item.name : 'Unknown Item';
+          _quantityController.text = item.quantity.toString();
+          _amountController.text = item.unitPrice > 0 ? item.unitPrice.toString() : item.amount.toString();
+        });
+      }
+
+      // Show confirmation dialog for each item
+      bool shouldAdd = await _showItemConfirmationDialog(item);
+      if (shouldAdd) {
+        await _addItemFromOCR(item);
+      }
+    }
+  }
+
+  // Function to show confirmation dialog for each item
+  Future<bool> _showItemConfirmationDialog(OCRItem item) async {
+    return await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Color(0xFF1F3354),
+        title: Text(
+          'Add Item',
+          style: TextStyle(color: Colors.white),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Name: ${item.name.isNotEmpty ? item.name : 'Unknown Item'}',
+              style: TextStyle(color: Colors.white70),
+            ),
+            Text(
+              'Quantity: ${item.quantity}',
+              style: TextStyle(color: Colors.white70),
+            ),
+            Text(
+              'Price: \$${item.amount.toStringAsFixed(2)}',
+              style: TextStyle(color: Colors.white70),
+            ),
+            SizedBox(height: 16),
+            Text(
+              'Would you like to add this item to your inventory?',
+              style: TextStyle(color: Colors.white),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text('Skip', style: TextStyle(color: Colors.white70)),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.white24,
+            ),
+            child: Text('Add', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    ) ?? false;
+  }
+
+  // Function to add item from OCR to inventory
+  Future<void> _addItemFromOCR(OCRItem item) async {
+    final String? userId = UserSession().getUserId();
+    if (userId == null || userId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('User not logged in')),
+      );
+      return;
+    }
+
+    final newItem = {
+      "name": item.name.isNotEmpty ? item.name : 'Unknown Item',
+      "category": _selectedCategory ?? "Other",
+      "quantity": item.quantity,
+      "unit": _selectedUnit,
+      "amount": item.unitPrice > 0 ? item.unitPrice : item.amount,
+      "user_id": userId,
+    };
+
+    try {
+      final response = await http.post(
+        Uri.parse("http://10.0.2.2:8000/user/inventory/add"),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(newItem),
+      );
+
+      if (response.statusCode == 200) {
+        final result = jsonDecode(response.body);
+        String expiryDate = result["expiry_date"];
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${item.name} added successfully!'),
+            backgroundColor: Colors.green.withOpacity(0.8),
+          ),
+        );
+      } else {
+        throw Exception("Failed to save item");
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error adding ${item.name}: ${e.toString()}'),
+          backgroundColor: Colors.red.withOpacity(0.8),
+        ),
+      );
+    }
   }
 
   @override
