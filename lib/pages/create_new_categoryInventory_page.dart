@@ -18,7 +18,7 @@ class _AddNewCategoryPageState extends State<AddNewCategoryPage> {
         Color? textColor, // text color parameter
       }) {
     final fixedSize = size ?? const Size(200, 60);
-    final bgColor = backgroundColor ?? const Color(0xFF3E5879);
+    final bgColor = backgroundColor ?? Colors.white24;
     final txtColor = textColor ?? Colors.white;
 
     return SizedBox(
@@ -29,13 +29,13 @@ class _AddNewCategoryPageState extends State<AddNewCategoryPage> {
         style: ElevatedButton.styleFrom(
           backgroundColor: bgColor,
           shape: RoundedRectangleBorder(
-            side: const BorderSide(width: 1),
-            borderRadius: BorderRadius.circular(5),
+            borderRadius: BorderRadius.circular(16),
+            side: BorderSide(color: Colors.white24),
           ),
         ),
         child: Text(
           text,
-          style: TextStyle(color: txtColor, fontSize: 18),
+          style: TextStyle(color: txtColor, fontSize: 18, fontWeight: FontWeight.w600),
         ),
       ),
     );
@@ -49,65 +49,119 @@ class _AddNewCategoryPageState extends State<AddNewCategoryPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Add New Category',
-          style: TextStyle(color: Color(0xFFF5EFE7)),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [const Color(0xFF1F3354), const Color(0xFF3E5879)],
+          ),
         ),
-        iconTheme: const IconThemeData(color: Color(0xFFF5EFE7)),
-        backgroundColor: Color(0xFF1F3354),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            SizedBox(height: 40),
-            Center(
-              child: Image.asset(
-                'assets/inventory/category.webp',
-                height: 400, // You can change this height if needed
+        child: SafeArea(
+          child: Column(
+            children: [
+              AppBar(
+                surfaceTintColor: Colors.transparent,
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                leading: IconButton(
+                  icon: Icon(Icons.arrow_back, color: Colors.white),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+                title: Text(
+                  'Add New Category',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
-            ),
-            SizedBox(height: 40),
-            TextField(
-              controller: _categoryController,
-              decoration: InputDecoration(
-                labelText: 'Category Name',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            SizedBox(height: 40),
-              Column(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _buildButton(
-                  'Save',
-                  onPressed: () {
-                    String newCategory = _categoryController.text.trim();
-                    if (newCategory.isNotEmpty) {
-                      CategoryManager().addCategory(newCategory);
-                      Navigator.pop(context, newCategory);
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Please enter a category name'),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    children: [
+                      SizedBox(height: 20),
+                      // Image with styling
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: Colors.white24),
                         ),
-                      );
-                    }
-                  },
-                  size: const Size(260, 40),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: Image.asset(
+                            'assets/inventory/category.webp',
+                            height: 300,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 30),
+                      // TextField with styling
+                      TextField(
+                        controller: _categoryController,
+                        style: TextStyle(color: Colors.white),
+                        decoration: InputDecoration(
+                          labelText: 'Category Name',
+                          labelStyle: TextStyle(color: Colors.white70),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: BorderSide(color: Colors.white24),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: BorderSide(color: Colors.white24),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: BorderSide(color: Colors.white),
+                          ),
+                          filled: true,
+                          fillColor: Colors.white12,
+                          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        ),
+                      ),
+                      SizedBox(height: 30),
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          _buildButton(
+                            'Save',
+                            onPressed: () {
+                              String newCategory = _categoryController.text.trim();
+                              if (newCategory.isNotEmpty) {
+                                CategoryManager().addCategory(newCategory);
+                                Navigator.pop(context, newCategory);
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Please enter a category name'),
+                                    backgroundColor: Colors.red.withOpacity(0.8),
+                                  ),
+                                );
+                              }
+                            },
+                            size: const Size(260, 50),
+                            backgroundColor: Colors.white24,
+                          ),
+                          SizedBox(height: 12),
+                          _buildButton(
+                            'Discard',
+                            onPressed: _discardCategory,
+                            size: const Size(260, 50),
+                            backgroundColor: Colors.transparent,
+                            textColor: Colors.white70,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-                SizedBox(height: 10),
-                _buildButton(
-                  'Discard',
-                  onPressed: _discardCategory,
-                  size: const Size(260, 40),
-                  backgroundColor: Color(0xFFF2F2F2),
-                  textColor: Color(0xFF3E5879),
-                ),
-              ],
-            ),
-          ],
+              ),
+            ],
+          ),
         ),
       ),
     );

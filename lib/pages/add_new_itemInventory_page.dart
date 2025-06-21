@@ -37,11 +37,25 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
     return TextField(
       controller: controller,
       keyboardType: isNumber ? TextInputType.number : TextInputType.text,
+      style: TextStyle(color: Colors.white),
       decoration: InputDecoration(
         labelText: label,
-        border: OutlineInputBorder(),
+        labelStyle: TextStyle(color: Colors.white70),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: Colors.white24),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: Colors.white24),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: Colors.white),
+        ),
         filled: true,
-        fillColor: Colors.white,
+        fillColor: Colors.white12,
+        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       ),
     );
   }
@@ -49,15 +63,38 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
   Widget _buildDropdown(String label) {
     return DropdownButtonFormField<String>(
       value: _selectedCategory,
+      style: TextStyle(color: Colors.white),
       decoration: InputDecoration(
         labelText: label,
-        border: OutlineInputBorder(),
+        labelStyle: TextStyle(color: Colors.white70),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: Colors.white24),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: Colors.white24),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: Colors.white),
+        ),
         filled: true,
-        fillColor: Colors.white,
+        fillColor: Colors.white12,
+        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+
+        hintStyle: TextStyle(color: Colors.white60),
       ),
+      dropdownColor: Color(0xFF1F3354),
+      icon: Icon(Icons.arrow_drop_down, color: Colors.white70, size: 28),
       items:
           CategoryManager().categories
-              .map((cat) => DropdownMenuItem(value: cat, child: Text(cat)))
+              .map(
+                (cat) => DropdownMenuItem(
+                  value: cat,
+                  child: Text(cat, style: TextStyle(color: Colors.white)),
+                ),
+              )
               .toList(),
       onChanged: (value) {
         setState(() {
@@ -110,7 +147,8 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
 
         String message;
         if (expiryDate.isEmpty) {
-          message = "Item saved successfully! (No expiry date for non-food items)";
+          message =
+              "Item saved successfully! (No expiry date for non-food items)";
         } else {
           message = "Item saved successfully!\nExpiry Date: $expiryDate";
         }
@@ -195,7 +233,7 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
     Color? textColor, // text color parameter
   }) {
     final fixedSize = size ?? const Size(200, 60);
-    final bgColor = backgroundColor ?? const Color(0xFF3E5879);
+    final bgColor = backgroundColor ?? Colors.white24;
     final txtColor = textColor ?? Colors.white;
 
     return SizedBox(
@@ -206,11 +244,18 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
         style: ElevatedButton.styleFrom(
           backgroundColor: bgColor,
           shape: RoundedRectangleBorder(
-            side: const BorderSide(width: 1),
-            borderRadius: BorderRadius.circular(5),
+            borderRadius: BorderRadius.circular(16),
+            side: BorderSide(color: Colors.white24),
           ),
         ),
-        child: Text(text, style: TextStyle(color: txtColor, fontSize: 18)),
+        child: Text(
+          text,
+          style: TextStyle(
+            color: txtColor,
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
       ),
     );
   }
@@ -225,99 +270,172 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5EFE7),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF1F3354),
-        title: const Text(
-          'Add New Item To Inventory',
-          style: TextStyle(color: Color(0xFFF5EFE7)),
-        ),
-        iconTheme: const IconThemeData(color: Color(0xFFF5EFE7)),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.add),
-            tooltip: 'Add New Category',
-            onPressed: _navigateAndAddCategory,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [const Color(0xFF1F3354), const Color(0xFF3E5879)],
           ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Scan receipt button aligned to the right, below AppBar
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                IconButton(
-                  icon: Icon(
-                    Icons.camera_alt,
-                    size: 30,
-                    color: const Color(0xFF3E5879),
-                  ),
-                  onPressed: _scanReceipt,
-                  tooltip: 'Scan Receipt',
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              AppBar(
+                surfaceTintColor: Colors.transparent,
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                leading: IconButton(
+                  icon: Icon(Icons.arrow_back, color: Colors.white),
+                  onPressed: () => Navigator.of(context).pop(),
                 ),
-              ],
-            ),
-            SizedBox(height: 10),
-
-            // Image at the top
-            Image.asset('assets/inventory/Receipt.png', height: 200),
-            SizedBox(height: 20),
-
-            // Image Picker in a Row with text
-            Row(
-              children: [
-                GestureDetector(
-                  onTap: _pickImage,
-                  child: CircleAvatar(
-                    radius: 50,
-                    backgroundColor: Colors.grey[300],
-                    backgroundImage:
-                        _pickedImage != null ? FileImage(_pickedImage!) : null,
-                    child:
-                        _pickedImage == null
-                            ? Icon(Icons.add_a_photo, color: Colors.white)
-                            : null,
+                title: Text(
+                  'Add New Item',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-                SizedBox(width: 10),
-                Text(
-                  'Add Item Image',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-            SizedBox(height: 16),
-            _buildTextField(_titleController, 'Item Name'),
-            SizedBox(height: 16),
-            _buildDropdown('Choose Category'),
-            SizedBox(height: 16),
-            _buildTextField(_quantityController, 'Quantity', isNumber: true),
-            SizedBox(height: 32),
+                actions: [
+                  IconButton(
+                    icon: Icon(Icons.add, color: Colors.white),
+                    tooltip: 'Add New Category',
+                    onPressed: _navigateAndAddCategory,
+                  ),
+                ],
+              ),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Scan receipt button aligned to the right
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white24,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: IconButton(
+                              icon: Icon(
+                                Icons.camera_alt,
+                                size: 24,
+                                color: Colors.white,
+                              ),
+                              onPressed: _scanReceipt,
+                              tooltip: 'Scan Receipt',
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 10),
 
-            // Buttons in a Column
-            Column(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _buildButton(
-                  'Save Item',
-                  onPressed: _saveItem,
-                  size: const Size(260, 40),
+                      // Image at the top
+                      Container(
+                        padding: EdgeInsets.all(5),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: Colors.white24),
+                        ),
+
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: Image.asset(
+                            'assets/inventory/Receipt.png',
+                            height: 300,
+                            width: 100,
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                      ),
+
+                      SizedBox(height: 20),
+
+                      // Image Picker in a Row with text
+                      Container(
+                        padding: EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white12,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: Colors.white24),
+                        ),
+                        child: Row(
+                          children: [
+                            GestureDetector(
+                              onTap: _pickImage,
+                              child: CircleAvatar(
+                                radius: 50,
+                                backgroundColor: Colors.white24,
+                                backgroundImage:
+                                    _pickedImage != null
+                                        ? FileImage(_pickedImage!)
+                                        : null,
+                                child:
+                                    _pickedImage == null
+                                        ? Icon(
+                                          Icons.add_a_photo,
+                                          color: Colors.white,
+                                          size: 30,
+                                        )
+                                        : null,
+                              ),
+                            ),
+                            SizedBox(width: 16),
+                            Expanded(
+                              child: Text(
+                                'Add Item Image',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: 20),
+                      _buildTextField(_titleController, 'Item Name'),
+                      SizedBox(height: 16),
+                      _buildDropdown('Choose Category'),
+                      SizedBox(height: 16),
+                      _buildTextField(
+                        _quantityController,
+                        'Quantity',
+                        isNumber: true,
+                      ),
+                      SizedBox(height: 32),
+
+                      // Buttons in a Column
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          _buildButton(
+                            'Save Item',
+                            onPressed: _saveItem,
+                            size: const Size(260, 50),
+                            backgroundColor: Colors.white24,
+                          ),
+                          SizedBox(height: 12),
+                          _buildButton(
+                            'Discard',
+                            onPressed: _discardItem,
+                            size: const Size(260, 50),
+                            backgroundColor: Colors.transparent,
+                            textColor: Colors.white70,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-                SizedBox(height: 10),
-                _buildButton(
-                  'Discard',
-                  onPressed: _discardItem,
-                  size: const Size(260, 40),
-                  backgroundColor: Color(0xFFF2F2F2),
-                  textColor: Color(0xFF3E5879),
-                ),
-              ],
-            ),
-          ],
+              ),
+            ],
+          ),
         ),
       ),
     );
