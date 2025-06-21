@@ -1182,3 +1182,98 @@ async def get_user_preferences_endpoint(user_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+################ Favorite Recipes Management ################
+
+class FavoriteRecipeRequest(BaseModel):
+    user_id: str
+    recipe: dict
+
+class RemoveFavoriteRequest(BaseModel):
+    user_id: str
+    recipe_name: str
+
+@router.post("/favorites/add")
+async def add_favorite_recipe(data: FavoriteRecipeRequest):
+    try:
+        client = MongoClient(os.getenv("MONGO_URI"))
+        db = client["lili"]
+        favorites_collection = db["favoriteRecipes"]
+        
+        # Check if recipe is already favorited by this user
+        existing_favorite = favorites_collection.find_one({
+            "user_id": data.user_id,
+            "name": data.recipe["name"]
+        })
+        
+        if existing_favorite:
+            raise HTTPException(status_code=400, detail="Recipe is already in favorites")
+        
+        # Add user_id and timestamp to the recipe document
+        favorite_doc = data.recipe.copy()
+        favorite_doc["user_id"] = data.user_id
+        favorite_doc["added_at"] = datetime.now().isoformat()
+        
+        result = favorites_collection.insert_one(favorite_doc)
+        if not result.inserted_id:
+            raise HTTPException(status_code=500, detail="Failed to save favorite recipe")
+        
+        return {"status": "success", "message": "Recipe added to favorites", "favorite_id": str(result.inserted_id)}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.delete("/favorites/remove")
+async def remove_favorite_recipe(data: RemoveFavoriteRequest):
+    try:
+        client = MongoClient(os.getenv("MONGO_URI"))
+        db = client["lili"]
+        favorites_collection = db["favoriteRecipes"]
+        
+        result = favorites_collection.delete_one({
+            "user_id": data.user_id,
+            "name": data.recipe_name
+        })
+        
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Favorite recipe not found")
+        
+        return {"status": "success", "message": "Recipe removed from favorites"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/favorites/{user_id}")
+async def get_favorite_recipes(user_id: str):
+    try:
+        client = MongoClient(os.getenv("MONGO_URI"))
+        db = client["lili"]
+        favorites_collection = db["favoriteRecipes"]
+        
+        favorites = list(favorites_collection.find({"user_id": user_id}))
+        
+        # Convert ObjectId to string for JSON serialization
+        for favorite in favorites:
+            favorite["_id"] = str(favorite["_id"])
+        
+        return favorites
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/favorites/{user_id}/check/{recipe_name}")
+async def check_favorite_status(user_id: str, recipe_name: str):
+    try:
+        client = MongoClient(os.getenv("MONGO_URI"))
+        db = client["lili"]
+        favorites_collection = db["favoriteRecipes"]
+        
+        favorite = favorites_collection.find_one({
+            "user_id": user_id,
+            "name": recipe_name
+        })
+        
+        return {"is_favorite": favorite is not None}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+

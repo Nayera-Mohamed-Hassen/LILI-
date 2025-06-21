@@ -2,19 +2,25 @@
   "d99f7950-2254-44ad-8ec9-1fdb9ed661c5": {
     "preferences": {
       "peach": 5.8,
-      "honey": 5.8,
-      "banana": 5.8,
+      "honey": 8.2,
+      "banana": 7.4,
       "apple juice": 4.2,
       "vanilla yogurt": 4.2,
       "flaxseed oil": 4.2,
       "pitted": 4.2,
-      "ice cubes": 4.2
+      "ice cubes": 4.2,
+      "almond milk": 3.4,
+      "almond butter": 3.4,
+      "scoops chocolate protein powder": 2.6,
+      "iced coffee concentrate gradys regular coffee": 2.6,
+      "regular low-fat milk": 2.6,
+      "raspberries": 2.6
     },
     "meal_type_preferences": {
-      "beverage": 3
+      "beverage": 4
     },
     "cooking_time_preferences": {
-      "medium": 3
+      "medium": 4
     },
     "ingredient_combinations": {
       "peach+honey": 2,
@@ -29,9 +35,22 @@
       "vanilla yogurt+pitted": 2,
       "flaxseed oil+pitted": 2,
       "flaxseed oil+ice cubes": 2,
-      "pitted+ice cubes": 2
+      "pitted+ice cubes": 2,
+      "almond milk+honey": 1,
+      "almond milk+almond butter": 1,
+      "honey+almond butter": 1,
+      "honey+scoops chocolate protein powder": 1,
+      "almond butter+scoops chocolate protein powder": 1,
+      "almond butter+iced coffee concentrate gradys regular coffee": 1,
+      "scoops chocolate protein powder+iced coffee concentrate gradys regular coffee": 1,
+      "scoops chocolate protein powder+regular low-fat milk": 1,
+      "iced coffee concentrate gradys regular coffee+regular low-fat milk": 1,
+      "iced coffee concentrate gradys regular coffee+banana": 1,
+      "regular low-fat milk+banana": 1,
+      "regular low-fat milk+raspberries": 1,
+      "banana+raspberries": 1
     },
-    "updated_at": "2025-06-21T09:41:39.832332",
+    "updated_at": "2025-06-21T10:17:02.953163",
     "cooking_history": [
       {
         "recipe_name": "Sweet Peach Smoothie",
@@ -83,6 +102,32 @@
           "flaxseed oil": 4.2,
           "pitted": 4.2,
           "ice cubes": 4.2
+        }
+      },
+      {
+        "recipe_name": "Mocha Berry-Almond Smoothie",
+        "ingredients": [
+          "almond milk",
+          "honey",
+          "almond butter",
+          "scoops chocolate protein powder",
+          "iced coffee concentrate gradys regular coffee",
+          "regular low-fat milk",
+          "banana",
+          "raspberries"
+        ],
+        "meal_type": "Beverage",
+        "cooking_time": "Under 30 mins",
+        "cooked_at": "2025-06-21T10:17:02.953163",
+        "preference_boosts": {
+          "almond milk": 3.4,
+          "honey": 8.2,
+          "almond butter": 3.4,
+          "scoops chocolate protein powder": 2.6,
+          "iced coffee concentrate gradys regular coffee": 2.6,
+          "regular low-fat milk": 2.6,
+          "banana": 7.4,
+          "raspberries": 2.6
         }
       }
     ]

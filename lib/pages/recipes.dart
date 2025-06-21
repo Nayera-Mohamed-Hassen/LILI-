@@ -35,11 +35,13 @@ Future<List<RecipeItem>> fetchRecipes(int page) async {
 class Recipe extends StatefulWidget {
   final Set<RecipeItem> favoriteRecipes;
   final Function(RecipeItem) onFavoriteToggle;
+  final Function(List<RecipeItem>)? onRecipesLoaded;
 
   const Recipe({
     Key? key,
     required this.favoriteRecipes,
     required this.onFavoriteToggle,
+    this.onRecipesLoaded,
   }) : super(key: key);
 
   @override
@@ -86,6 +88,9 @@ class _RecipeState extends State<Recipe> {
         _isLoading = false;
         _hasMore = recipes.length >= 10;
       });
+      if (widget.onRecipesLoaded != null) {
+        widget.onRecipesLoaded!(_allRecipes);
+      }
     } catch (e) {
       setState(() {
         _isLoading = false;
@@ -120,6 +125,9 @@ class _RecipeState extends State<Recipe> {
         _isLoading = false;
         _hasMore = uniqueNewRecipes.length >= 10;
       });
+      if (widget.onRecipesLoaded != null) {
+        widget.onRecipesLoaded!(_allRecipes);
+      }
     } catch (e) {
       setState(() {
         _isLoading = false;

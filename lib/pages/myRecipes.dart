@@ -4,6 +4,7 @@ import '../models/recipeItem.dart'; // your RecipeItem model import
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../user_session.dart';
+import 'wave2.dart';
 
 class MyRecipesPage extends StatefulWidget {
   const MyRecipesPage({Key? key}) : super(key: key);
@@ -222,365 +223,367 @@ class _MyRecipesPageState extends State<MyRecipesPage> {
                                   itemCount: _recipes.length,
                                   itemBuilder: (context, index) {
                                     final recipe = _recipes[index];
-                                    return Card(
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(20),
-                                        side: BorderSide(
-                                          color: Colors.white.withOpacity(0.2),
-                                          width: 1,
+                                    return GestureDetector(
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => RecipePage(
+                                              recipe: {
+                                                'name': recipe.name,
+                                                'cusine': recipe.cusine,
+                                                'mealType': recipe.mealType,
+                                                'ingredients': recipe.ingredients.toList(),
+                                                'available_ingredients': recipe.availableIngredients.toList(),
+                                                'missing_ingredients': recipe.missingIngredients.toList(),
+                                                'steps': recipe.steps?.toList() ?? [],
+                                                'timeTaken': recipe.timeTaken,
+                                                'difficulty': recipe.difficulty,
+                                                'image': recipe.image,
+                                              },
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                      child: Card(
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(20),
+                                          side: BorderSide(
+                                            color: Colors.white.withOpacity(0.2),
+                                            width: 1,
+                                          ),
                                         ),
-                                      ),
-                                      elevation: 4,
-                                      shadowColor: Colors.black.withOpacity(0.2),
-                                      margin: const EdgeInsets.symmetric(vertical: 8),
-                                      color: Colors.white.withOpacity(0.15),
-                                      child: Container(
-                                        padding: const EdgeInsets.all(12),
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Row(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                ClipRRect(
-                                                  borderRadius: BorderRadius.circular(
-                                                    16,
+                                        elevation: 4,
+                                        shadowColor: Colors.black.withOpacity(0.2),
+                                        margin: const EdgeInsets.symmetric(vertical: 8),
+                                        color: Colors.white.withOpacity(0.15),
+                                        child: Container(
+                                          padding: const EdgeInsets.all(12),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  ClipRRect(
+                                                    borderRadius: BorderRadius.circular(
+                                                      16,
+                                                    ),
+                                                    child: Container(
+                                                      decoration: BoxDecoration(
+                                                        boxShadow: [
+                                                          BoxShadow(
+                                                            color: Colors.black
+                                                                .withOpacity(0.2),
+                                                            blurRadius: 8,
+                                                            offset: const Offset(0, 2),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      child: Image.network(
+                                                        'https://raw.githubusercontent.com/Nayera-Mohamed-Hassen/LILI-/main/FoodImages/${Uri.encodeComponent(recipe.image)}',
+                                                        width: 100,
+                                                        height: 110,
+                                                        fit: BoxFit.cover,
+                                                        errorBuilder:
+                                                            (
+                                                              context,
+                                                              error,
+                                                              stackTrace,
+                                                            ) => Container(
+                                                              width: 100,
+                                                              height: 110,
+                                                              decoration: BoxDecoration(
+                                                                color: Colors.white
+                                                                    .withOpacity(0.1),
+                                                                borderRadius:
+                                                                    BorderRadius.circular(
+                                                                      16,
+                                                                    ),
+                                                              ),
+                                                              child: Icon(
+                                                                Icons.broken_image,
+                                                                color: Colors.white
+                                                                    .withOpacity(0.7),
+                                                              ),
+                                                            ),
+                                                      ),
+                                                    ),
                                                   ),
-                                                  child: Container(
-                                                    decoration: BoxDecoration(
-                                                      boxShadow: [
-                                                        BoxShadow(
-                                                          color: Colors.black
-                                                              .withOpacity(0.2),
-                                                          blurRadius: 8,
-                                                          offset: const Offset(0, 2),
+                                                  const SizedBox(width: 12),
+                                                  Expanded(
+                                                    child: Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment.start,
+                                                      children: [
+                                                        Text(
+                                                          recipe.name,
+                                                          style: const TextStyle(
+                                                            fontWeight: FontWeight.w600,
+                                                            fontSize: 16,
+                                                            color: Colors.white,
+                                                          ),
+                                                        ),
+                                                        const SizedBox(height: 4),
+                                                        Text(
+                                                          recipe.cusine,
+                                                          style: TextStyle(
+                                                            fontWeight: FontWeight.w500,
+                                                            fontSize: 14,
+                                                            color: Colors.white
+                                                                .withOpacity(0.8),
+                                                          ),
+                                                        ),
+                                                        const SizedBox(height: 4),
+                                                        Row(
+                                                          children: [
+                                                            Container(
+                                                              padding:
+                                                                  const EdgeInsets.symmetric(
+                                                                    horizontal: 8,
+                                                                    vertical: 4,
+                                                                  ),
+                                                              decoration: BoxDecoration(
+                                                                color: Colors.white
+                                                                    .withOpacity(0.15),
+                                                                borderRadius:
+                                                                    BorderRadius.circular(
+                                                                      12,
+                                                                    ),
+                                                                border: Border.all(
+                                                                  color: Colors.white24,
+                                                                ),
+                                                              ),
+                                                              child: Row(
+                                                                children: [
+                                                                  Icon(
+                                                                    Icons
+                                                                        .timer_outlined,
+                                                                    size: 14,
+                                                                    color: Colors.white
+                                                                        .withOpacity(
+                                                                          0.8,
+                                                                        ),
+                                                                  ),
+                                                                  const SizedBox(
+                                                                    width: 4,
+                                                                  ),
+                                                                  Text(
+                                                                    recipe.timeTaken,
+                                                                    style: TextStyle(
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .w400,
+                                                                      fontSize: 12,
+                                                                      color: Colors
+                                                                          .white
+                                                                          .withOpacity(
+                                                                            0.8,
+                                                                          ),
+                                                                    ),
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                            ),
+                                                          ],
                                                         ),
                                                       ],
                                                     ),
-                                                    child: Image.network(
-                                                      'https://raw.githubusercontent.com/Nayera-Mohamed-Hassen/LILI-/main/FoodImages/${Uri.encodeComponent(recipe.image)}',
-                                                      width: 100,
-                                                      height: 110,
-                                                      fit: BoxFit.cover,
-                                                      errorBuilder:
-                                                          (
-                                                            context,
-                                                            error,
-                                                            stackTrace,
-                                                          ) => Container(
-                                                            width: 100,
-                                                            height: 110,
-                                                            decoration: BoxDecoration(
-                                                              color: Colors.white
-                                                                  .withOpacity(0.1),
-                                                              borderRadius:
-                                                                  BorderRadius.circular(
-                                                                    16,
-                                                                  ),
-                                                            ),
-                                                            child: Icon(
-                                                              Icons.broken_image,
-                                                              color: Colors.white
-                                                                  .withOpacity(0.7),
-                                                            ),
-                                                          ),
-                                                    ),
                                                   ),
-                                                ),
-                                                const SizedBox(width: 12),
-                                                Expanded(
-                                                  child: Column(
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment.start,
-                                                    children: [
-                                                      Text(
-                                                        recipe.name,
-                                                        style: const TextStyle(
-                                                          fontWeight: FontWeight.w600,
-                                                          fontSize: 16,
-                                                          color: Colors.white,
-                                                        ),
+                                                  PopupMenuButton<String>(
+                                                    icon: Icon(
+                                                      Icons.more_vert,
+                                                      color: Colors.white.withOpacity(
+                                                        0.9,
                                                       ),
-                                                      const SizedBox(height: 4),
-                                                      Text(
-                                                        recipe.cusine,
-                                                        style: TextStyle(
-                                                          fontWeight: FontWeight.w500,
-                                                          fontSize: 14,
-                                                          color: Colors.white
-                                                              .withOpacity(0.8),
-                                                        ),
-                                                      ),
-                                                      const SizedBox(height: 4),
-                                                      Row(
-                                                        children: [
-                                                          Container(
-                                                            padding:
-                                                                const EdgeInsets.symmetric(
-                                                                  horizontal: 8,
-                                                                  vertical: 4,
-                                                                ),
-                                                            decoration: BoxDecoration(
-                                                              color: Colors.white
-                                                                  .withOpacity(0.15),
-                                                              borderRadius:
-                                                                  BorderRadius.circular(
-                                                                    12,
-                                                                  ),
-                                                              border: Border.all(
-                                                                color: Colors.white24,
-                                                              ),
-                                                            ),
+                                                    ),
+                                                    color: const Color(0xFF1F3354),
+                                                    itemBuilder:
+                                                        (context) => [
+                                                          PopupMenuItem(
+                                                            value: 'edit',
                                                             child: Row(
                                                               children: [
                                                                 Icon(
-                                                                  Icons
-                                                                      .timer_outlined,
-                                                                  size: 14,
+                                                                  Icons.edit,
+                                                                  size: 20,
                                                                   color: Colors.white
-                                                                      .withOpacity(
-                                                                        0.8,
-                                                                      ),
+                                                                      .withOpacity(0.9),
                                                                 ),
                                                                 const SizedBox(
-                                                                  width: 4,
+                                                                  width: 8,
                                                                 ),
                                                                 Text(
-                                                                  recipe.timeTaken,
+                                                                  'Edit',
                                                                   style: TextStyle(
-                                                                    fontWeight:
-                                                                        FontWeight
-                                                                            .w400,
-                                                                    fontSize: 12,
-                                                                    color: Colors
-                                                                        .white
+                                                                    color: Colors.white
                                                                         .withOpacity(
-                                                                          0.8,
+                                                                          0.9,
                                                                         ),
                                                                   ),
                                                                 ),
                                                               ],
                                                             ),
                                                           ),
-                                                          const SizedBox(width: 12),
-                                                          // Text(
-                                                          //   recipe.shared ? 'Public' : 'Private',
-                                                          //   style: TextStyle(
-                                                          //     color: Colors.white70,
-                                                          //   ),
-                                                          // ),
-                                                          // Switch(
-                                                          //   value: recipe.shared,
-                                                          //   onChanged: (val) async {
-                                                          //     await _updateRecipeShared(
-                                                          //       recipe.id,
-                                                          //       val,
-                                                          //     );
-                                                          //     setState(() {
-                                                          //       recipe.shared = val;
-                                                          //     });
-                                                          //   },
-                                                          //   activeColor: Colors.white,
-                                                          //   inactiveThumbColor: Colors.white24,
-                                                          // ),
-                                                        ],
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ),
-                                                PopupMenuButton<String>(
-                                                  icon: Icon(
-                                                    Icons.more_vert,
-                                                    color: Colors.white.withOpacity(
-                                                      0.9,
-                                                    ),
-                                                  ),
-                                                  color: const Color(0xFF1F3354),
-                                                  itemBuilder:
-                                                      (context) => [
-                                                        PopupMenuItem(
-                                                          value: 'edit',
-                                                          child: Row(
-                                                            children: [
-                                                              Icon(
-                                                                Icons.edit,
-                                                                size: 20,
-                                                                color: Colors.white
-                                                                    .withOpacity(0.9),
-                                                              ),
-                                                              const SizedBox(
-                                                                width: 8,
-                                                              ),
-                                                              Text(
-                                                                'Edit',
-                                                                style: TextStyle(
-                                                                  color: Colors.white
-                                                                      .withOpacity(
-                                                                        0.9,
-                                                                      ),
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ),
-                                                        PopupMenuItem(
-                                                          value: 'delete',
-                                                          child: Row(
-                                                            children: [
-                                                              Icon(
-                                                                Icons.delete,
-                                                                size: 20,
-                                                                color:
-                                                                    Colors
-                                                                        .red
-                                                                        .shade300,
-                                                              ),
-                                                              const SizedBox(
-                                                                width: 8,
-                                                              ),
-                                                              Text(
-                                                                'Delete',
-                                                                style: TextStyle(
+                                                          PopupMenuItem(
+                                                            value: 'delete',
+                                                            child: Row(
+                                                              children: [
+                                                                Icon(
+                                                                  Icons.delete,
+                                                                  size: 20,
                                                                   color:
                                                                       Colors
                                                                           .red
                                                                           .shade300,
                                                                 ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ),
-                                                        PopupMenuItem(
-                                                          value:
-                                                              recipe.shared
-                                                                  ? 'make_private'
-                                                                  : 'make_public',
-                                                          child: Row(
-                                                            children: [
-                                                              Icon(
-                                                                recipe.shared
-                                                                    ? Icons.lock
-                                                                    : Icons.public,
-                                                                size: 20,
-                                                                color: Colors.white
-                                                                    .withOpacity(0.9),
-                                                              ),
-                                                              const SizedBox(
-                                                                width: 8,
-                                                              ),
-                                                              Text(
-                                                                recipe.shared
-                                                                    ? 'Make Private'
-                                                                    : 'Make Public',
-                                                                style: TextStyle(
-                                                                  color: Colors.white
-                                                                      .withOpacity(
-                                                                        0.9,
-                                                                      ),
+                                                                const SizedBox(
+                                                                  width: 8,
                                                                 ),
-                                                              ),
-                                                            ],
+                                                                Text(
+                                                                  'Delete',
+                                                                  style: TextStyle(
+                                                                    color:
+                                                                        Colors
+                                                                            .red
+                                                                            .shade300,
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
                                                           ),
-                                                        ),
-                                                      ],
-                                                  onSelected: (value) async {
-                                                    if (value == 'edit') {
-                                                      _editRecipe(recipe);
-                                                    } else if (value == 'delete') {
-                                                      _deleteRecipe(recipe);
-                                                    } else if (value ==
-                                                            'make_private' ||
-                                                        value == 'make_public') {
-                                                      final newShared =
-                                                          value == 'make_public';
-                                                      await _updateRecipeShared(
-                                                        recipe.id,
-                                                        newShared,
-                                                      );
-                                                      setState(() {
-                                                        recipe.shared = newShared;
-                                                      });
-                                                    }
-                                                  },
-                                                ),
-                                              ],
-                                            ),
-                                            const SizedBox(height: 8),
-                                            Container(
-                                              width: double.infinity,
-                                              padding: const EdgeInsets.symmetric(
-                                                vertical: 6,
-                                                horizontal: 12,
-                                              ),
-                                              decoration: BoxDecoration(
-                                                color: Colors.white.withOpacity(0.15),
-                                                borderRadius: BorderRadius.circular(
-                                                  12,
-                                                ),
-                                                border: Border.all(
-                                                  color: Colors.white24,
-                                                ),
-                                              ),
-                                              child: Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.spaceBetween,
-                                                children: [
-                                                  Row(
-                                                    children: [
-                                                      Icon(
-                                                        Icons.restaurant_menu,
-                                                        size: 16,
-                                                        color: Colors.white
-                                                            .withOpacity(0.8),
-                                                      ),
-                                                      const SizedBox(width: 4),
-                                                      Text(
-                                                        'Difficulty:',
-                                                        style: TextStyle(
-                                                          fontSize: 14,
-                                                          color: Colors.white
-                                                              .withOpacity(0.8),
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                  Container(
-                                                    padding:
-                                                        const EdgeInsets.symmetric(
-                                                          horizontal: 8,
-                                                          vertical: 2,
-                                                        ),
-                                                    decoration: BoxDecoration(
-                                                      color: const Color(0xFF1F3354),
-                                                      borderRadius:
-                                                          BorderRadius.circular(12),
-                                                      border: Border.all(
-                                                        color: Colors.white24,
-                                                      ),
-                                                      boxShadow: [
-                                                        BoxShadow(
-                                                          color: Colors.black
-                                                              .withOpacity(0.1),
-                                                          blurRadius: 4,
-                                                          offset: const Offset(0, 2),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                    child: Text(
-                                                      recipe.difficulty,
-                                                      style: const TextStyle(
-                                                        color: Colors.white,
-                                                        fontSize: 12,
-                                                        fontWeight: FontWeight.w500,
-                                                      ),
-                                                    ),
+                                                          PopupMenuItem(
+                                                            value:
+                                                                recipe.shared
+                                                                    ? 'make_private'
+                                                                    : 'make_public',
+                                                            child: Row(
+                                                              children: [
+                                                                Icon(
+                                                                  recipe.shared
+                                                                      ? Icons.lock
+                                                                      : Icons.public,
+                                                                  size: 20,
+                                                                  color: Colors.white
+                                                                      .withOpacity(0.9),
+                                                                ),
+                                                                const SizedBox(
+                                                                  width: 8,
+                                                                ),
+                                                                Text(
+                                                                  recipe.shared
+                                                                      ? 'Make Private'
+                                                                      : 'Make Public',
+                                                                  style: TextStyle(
+                                                                    color: Colors.white
+                                                                        .withOpacity(
+                                                                          0.9,
+                                                                        ),
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+                                                        ],
+                                                    onSelected: (value) async {
+                                                      if (value == 'edit') {
+                                                        _editRecipe(recipe);
+                                                      } else if (value == 'delete') {
+                                                        _deleteRecipe(recipe);
+                                                      } else if (value ==
+                                                              'make_private' ||
+                                                          value == 'make_public') {
+                                                        final newShared =
+                                                            value == 'make_public';
+                                                        await _updateRecipeShared(
+                                                          recipe.id,
+                                                          newShared,
+                                                        );
+                                                        setState(() {
+                                                          recipe.shared = newShared;
+                                                        });
+                                                      }
+                                                    },
                                                   ),
                                                 ],
                                               ),
-                                            ),
-                                          ],
+                                              const SizedBox(height: 8),
+                                              Container(
+                                                width: double.infinity,
+                                                padding: const EdgeInsets.symmetric(
+                                                  vertical: 6,
+                                                  horizontal: 12,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.white.withOpacity(0.15),
+                                                  borderRadius: BorderRadius.circular(
+                                                    12,
+                                                  ),
+                                                  border: Border.all(
+                                                    color: Colors.white24,
+                                                  ),
+                                                ),
+                                                child: Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.spaceBetween,
+                                                  children: [
+                                                    Row(
+                                                      children: [
+                                                        Icon(
+                                                          Icons.restaurant_menu,
+                                                          size: 16,
+                                                          color: Colors.white
+                                                              .withOpacity(0.8),
+                                                        ),
+                                                        const SizedBox(width: 4),
+                                                        Text(
+                                                          'Difficulty:',
+                                                          style: TextStyle(
+                                                            fontSize: 14,
+                                                            color: Colors.white
+                                                                .withOpacity(0.8),
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                    Container(
+                                                      padding:
+                                                          const EdgeInsets.symmetric(
+                                                            horizontal: 8,
+                                                            vertical: 2,
+                                                          ),
+                                                      decoration: BoxDecoration(
+                                                        color: const Color(0xFF1F3354),
+                                                        borderRadius:
+                                                            BorderRadius.circular(12),
+                                                        border: Border.all(
+                                                          color: Colors.white24,
+                                                        ),
+                                                        boxShadow: [
+                                                          BoxShadow(
+                                                            color: Colors.black
+                                                                .withOpacity(0.1),
+                                                            blurRadius: 4,
+                                                            offset: const Offset(0, 2),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      child: Text(
+                                                        recipe.difficulty,
+                                                        style: const TextStyle(
+                                                          color: Colors.white,
+                                                          fontSize: 12,
+                                                          fontWeight: FontWeight.w500,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ],
+                                          ),
                                         ),
                                       ),
                                     );

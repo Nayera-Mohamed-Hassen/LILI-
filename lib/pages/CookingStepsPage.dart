@@ -35,7 +35,9 @@ class _CookingStepsPageState extends State<CookingStepsPage> {
   @override
   void initState() {
     super.initState();
-    stepChecked = List.filled(widget.steps.length, false);
+    // Filter out empty or whitespace-only steps
+    final filteredSteps = widget.steps.where((s) => s.trim().isNotEmpty).toList();
+    stepChecked = List.filled(filteredSteps.length, false);
   }
 
   Future<void> _updateUserPreferences() async {
@@ -127,6 +129,9 @@ class _CookingStepsPageState extends State<CookingStepsPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Filter out empty or whitespace-only steps for display
+    final filteredSteps = widget.steps.where((s) => s.trim().isNotEmpty).toList();
+
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -201,7 +206,7 @@ class _CookingStepsPageState extends State<CookingStepsPage> {
                   children: [
                     // Progress indicator
                     LinearProgressIndicator(
-                      value: stepChecked.where((checked) => checked).length / widget.steps.length,
+                      value: stepChecked.where((checked) => checked).length / filteredSteps.length,
                       backgroundColor: Colors.white.withOpacity(0.15),
                       color: Colors.white.withOpacity(0.9),
                       minHeight: 8,
@@ -209,7 +214,7 @@ class _CookingStepsPageState extends State<CookingStepsPage> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      '${stepChecked.where((checked) => checked).length}/${widget.steps.length} steps completed',
+                      '${stepChecked.where((checked) => checked).length}/${filteredSteps.length} steps completed',
                       style: TextStyle(
                         color: Colors.white.withOpacity(0.7),
                         fontSize: 14,
@@ -218,7 +223,7 @@ class _CookingStepsPageState extends State<CookingStepsPage> {
                     const SizedBox(height: 24),
                     
                     // Steps list
-                    ...widget.steps.asMap().entries.map((entry) {
+                    ...filteredSteps.asMap().entries.map((entry) {
                       final index = entry.key;
                       final step = entry.value;
                       final isChecked = stepChecked[index];
@@ -295,7 +300,7 @@ class _CookingStepsPageState extends State<CookingStepsPage> {
       bottomNavigationBar: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.15),
+          color: Colors.white,
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.1),
@@ -303,54 +308,36 @@ class _CookingStepsPageState extends State<CookingStepsPage> {
               offset: const Offset(0, -5),
             ),
           ],
-          border: Border(
-            top: BorderSide(color: Colors.white24),
-          ),
         ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                stepChecked.every((checked) => checked)
-                    ? 'All steps completed! 🎉'
-                    : '${widget.steps.length - stepChecked.where((checked) => checked).length} steps remaining',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.white.withOpacity(0.9),
-                ),
+        child: SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF1F3354),
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
               ),
             ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white.withOpacity(0.15),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  side: BorderSide(color: Colors.white24),
-                ),
-                elevation: 0,
-              ),
-              onPressed: isUpdatingPreferences ? null : _finishCooking,
-              child: isUpdatingPreferences
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      ),
-                    )
-                  : const Text(
-                      'Finish Cooking',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
+            onPressed: isUpdatingPreferences ? null : _finishCooking,
+            child: isUpdatingPreferences
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                     ),
-            ),
-          ],
+                  )
+                : const Text(
+                    'Finish Cooking',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+          ),
         ),
       ),
     );

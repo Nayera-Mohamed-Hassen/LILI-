@@ -4,6 +4,7 @@ import 'recipes.dart';
 import 'favorite_recipes.dart';
 import 'myRecipes.dart';
 import 'package:LILI/models/recipeItem.dart';
+import 'package:LILI/services/favorite_service.dart';
 
 class RecipeNavbar extends StatefulWidget {
   @override
@@ -15,18 +16,63 @@ class _RecipeNavbarState extends State<RecipeNavbar> {
 
   // Your favorite recipes set
   Set<RecipeItem> favoriteRecipes = {};
+  List<RecipeItem> allRecipes = [];
+  bool _isLoadingFavorites = true;
 
-  // Sample allRecipes list - replace with your actual data
-  final List<RecipeItem> allRecipes = [];
+  @override
+  void initState() {
+    super.initState();
+    _loadFavoriteRecipes();
+  }
 
-  void toggleFavorite(RecipeItem recipe) {
+  Future<void> _loadFavoriteRecipes() async {
     setState(() {
-      if (favoriteRecipes.contains(recipe)) {
-        favoriteRecipes.remove(recipe);
-      } else {
-        favoriteRecipes.add(recipe);
-      }
+      _isLoadingFavorites = true;
     });
+
+    try {
+      final favorites = await FavoriteService.getFavoriteRecipes();
+      setState(() {
+        favoriteRecipes = favorites.toSet();
+        _isLoadingFavorites = false;
+      });
+    } catch (e) {
+      print('Error loading favorite recipes: $e');
+      setState(() {
+        _isLoadingFavorites = false;
+      });
+    }
+  }
+
+  Future<void> toggleFavorite(RecipeItem recipe) async {
+    try {
+      final success = await FavoriteService.toggleFavorite(recipe);
+      if (success) {
+        setState(() {
+          if (favoriteRecipes.contains(recipe)) {
+            favoriteRecipes.remove(recipe);
+          } else {
+            favoriteRecipes.add(recipe);
+          }
+        });
+      } else {
+        // Show error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to update favorite status'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      print('Error toggling favorite: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error updating favorite status'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   @override
@@ -35,11 +81,17 @@ class _RecipeNavbarState extends State<RecipeNavbar> {
       Recipe(
         favoriteRecipes: favoriteRecipes,
         onFavoriteToggle: toggleFavorite,
+        onRecipesLoaded: (recipes) {
+          setState(() {
+            allRecipes = recipes;
+          });
+        },
       ),
       FavoritesPage(
         allRecipes: allRecipes,
         favoriteRecipes: favoriteRecipes,
         onFavoriteToggle: toggleFavorite,
+        isLoading: _isLoadingFavorites,
       ),
       MyRecipesPage(),
     ];

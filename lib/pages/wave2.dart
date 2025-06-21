@@ -54,7 +54,9 @@ class RecipePage extends StatelessWidget {
     final List<String> missingIngredients = List<String>.from(
       recipe['missing_ingredients'] ?? [],
     );
-    final List<String> steps = List<String>.from(recipe['steps'] ?? []);
+    final List<String> steps = List<String>.from(recipe['steps'] ?? [])
+        .where((s) => s.trim().isNotEmpty)
+        .toList();
     final String timeTaken = recipe['timeTaken'] as String;
 
     return Scaffold(
@@ -78,6 +80,7 @@ class RecipePage extends StatelessWidget {
                       pinned: true,
                       backgroundColor: Colors.transparent,
                       surfaceTintColor: Colors.transparent,
+                      automaticallyImplyLeading: false,
                       flexibleSpace: FlexibleSpaceBar(
                         background: Stack(
                           fit: StackFit.expand,
