@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'add_visa_page.dart';
 import 'spent_page.dart';
 import 'income_page.dart';
+import 'expense_goals_page.dart';
 import '../services/transaction_service.dart';
 
 class ExpensesPage extends StatefulWidget {
@@ -34,6 +35,13 @@ class _ExpensesPageState extends State<ExpensesPage> {
       final transactions = await TransactionService.getTransactions(
         widget.userId,
       );
+
+      // Sort transactions by date in descending order (newest first)
+      transactions.sort((a, b) {
+        final dateA = DateTime.tryParse(a['date'] ?? '') ?? DateTime(1900);
+        final dateB = DateTime.tryParse(b['date'] ?? '') ?? DateTime(1900);
+        return dateB.compareTo(dateA); // Descending order
+      });
 
       // Calculate current balance
       double totalIncome = 0.0;
@@ -435,6 +443,18 @@ class _ExpensesPageState extends State<ExpensesPage> {
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.flag, color: Colors.white),
+                      tooltip: 'Expense Goals',
+                      onPressed: () async {
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => ExpenseGoalsPage(userId: widget.userId),
+                          ),
+                        );
+                      },
                     ),
                   ],
                 ),

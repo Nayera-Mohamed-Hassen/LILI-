@@ -1397,3 +1397,217 @@ def delete_old_completed_tasks():
     result = tasks_collection.delete_many({"is_completed": True, "completed_at": {"$lt": cutoff}})
     print(f"Deleted {result.deleted_count} completed tasks older than 1 day.")
 
+################ Expense Goals Management ################
+
+class ExpenseGoal(BaseModel):
+    id: Optional[str] = None
+    user_id: str
+    category: str
+    target_amount: float
+    current_amount: float = 0.0
+    period: str  # weekly, monthly, yearly
+    start_date: str
+    end_date: str
+    is_active: bool = True
+
+class ExpenseGoalRequest(BaseModel):
+    user_id: str
+
+class UpdateGoalProgressRequest(BaseModel):
+    goal_id: str
+    current_amount: float
+
+@router.post("/expense-goals/add")
+async def add_expense_goal(goal: ExpenseGoal):
+    try:
+        client = MongoClient(os.getenv("MONGO_URI"))
+        db = client["lili"]
+        goals_collection = db["expenseGoals"]
+        
+        # Check if user already has a goal for this category
+        existing_goal = goals_collection.find_one({
+            "user_id": goal.user_id,
+            "category": goal.category,
+            "is_active": True
+        })
+        
+        if existing_goal:
+            raise HTTPException(status_code=400, detail="Goal already exists for this category")
+        
+        goal_dict = goal.dict()
+        # Remove the id field since MongoDB will generate _id
+        goal_dict.pop("id", None)
+        goal_dict["created_at"] = datetime.utcnow().isoformat()
+        goal_dict["updated_at"] = datetime.utcnow().isoformat()
+        
+        result = goals_collection.insert_one(goal_dict)
+        if not result.inserted_id:
+            raise HTTPException(status_code=500, detail="Failed to create expense goal")
+        
+        return {"success": True, "message": "Expense goal created successfully", "goal_id": str(result.inserted_id)}
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error adding expense goal: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/expense-goals/get")
+async def get_expense_goals(data: ExpenseGoalRequest):
+    try:
+        client = MongoClient(os.getenv("MONGO_URI"))
+        db = client["lili"]
+        goals_collection = db["expenseGoals"]
+        
+        goals = list(goals_collection.find({
+            "user_id": data.user_id,
+            "is_active": True
+        }))
+        
+        # Convert ObjectId to string and map _id to id for Flutter compatibility
+        for goal in goals:
+            goal["id"] = str(goal["_id"])
+            goal.pop("_id", None)
+        
+        return {"success": True, "goals": goals}
+    except Exception as e:
+        print(f"Error getting expense goals: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/expense-goals/get-with-progress")
+async def get_expense_goals_with_progress(data: ExpenseGoalRequest):
+    try:
+        client = MongoClient(os.getenv("MONGO_URI"))
+        db = client["lili"]
+        goals_collection = db["expenseGoals"]
+        transactions_collection = db["transactions"]
+        
+        goals = list(goals_collection.find({
+            "user_id": data.user_id,
+            "is_active": True
+        }))
+        
+        # Calculate current progress for each goal
+        for goal in goals:
+            # Get transactions for this category within the goal period
+            start_date = datetime.fromisoformat(goal["start_date"])
+            end_date = datetime.fromisoformat(goal["end_date"])
+            
+            transactions = list(transactions_collection.find({
+                "user_id": data.user_id,
+                "category": goal["category"],
+                "transaction_type": "expense",
+                "date": {
+                    "$gte": start_date.isoformat(),
+                    "$lte": end_date.isoformat()
+                }
+            }))
+            
+            # Calculate total spent in this category
+            current_amount = sum(t["amount"] for t in transactions)
+            goal["current_amount"] = current_amount
+            
+            # Convert ObjectId to string and map _id to id for Flutter compatibility
+            goal["id"] = str(goal["_id"])
+            goal.pop("_id", None)
+        
+        return {"success": True, "goals": goals}
+    except Exception as e:
+        print(f"Error getting expense goals with progress: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.put("/expense-goals/update")
+async def update_expense_goal(goal: ExpenseGoal):
+    try:
+        client = MongoClient(os.getenv("MONGO_URI"))
+        db = client["lili"]
+        goals_collection = db["expenseGoals"]
+        
+        # Validate ObjectId format
+        try:
+            goal_id = ObjectId(goal.id)
+        except Exception:
+            raise HTTPException(status_code=400, detail="Invalid goal ID format")
+        
+        goal_dict = goal.dict()
+        goal_dict["updated_at"] = datetime.utcnow().isoformat()
+        
+        # Remove the id field from the update data since it's the query parameter
+        goal_dict.pop("id", None)
+        
+        result = goals_collection.update_one(
+            {"_id": goal_id},
+            {"$set": goal_dict}
+        )
+        
+        if result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Expense goal not found")
+        
+        return {"success": True, "message": "Expense goal updated successfully"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error updating expense goal: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.delete("/expense-goals/delete")
+async def delete_expense_goal(data: dict):
+    try:
+        client = MongoClient(os.getenv("MONGO_URI"))
+        db = client["lili"]
+        goals_collection = db["expenseGoals"]
+        
+        goal_id = data.get("goal_id")
+        if not goal_id:
+            raise HTTPException(status_code=400, detail="goal_id is required")
+        
+        # Validate ObjectId format
+        try:
+            object_id = ObjectId(goal_id)
+        except Exception:
+            raise HTTPException(status_code=400, detail="Invalid goal ID format")
+        
+        result = goals_collection.delete_one({"_id": object_id})
+        
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Expense goal not found")
+        
+        return {"success": True, "message": "Expense goal deleted successfully"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error deleting expense goal: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.put("/expense-goals/update-progress")
+async def update_goal_progress(data: UpdateGoalProgressRequest):
+    try:
+        client = MongoClient(os.getenv("MONGO_URI"))
+        db = client["lili"]
+        goals_collection = db["expenseGoals"]
+        
+        # Validate ObjectId format
+        try:
+            goal_id = ObjectId(data.goal_id)
+        except Exception:
+            raise HTTPException(status_code=400, detail="Invalid goal ID format")
+        
+        result = goals_collection.update_one(
+            {"_id": goal_id},
+            {
+                "$set": {
+                    "current_amount": data.current_amount,
+                    "updated_at": datetime.utcnow().isoformat()
+                }
+            }
+        )
+        
+        if result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Expense goal not found")
+        
+        return {"success": True, "message": "Goal progress updated successfully"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error updating goal progress: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+

@@ -6,6 +6,7 @@ import 'main_menu.dart';
 import 'emergency.dart';
 import 'profile.dart';
 import 'dash_board_page.dart';
+import '../user_session.dart';
 
 class Navbar extends StatefulWidget {
   @override
@@ -14,11 +15,18 @@ class Navbar extends StatefulWidget {
 
 class _NavbarState extends State<Navbar> {
   int _pageIndex = 0;
+  late String userId;
 
-  final List<Widget> _pages = [
+  @override
+  void initState() {
+    super.initState();
+    userId = UserSession().getUserId().toString();
+  }
+
+  List<Widget> get _pages => [
     HomePage(),
     MainMenuPage(),
-    ReportDashboard(),
+    ReportDashboard(userId: userId),
     EmergencyPage(),
     ProfilePage(),
   ];

@@ -94,7 +94,7 @@ class LiliApp extends StatelessWidget {
         '/create new category budget':
             (context) => CreateNewCategoryBudgetPage(),
         '/host house': (context) => HostHousePage(),
-        '/dash board ': (context) => ReportDashboard(),
+        '/dash board ': (context) => ReportDashboard(userId: UserSession().getUserId().toString()),
         '/Expenses ':
             (context) =>
                 ExpensesPage(userId: UserSession().getUserId().toString()),
