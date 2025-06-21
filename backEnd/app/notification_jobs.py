@@ -2,6 +2,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from datetime import datetime, timedelta
 from .mangoDBConnection import db
 from .notification_utils import create_notification
+from .routes.user_routes import delete_old_completed_tasks
 
 def check_inventory_alerts():
     now = datetime.utcnow()
@@ -64,5 +65,6 @@ def start_scheduler():
     scheduler = BackgroundScheduler()
     scheduler.add_job(check_inventory_alerts, 'interval', hours=1)
     scheduler.add_job(check_overdue_tasks, 'interval', hours=1)
+    scheduler.add_job(delete_old_completed_tasks, 'interval', hours=1)
     scheduler.start()
     print("Notification scheduler started.") 

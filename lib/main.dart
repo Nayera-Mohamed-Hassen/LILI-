@@ -26,9 +26,7 @@ import 'pages/inventory_page.dart';
 import 'pages/add_new_itemInventory_page.dart';
 import 'pages/create_new_categoryInventory_page.dart';
 import 'pages/wave2.dart';
-import 'pages/budget_page_navbar.dart';
 import 'pages/my_card_page.dart';
-import 'pages/budget_home_page.dart';
 import 'pages/add_new_expenses.dart';
 import 'pages/create_new_category_budget.dart';
 import 'pages/on_boarding.dart';
@@ -91,8 +89,6 @@ class LiliApp extends StatelessWidget {
         '/inventory': (context) => InventoryPage(),
         '/new item inventory': (context) => CreateNewItemPage(),
 
-        '/budget': (context) => BudgetPageNavbar(),
-        '/budget home': (context) => BudgetPage(),
         '/my card': (context) => MyCardPage(),
         '/add new expenses': (context) => CreateNewExpensesPage(),
         '/create new category budget':

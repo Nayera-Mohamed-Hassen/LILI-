@@ -355,7 +355,7 @@ class _HomePageState extends State<HomePage> {
     } else if (notif.type == 'inventory' && notif.data['item_name'] != null) {
       Navigator.pushNamed(context, '/inventory', arguments: notif.data['item_name']);
     } else if (notif.type == 'spending' && notif.data['category'] != null) {
-      Navigator.pushNamed(context, '/budget home', arguments: notif.data['category']);
+      Navigator.pushNamed(context, '/Expenses ', arguments: notif.data['category']);
     }
   }
 

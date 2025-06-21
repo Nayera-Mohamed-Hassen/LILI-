@@ -15,6 +15,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import json
 from ..notification_utils import create_notification
+from apscheduler.schedulers.background import BackgroundScheduler
 
 
 router = APIRouter(prefix="/user", tags=["User"])
@@ -716,29 +717,25 @@ class UpdateTaskStatus(BaseModel):
 @router.post("/tasks/update")
 async def update_task_status(data: UpdateTaskStatus):
     try:
-        # Initialize MongoDB connection
         client = MongoClient(os.getenv("MONGO_URI"))
         db = client["lili"]
         tasks_collection = db["tasks"]
-
-        # Convert string ID to ObjectId
         object_id = ObjectId(data.task_id)
-
         # Update task status
         result = tasks_collection.update_one(
             {"_id": object_id},
-            {"$set": {"is_completed": data.is_completed}}
+            {"$set": {"is_completed": data.is_completed, "completed_at": datetime.utcnow() if data.is_completed else None}}
         )
-
         if result.matched_count == 0:
             raise HTTPException(status_code=404, detail="Task not found")
-
-        # If task is marked completed, send notification to assigner
-        if data.is_completed:
-            # Fetch task to get assignerId (pseudo-code, adjust as needed)
-            # task = ...
+        # Fetch task to get assignerId and assigneeId
+        task = tasks_collection.find_one({"_id": object_id})
+        assigner_id = task.get("assignerId")
+        assignee_id = task.get("assigneeId")
+        # If task is marked completed, send notification to assigner (if not the same user)
+        if data.is_completed and assigner_id and assignee_id and str(assigner_id) != str(assignee_id):
             create_notification(
-                user_id="<assignerId>",
+                user_id=assigner_id,
                 notif_type="task",
                 title="Task Completed",
                 body="A task you assigned has been completed.",
@@ -746,11 +743,9 @@ async def update_task_status(data: UpdateTaskStatus):
                 icon="task"
             )
         # If task is updated (not completed), notify assignee
-        else:
-            # Fetch task to get assigneeId (pseudo-code, adjust as needed)
-            # task = ...
+        elif not data.is_completed and assignee_id:
             create_notification(
-                user_id="<assigneeId>",
+                user_id=assignee_id,
                 notif_type="task",
                 title="Task Updated",
                 body="A task assigned to you has been updated.",
@@ -758,7 +753,6 @@ async def update_task_status(data: UpdateTaskStatus):
                 icon="task"
             )
         return {"status": "success", "message": "Task status updated successfully"}
-
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -1393,4 +1387,13 @@ def check_inventory_alerts():
                 data={"item_name": item['name']},
                 icon="inventory"
             )
+
+# Scheduled job to delete completed tasks after 1 day
+def delete_old_completed_tasks():
+    client = MongoClient(os.getenv("MONGO_URI"))
+    db = client["lili"]
+    tasks_collection = db["tasks"]
+    cutoff = datetime.utcnow() - timedelta(days=1)
+    result = tasks_collection.delete_many({"is_completed": True, "completed_at": {"$lt": cutoff}})
+    print(f"Deleted {result.deleted_count} completed tasks older than 1 day.")
 
