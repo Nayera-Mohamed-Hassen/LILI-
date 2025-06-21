@@ -5,7 +5,7 @@ from difflib import get_close_matches
 from fastapi import APIRouter, HTTPException, Request, Body, Query
 from pydantic import BaseModel
 from pymongo import MongoClient
-from ..recipeAI import get_recipe_recommendations
+from ..recipeAI import get_recipe_recommendations, update_preferences_on_cook, get_user_preferences
 from ..mySQLConnection import selectUser, selectAllergy, insertUser, insertHouseHold, insertAllergy, updateUser, generate_unique_house_code, selectHouseHold, is_unique_user, check_user_uniqueness
 from bson import ObjectId
 import random
@@ -1143,6 +1143,42 @@ async def update_recipe_shared(data: UpdateRecipeSharedRequest):
         if result.matched_count == 0:
             raise HTTPException(status_code=404, detail="Recipe not found")
         return {"status": "success", "message": "Recipe sharing updated"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+class RecipeCookedRequest(BaseModel):
+    user_id: str
+    recipe_name: str
+    ingredients: List[str]
+    meal_type: str = ""
+    cooking_time: str = ""
+
+@router.post("/preferences/update-on-cook")
+async def update_preferences_on_recipe_cooked(data: RecipeCookedRequest):
+    """
+    Update user preferences when a recipe is cooked.
+    This endpoint is called when the user completes cooking a recipe.
+    """
+    try:
+        result = update_preferences_on_cook(
+            user_id=data.user_id,
+            recipe_ingredients=data.ingredients,
+            recipe_name=data.recipe_name,
+            meal_type=data.meal_type,
+            cooking_time=data.cooking_time
+        )
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/preferences/{user_id}")
+async def get_user_preferences_endpoint(user_id: str):
+    """
+    Get user preferences and cooking history.
+    """
+    try:
+        preferences = get_user_preferences(user_id)
+        return preferences
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

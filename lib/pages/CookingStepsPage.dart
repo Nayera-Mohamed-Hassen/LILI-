@@ -1,13 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:LILI/pages/navbar.dart';
+import 'package:LILI/user_session.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'wave2.dart';
 
 class CookingStepsPage extends StatefulWidget {
   final String image;
   final List<String> steps;
+  final String recipeName;
+  final List<String> ingredients;
+  final String mealType;
+  final String timeTaken;
 
-  const CookingStepsPage({required this.image, required this.steps, Key? key})
-    : super(key: key);
+  const CookingStepsPage({
+    required this.image, 
+    required this.steps, 
+    required this.recipeName,
+    required this.ingredients,
+    required this.mealType,
+    required this.timeTaken,
+    Key? key
+  }) : super(key: key);
 
   @override
   _CookingStepsPageState createState() => _CookingStepsPageState();
@@ -16,11 +30,99 @@ class CookingStepsPage extends StatefulWidget {
 class _CookingStepsPageState extends State<CookingStepsPage> {
   late List<bool> stepChecked;
   int currentStep = 0;
+  bool isUpdatingPreferences = false;
 
   @override
   void initState() {
     super.initState();
     stepChecked = List.filled(widget.steps.length, false);
+  }
+
+  Future<void> _updateUserPreferences() async {
+    if (isUpdatingPreferences) return;
+    
+    setState(() {
+      isUpdatingPreferences = true;
+    });
+
+    try {
+      final userId = UserSession().getUserId();
+      if (userId == null || userId.isEmpty) {
+        print("User ID not found");
+        return;
+      }
+
+      final url = Uri.parse('http://10.0.2.2:8000/user/preferences/update-on-cook');
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'user_id': userId,
+          'recipe_name': widget.recipeName,
+          'ingredients': widget.ingredients,
+          'meal_type': widget.mealType,
+          'cooking_time': widget.timeTaken,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final result = jsonDecode(response.body);
+        print('Preferences updated successfully: ${result['message']}');
+        
+        // Show success message
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('🎉 Cooking completed! Your preferences have been updated.'),
+              backgroundColor: Colors.green,
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
+      } else {
+        print('Failed to update preferences: ${response.statusCode}');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('⚠️ Cooking completed, but preference update failed.'),
+              backgroundColor: Colors.orange,
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      print('Error updating preferences: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('⚠️ Cooking completed, but preference update failed.'),
+            backgroundColor: Colors.orange,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          isUpdatingPreferences = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _finishCooking() async {
+    // Update preferences first
+    await _updateUserPreferences();
+    
+    // Then navigate to navbar
+    if (mounted) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => Navbar()),
+        (route) => false,
+      );
+    }
   }
 
   @override
@@ -62,16 +164,29 @@ class _CookingStepsPageState extends State<CookingStepsPage> {
                         ),
                       ),
                     ),
-                    const Positioned(
+                    Positioned(
                       bottom: 16,
                       left: 16,
-                      child: Text(
-                        'Let\'s Start Cooking!',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Let\'s Start Cooking!',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            widget.recipeName,
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.9),
+                              fontSize: 16,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -217,20 +332,23 @@ class _CookingStepsPageState extends State<CookingStepsPage> {
                 ),
                 elevation: 0,
               ),
-              onPressed: () {
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (context) => Navbar()),
-                  (route) => false,
-                );
-              },
-              child: const Text(
-                'Finish Cooking',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              onPressed: isUpdatingPreferences ? null : _finishCooking,
+              child: isUpdatingPreferences
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : const Text(
+                      'Finish Cooking',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
             ),
           ],
         ),

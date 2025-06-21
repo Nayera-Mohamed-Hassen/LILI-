@@ -1,6 +1,6 @@
 import os
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 import numpy as np
 import pandas as pd
 from xgboost import XGBClassifier
@@ -14,6 +14,7 @@ from fastapi import HTTPException
 import re
 from functools import lru_cache
 import logging
+from typing import List, Dict, Any
 
 # Cache for processed recipes
 _recipe_cache = None
@@ -141,7 +142,7 @@ def calculate_recipe_score(row):
     return (complexity_weight * complexity_score) + (coverage_weight * coverage_score)
 
 def get_recipe_recommendations(user_id, count=1):
-    """Get recipe recommendations with optimized performance."""
+    """Get recipe recommendations with optimized performance and user preferences."""
     try:
         # ---------- CONFIGURATION ----------
         load_dotenv()
@@ -149,6 +150,10 @@ def get_recipe_recommendations(user_id, count=1):
         
         SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
         RECIPES_JSON = os.path.join(SCRIPT_DIR, "..", "data", "recipes.json")
+
+        # ---------- LOAD USER PREFERENCES ----------
+        user_preferences = get_user_preferences_for_recommendations(user_id)
+        has_preferences = user_preferences.get("has_preferences", False)
 
         # ---------- LOAD INVENTORY FROM MONGODB ----------
         mongo_client = MongoClient(MONGO_URI)
@@ -255,10 +260,50 @@ def get_recipe_recommendations(user_id, count=1):
                 return []  # Return empty list if no valid recipes found
                 
             recipes_df = pd.DataFrame(recipes_list)
+            
+            # Calculate base recipe score
             recipes_df["recipe_score"] = recipes_df.apply(calculate_recipe_score, axis=1)
             
-            # Sort by the new recipe score
-            recipes_df = recipes_df.sort_values("recipe_score", ascending=False)
+            # Calculate preference boost if user has preferences
+            if has_preferences:
+                recipes_df["preference_boost"] = recipes_df["ingredients"].apply(
+                    lambda ingredients: calculate_preference_boost(ingredients, user_preferences)
+                )
+                
+                # Calculate meal type preference boost
+                meal_type_prefs = user_preferences.get("meal_type_preferences", {})
+                recipes_df["meal_type_boost"] = recipes_df["meal_type"].apply(
+                    lambda meal_type: meal_type_prefs.get(meal_type.lower(), 0) / 10.0 if meal_type else 0.0
+                )
+                
+                # Calculate cooking time preference boost
+                cooking_time_prefs = user_preferences.get("cooking_time_preferences", {})
+                recipes_df["cooking_time_boost"] = recipes_df["cooking_time"].apply(
+                    lambda cooking_time: _calculate_time_preference_boost(cooking_time, cooking_time_prefs)
+                )
+                
+                # Combine all scores with preference weighting
+                preference_weight = 0.4  # 40% weight for preferences
+                base_weight = 0.6       # 60% weight for base score
+                
+                recipes_df["final_score"] = (
+                    base_weight * recipes_df["recipe_score"] +
+                    preference_weight * (
+                        recipes_df["preference_boost"] * 0.6 +
+                        recipes_df["meal_type_boost"] * 0.2 +
+                        recipes_df["cooking_time_boost"] * 0.2
+                    )
+                )
+                
+                # Sort by final score (preferences + base score)
+                recipes_df = recipes_df.sort_values("final_score", ascending=False)
+                
+                logging.info(f"User {user_id} has preferences - using personalized recommendations")
+            else:
+                # No preferences - use base score only
+                recipes_df["final_score"] = recipes_df["recipe_score"]
+                recipes_df = recipes_df.sort_values("final_score", ascending=False)
+                logging.info(f"User {user_id} has no preferences - using base recommendations")
             
             # Get recommendations
             start_idx = (count - 1) * 10
@@ -272,7 +317,7 @@ def get_recipe_recommendations(user_id, count=1):
                     missing_ingredients_list = row["missing_ingredients"]
                     all_ingredients = available_ingredients_list + missing_ingredients_list
 
-                    recommendations.append({
+                    recommendation = {
                         "name": str(row["recipe"]),
                         "cusine": str(row["category"]),
                         "mealType": str(row["meal_type"]),
@@ -283,7 +328,20 @@ def get_recipe_recommendations(user_id, count=1):
                         "timeTaken": str(row["cooking_time"]),
                         "difficulty": str(row["difficulty"]),
                         "image": f"{row['image_name']}.jpg"
-                    })
+                    }
+                    
+                    # Add preference information if available
+                    if has_preferences:
+                        recommendation["preference_score"] = round(row["preference_boost"], 2)
+                        recommendation["meal_type_match"] = round(row["meal_type_boost"], 2)
+                        recommendation["cooking_time_match"] = round(row["cooking_time_boost"], 2)
+                        recommendation["final_score"] = round(row["final_score"], 2)
+                        recommendation["personalized"] = True
+                    else:
+                        recommendation["personalized"] = False
+
+                    recommendations.append(recommendation)
+                    
                 except Exception as e:
                     logging.error(f"Error formatting recipe {row.get('recipe', 'Unknown')}: {e}")
                     continue
@@ -298,6 +356,340 @@ def get_recipe_recommendations(user_id, count=1):
     except Exception as e:
         logging.error(f"Error in recipe recommendations: {e}")
         raise
+
+def _calculate_time_preference_boost(cooking_time: str, cooking_time_prefs: Dict[str, int]) -> float:
+    """
+    Calculate cooking time preference boost for a recipe.
+    
+    Args:
+        cooking_time: Cooking time string (e.g., "30 minutes")
+        cooking_time_prefs: User's cooking time preferences
+        
+    Returns:
+        Float representing the time preference boost (0.0 to 1.0)
+    """
+    try:
+        if not cooking_time or not cooking_time_prefs:
+            return 0.0
+        
+        # Extract time value from cooking time string
+        time_value = 0
+        if 'min' in cooking_time.lower():
+            time_value = int(''.join(filter(str.isdigit, cooking_time)))
+        
+        if time_value > 0:
+            if time_value <= 15:
+                time_category = "quick"
+            elif time_value <= 30:
+                time_category = "medium"
+            else:
+                time_category = "long"
+            
+            # Get preference score for this time category
+            preference_score = cooking_time_prefs.get(time_category, 0)
+            return min(preference_score / 10.0, 1.0)  # Normalize to 0-1
+        
+        return 0.0
+        
+    except Exception as e:
+        logging.error(f"Error calculating time preference boost: {e}")
+        return 0.0
+
+def update_preferences_on_cook(user_id: str, recipe_ingredients: List[str], recipe_name: str = "", meal_type: str = "", cooking_time: str = ""):
+    """
+    Update user preferences when a recipe is cooked.
+    This function intelligently updates user preferences based on the ingredients used.
+    
+    Args:
+        user_id: The user's ID
+        recipe_ingredients: List of ingredients used in the recipe
+        recipe_name: Name of the recipe (optional, for logging)
+        meal_type: Type of meal (breakfast, lunch, dinner, etc.)
+        cooking_time: Time taken to cook the recipe
+    """
+    try:
+        # Load current preferences
+        preferences_file = os.path.join(os.path.dirname(__file__), "..", "data", "user_preferences.json")
+        
+        # Create file if it doesn't exist
+        if not os.path.exists(preferences_file):
+            with open(preferences_file, 'w') as f:
+                json.dump({}, f)
+        
+        with open(preferences_file, 'r') as f:
+            try:
+                all_preferences = json.load(f)
+            except json.JSONDecodeError:
+                all_preferences = {}
+        
+        # Get or create user preferences
+        if user_id not in all_preferences:
+            all_preferences[user_id] = {
+                "preferences": {},
+                "meal_type_preferences": {},
+                "cooking_time_preferences": {},
+                "ingredient_combinations": {},
+                "updated_at": datetime.now().isoformat(),
+                "cooking_history": []
+            }
+        
+        user_prefs = all_preferences[user_id]
+        current_prefs = user_prefs.get("preferences", {})
+        meal_type_prefs = user_prefs.get("meal_type_preferences", {})
+        cooking_time_prefs = user_prefs.get("cooking_time_preferences", {})
+        ingredient_combinations = user_prefs.get("ingredient_combinations", {})
+        
+        # Clean and standardize ingredients
+        cleaned_ingredients = []
+        for ingredient in recipe_ingredients:
+            cleaned = clean_ingredient(ingredient)
+            if cleaned and cleaned not in IGNORED_INGREDIENTS:
+                cleaned_ingredients.append(cleaned)
+        
+        # Smart preference update logic
+        for ingredient in cleaned_ingredients:
+            # Get base preference value (default to 1 if new)
+            current_value = current_prefs.get(ingredient, 1)
+            
+            # Calculate preference boost based on recipe complexity and ingredient importance
+            base_boost = 1
+            
+            # Boost for complex recipes (more ingredients = more effort)
+            complexity_boost = min(len(cleaned_ingredients) / 5, 2.0)  # Max 2x boost for complex recipes
+            
+            # Boost for main ingredients (first 3 ingredients are usually main)
+            main_ingredient_boost = 1.5 if cleaned_ingredients.index(ingredient) < 3 else 1.0
+            
+            # Boost for protein ingredients (important for nutrition)
+            protein_ingredients = ['chicken', 'beef', 'pork', 'fish', 'shrimp', 'tofu', 'eggs', 'beans', 'lentils', 'salmon', 'tuna']
+            protein_boost = 1.3 if any(protein in ingredient.lower() for protein in protein_ingredients) else 1.0
+            
+            # Boost for fresh ingredients (indicates healthy cooking)
+            fresh_ingredients = ['tomato', 'onion', 'garlic', 'cilantro', 'basil', 'spinach', 'lettuce', 'cucumber', 'bell pepper']
+            fresh_boost = 1.2 if any(fresh in ingredient.lower() for fresh in fresh_ingredients) else 1.0
+            
+            # Calculate total boost
+            total_boost = base_boost * complexity_boost * main_ingredient_boost * protein_boost * fresh_boost
+            
+            # Update preference (with diminishing returns for very high values)
+            new_value = current_value + total_boost
+            if new_value > 10:  # Cap at 10
+                new_value = 10
+            
+            current_prefs[ingredient] = round(new_value, 1)
+        
+        # Update meal type preferences
+        if meal_type:
+            meal_type_lower = meal_type.lower()
+            current_meal_pref = meal_type_prefs.get(meal_type_lower, 1)
+            meal_type_prefs[meal_type_lower] = min(current_meal_pref + 1, 10)
+        
+        # Update cooking time preferences
+        if cooking_time:
+            # Extract time value from cooking time string
+            time_value = 0
+            if 'min' in cooking_time.lower():
+                time_value = int(''.join(filter(str.isdigit, cooking_time)))
+            
+            if time_value > 0:
+                if time_value <= 15:
+                    time_category = "quick"
+                elif time_value <= 30:
+                    time_category = "medium"
+                else:
+                    time_category = "long"
+                
+                current_time_pref = cooking_time_prefs.get(time_category, 1)
+                cooking_time_prefs[time_category] = min(current_time_pref + 1, 10)
+        
+        # Update ingredient combinations (track frequently used combinations)
+        if len(cleaned_ingredients) >= 2:
+            # Create combinations of 2-3 ingredients
+            for i in range(len(cleaned_ingredients)):
+                for j in range(i + 1, min(i + 3, len(cleaned_ingredients))):
+                    combo = f"{cleaned_ingredients[i]}+{cleaned_ingredients[j]}"
+                    current_combo_count = ingredient_combinations.get(combo, 0)
+                    ingredient_combinations[combo] = current_combo_count + 1
+        
+        # Add to cooking history
+        cooking_history = user_prefs.get("cooking_history", [])
+        cooking_history.append({
+            "recipe_name": recipe_name,
+            "ingredients": cleaned_ingredients,
+            "meal_type": meal_type,
+            "cooking_time": cooking_time,
+            "cooked_at": datetime.now().isoformat(),
+            "preference_boosts": {ing: current_prefs[ing] for ing in cleaned_ingredients}
+        })
+        
+        # Keep only last 50 cooking sessions
+        if len(cooking_history) > 50:
+            cooking_history = cooking_history[-50:]
+        
+        # Update user preferences
+        user_prefs["preferences"] = current_prefs
+        user_prefs["meal_type_preferences"] = meal_type_prefs
+        user_prefs["cooking_time_preferences"] = cooking_time_prefs
+        user_prefs["ingredient_combinations"] = ingredient_combinations
+        user_prefs["updated_at"] = datetime.now().isoformat()
+        user_prefs["cooking_history"] = cooking_history
+        
+        # Save back to file
+        with open(preferences_file, 'w') as f:
+            json.dump(all_preferences, f, indent=2)
+        
+        logging.info(f"Updated preferences for user {user_id} after cooking {recipe_name}")
+        return {
+            "status": "success",
+            "message": f"Preferences updated for {len(cleaned_ingredients)} ingredients",
+            "updated_ingredients": cleaned_ingredients,
+            "meal_type_updated": bool(meal_type),
+            "cooking_time_updated": bool(cooking_time)
+        }
+        
+    except Exception as e:
+        logging.error(f"Error updating preferences for user {user_id}: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to update preferences: {str(e)}")
+
+def get_user_preferences(user_id: str) -> Dict[str, Any]:
+    """
+    Get user preferences and cooking history.
+    
+    Args:
+        user_id: The user's ID
+        
+    Returns:
+        Dictionary containing preferences and cooking history
+    """
+    try:
+        preferences_file = os.path.join(os.path.dirname(__file__), "..", "data", "user_preferences.json")
+        
+        if not os.path.exists(preferences_file):
+            return {
+                "preferences": {},
+                "cooking_history": [],
+                "updated_at": None
+            }
+        
+        with open(preferences_file, 'r') as f:
+            try:
+                all_preferences = json.load(f)
+            except json.JSONDecodeError:
+                all_preferences = {}
+        
+        user_prefs = all_preferences.get(user_id, {
+            "preferences": {},
+            "cooking_history": [],
+            "updated_at": None
+        })
+        
+        return user_prefs
+        
+    except Exception as e:
+        logging.error(f"Error getting preferences for user {user_id}: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to get preferences: {str(e)}")
+
+def get_user_preferences_for_recommendations(user_id: str) -> Dict[str, Any]:
+    """
+    Get user preferences formatted for recipe recommendations.
+    This function returns preferences in a format that can be used
+    to boost recipe scores based on user's cooking history.
+    
+    Args:
+        user_id: The user's ID
+        
+    Returns:
+        Dictionary containing formatted preferences for recommendations
+    """
+    try:
+        user_prefs = get_user_preferences(user_id)
+        
+        # Extract ingredient preferences
+        ingredient_prefs = user_prefs.get("preferences", {})
+        
+        # Extract meal type preferences
+        meal_type_prefs = user_prefs.get("meal_type_preferences", {})
+        
+        # Extract cooking time preferences
+        cooking_time_prefs = user_prefs.get("cooking_time_preferences", {})
+        
+        # Extract ingredient combinations
+        ingredient_combinations = user_prefs.get("ingredient_combinations", {})
+        
+        return {
+            "ingredient_preferences": ingredient_prefs,
+            "meal_type_preferences": meal_type_prefs,
+            "cooking_time_preferences": cooking_time_prefs,
+            "ingredient_combinations": ingredient_combinations,
+            "has_preferences": len(ingredient_prefs) > 0
+        }
+        
+    except Exception as e:
+        logging.error(f"Error getting preferences for recommendations for user {user_id}: {e}")
+        return {
+            "ingredient_preferences": {},
+            "meal_type_preferences": {},
+            "cooking_time_preferences": {},
+            "ingredient_combinations": {},
+            "has_preferences": False
+        }
+
+def calculate_preference_boost(recipe_ingredients: List[str], user_preferences: Dict[str, Any]) -> float:
+    """
+    Calculate a preference boost score for a recipe based on user preferences.
+    
+    Args:
+        recipe_ingredients: List of ingredients in the recipe
+        user_preferences: User's preference data
+        
+    Returns:
+        Float representing the preference boost (0.0 to 1.0)
+    """
+    try:
+        ingredient_prefs = user_preferences.get("ingredient_preferences", {})
+        meal_type_prefs = user_preferences.get("meal_type_preferences", {})
+        cooking_time_prefs = user_preferences.get("cooking_time_preferences", {})
+        ingredient_combinations = user_preferences.get("ingredient_combinations", {})
+        
+        if not ingredient_prefs:
+            return 0.0
+        
+        # Calculate ingredient preference score
+        total_ingredient_score = 0
+        matched_ingredients = 0
+        
+        for ingredient in recipe_ingredients:
+            cleaned_ingredient = clean_ingredient(ingredient)
+            if cleaned_ingredient and cleaned_ingredient in ingredient_prefs:
+                total_ingredient_score += ingredient_prefs[cleaned_ingredient]
+                matched_ingredients += 1
+        
+        # Normalize ingredient score
+        ingredient_boost = 0.0
+        if matched_ingredients > 0:
+            avg_ingredient_score = total_ingredient_score / matched_ingredients
+            ingredient_boost = min(avg_ingredient_score / 10.0, 1.0)  # Normalize to 0-1
+        
+        # Calculate combination boost
+        combination_boost = 0.0
+        if len(recipe_ingredients) >= 2:
+            combo_matches = 0
+            for i in range(len(recipe_ingredients)):
+                for j in range(i + 1, len(recipe_ingredients)):
+                    combo = f"{clean_ingredient(recipe_ingredients[i])}+{clean_ingredient(recipe_ingredients[j])}"
+                    if combo in ingredient_combinations:
+                        combo_matches += ingredient_combinations[combo]
+            
+            if combo_matches > 0:
+                combination_boost = min(combo_matches / 10.0, 0.5)  # Max 0.5 boost for combinations
+        
+        # Total preference boost
+        total_boost = ingredient_boost + combination_boost
+        return min(total_boost, 1.0)  # Cap at 1.0
+        
+    except Exception as e:
+        logging.error(f"Error calculating preference boost: {e}")
+        return 0.0
 
 # Example of how to call the update function
 #update_preferences_on_cook(USER_ID, ["chicken", "salt", "pepper"])

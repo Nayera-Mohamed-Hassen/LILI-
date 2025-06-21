@@ -1,19 +1,90 @@
 {
-  "1": {
+  "d99f7950-2254-44ad-8ec9-1fdb9ed661c5": {
     "preferences": {
-      "chicken": 4,
-      "tomato": 2,
-      "salt": 6,
-      "pepper": 5
+      "peach": 5.8,
+      "honey": 5.8,
+      "banana": 5.8,
+      "apple juice": 4.2,
+      "vanilla yogurt": 4.2,
+      "flaxseed oil": 4.2,
+      "pitted": 4.2,
+      "ice cubes": 4.2
     },
-    "updated_at": "2025-05-30T18:32:42.383372"
-  },
-  "2": {
-    "preferences": {
-      "tofu": 4,
-      "soy sauce": 3,
-      "rice": 2
+    "meal_type_preferences": {
+      "beverage": 3
     },
-    "updated_at": "2025-04-04T15:30:00"
+    "cooking_time_preferences": {
+      "medium": 3
+    },
+    "ingredient_combinations": {
+      "peach+honey": 2,
+      "peach+banana": 2,
+      "honey+banana": 2,
+      "honey+apple juice": 2,
+      "banana+apple juice": 2,
+      "banana+vanilla yogurt": 2,
+      "apple juice+vanilla yogurt": 2,
+      "apple juice+flaxseed oil": 2,
+      "vanilla yogurt+flaxseed oil": 2,
+      "vanilla yogurt+pitted": 2,
+      "flaxseed oil+pitted": 2,
+      "flaxseed oil+ice cubes": 2,
+      "pitted+ice cubes": 2
+    },
+    "updated_at": "2025-06-21T09:41:39.832332",
+    "cooking_history": [
+      {
+        "recipe_name": "Sweet Peach Smoothie",
+        "ingredients": [
+          "peach",
+          "honey",
+          "banana",
+          "apple juice",
+          "vanilla yogurt",
+          "flaxseed oil",
+          "pitted",
+          "ice cubes"
+        ],
+        "meal_type": "Beverage",
+        "cooking_time": "Under 30 mins",
+        "cooked_at": "2025-06-21T09:40:37.580122",
+        "preference_boosts": {
+          "peach": 3.4,
+          "honey": 3.4,
+          "banana": 3.4,
+          "apple juice": 2.6,
+          "vanilla yogurt": 2.6,
+          "flaxseed oil": 2.6,
+          "pitted": 2.6,
+          "ice cubes": 2.6
+        }
+      },
+      {
+        "recipe_name": "Sweet Peach Smoothie",
+        "ingredients": [
+          "peach",
+          "honey",
+          "banana",
+          "apple juice",
+          "vanilla yogurt",
+          "flaxseed oil",
+          "pitted",
+          "ice cubes"
+        ],
+        "meal_type": "Beverage",
+        "cooking_time": "Under 30 mins",
+        "cooked_at": "2025-06-21T09:41:39.832332",
+        "preference_boosts": {
+          "peach": 5.8,
+          "honey": 5.8,
+          "banana": 5.8,
+          "apple juice": 4.2,
+          "vanilla yogurt": 4.2,
+          "flaxseed oil": 4.2,
+          "pitted": 4.2,
+          "ice cubes": 4.2
+        }
+      }
+    ]
   }
 }

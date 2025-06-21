@@ -45,9 +45,15 @@ class RecipePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final List<String> ingredients = List<String>.from(recipe['ingredients'] ?? []);
-    final List<String> availableIngredients = List<String>.from(recipe['available_ingredients'] ?? []);
-    final List<String> missingIngredients = List<String>.from(recipe['missing_ingredients'] ?? []);
+    final List<String> ingredients = List<String>.from(
+      recipe['ingredients'] ?? [],
+    );
+    final List<String> availableIngredients = List<String>.from(
+      recipe['available_ingredients'] ?? [],
+    );
+    final List<String> missingIngredients = List<String>.from(
+      recipe['missing_ingredients'] ?? [],
+    );
     final List<String> steps = List<String>.from(recipe['steps'] ?? []);
     final String timeTaken = recipe['timeTaken'] as String;
 
@@ -79,7 +85,11 @@ class RecipePage extends StatelessWidget {
                             Image.network(
                               'https://raw.githubusercontent.com/Nayera-Mohamed-Hassen/LILI-/main/FoodImages/${Uri.encodeComponent(recipe['image'])}',
                               fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image, color: Colors.white54),
+                              errorBuilder:
+                                  (context, error, stackTrace) => const Icon(
+                                    Icons.broken_image,
+                                    color: Colors.white54,
+                                  ),
                             ),
                             Container(
                               decoration: BoxDecoration(
@@ -118,11 +128,15 @@ class RecipePage extends StatelessWidget {
                                         ),
                                         decoration: BoxDecoration(
                                           color: Colors.white.withOpacity(0.2),
-                                          borderRadius: BorderRadius.circular(20),
+                                          borderRadius: BorderRadius.circular(
+                                            20,
+                                          ),
                                         ),
                                         child: Text(
                                           recipe['cusine'] as String,
-                                          style: const TextStyle(color: Colors.white),
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                          ),
                                         ),
                                       ),
                                       const SizedBox(width: 8),
@@ -133,11 +147,15 @@ class RecipePage extends StatelessWidget {
                                         ),
                                         decoration: BoxDecoration(
                                           color: Colors.white.withOpacity(0.2),
-                                          borderRadius: BorderRadius.circular(20),
+                                          borderRadius: BorderRadius.circular(
+                                            20,
+                                          ),
                                         ),
                                         child: Text(
                                           recipe['mealType'] as String,
-                                          style: const TextStyle(color: Colors.white),
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                          ),
                                         ),
                                       ),
                                     ],
@@ -202,19 +220,28 @@ class RecipePage extends StatelessWidget {
                                       padding: const EdgeInsets.all(16),
                                       child: Column(
                                         children: [
-                                          Icon(Icons.timer, color: Colors.white.withOpacity(0.9)),
+                                          Icon(
+                                            Icons.timer,
+                                            color: Colors.white.withOpacity(
+                                              0.9,
+                                            ),
+                                          ),
                                           const SizedBox(height: 8),
                                           Text(
                                             timeTaken,
                                             style: TextStyle(
                                               fontWeight: FontWeight.bold,
-                                              color: Colors.white.withOpacity(0.9),
+                                              color: Colors.white.withOpacity(
+                                                0.9,
+                                              ),
                                             ),
                                           ),
                                           Text(
                                             'Time',
                                             style: TextStyle(
-                                              color: Colors.white.withOpacity(0.7),
+                                              color: Colors.white.withOpacity(
+                                                0.7,
+                                              ),
                                             ),
                                           ),
                                         ],
@@ -236,20 +263,26 @@ class RecipePage extends StatelessWidget {
                                         children: [
                                           Icon(
                                             Icons.restaurant_menu,
-                                            color: Colors.white.withOpacity(0.9),
+                                            color: Colors.white.withOpacity(
+                                              0.9,
+                                            ),
                                           ),
                                           const SizedBox(height: 8),
                                           Text(
                                             recipe['difficulty'] as String,
                                             style: TextStyle(
                                               fontWeight: FontWeight.bold,
-                                              color: Colors.white.withOpacity(0.9),
+                                              color: Colors.white.withOpacity(
+                                                0.9,
+                                              ),
                                             ),
                                           ),
                                           Text(
                                             'Difficulty',
                                             style: TextStyle(
-                                              color: Colors.white.withOpacity(0.7),
+                                              color: Colors.white.withOpacity(
+                                                0.7,
+                                              ),
                                             ),
                                           ),
                                         ],
@@ -273,31 +306,38 @@ class RecipePage extends StatelessWidget {
                             const SizedBox(height: 16),
 
                             // All Ingredients List
-                            ...ingredients.map((ingredient) => Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 4),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    availableIngredients.contains(ingredient) 
-                                        ? Icons.check_circle 
-                                        : Icons.shopping_cart,
-                                    color: availableIngredients.contains(ingredient)
-                                        ? Colors.green
-                                        : Colors.orange,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      ingredient,
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        color: Colors.white.withOpacity(0.9),
+                            ...ingredients.map(
+                              (ingredient) => Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 4,
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      availableIngredients.contains(ingredient)
+                                          ? Icons.check_circle
+                                          : Icons.shopping_cart,
+                                      color:
+                                          availableIngredients.contains(
+                                                ingredient,
+                                              )
+                                              ? Colors.green
+                                              : Colors.orange,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        ingredient,
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          color: Colors.white.withOpacity(0.9),
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
-                            )),
+                            ),
 
                             const SizedBox(height: 24),
 
@@ -323,13 +363,16 @@ class RecipePage extends StatelessWidget {
                                 child: Padding(
                                   padding: const EdgeInsets.all(16),
                                   child: Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Container(
                                         padding: const EdgeInsets.all(8),
                                         decoration: BoxDecoration(
                                           color: const Color(0xFF1F3354),
-                                          borderRadius: BorderRadius.circular(20),
+                                          borderRadius: BorderRadius.circular(
+                                            20,
+                                          ),
                                         ),
                                         child: Text(
                                           '${entry.key + 1}',
@@ -386,10 +429,15 @@ class RecipePage extends StatelessWidget {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => CookingStepsPage(
-                  image: recipe['image'] as String,
-                  steps: steps,
-                ),
+                builder:
+                    (context) => CookingStepsPage(
+                      image: recipe['image'] as String,
+                      steps: steps,
+                      recipeName: recipe['name'] as String,
+                      ingredients: ingredients,
+                      mealType: recipe['mealType'] as String,
+                      timeTaken: recipe['timeTaken'] as String,
+                    ),
               ),
             );
           },
@@ -406,58 +454,3 @@ class RecipePage extends StatelessWidget {
     );
   }
 }
-
-void main() => runApp(
-  MaterialApp(
-    home: RecipePage(
-      recipe: {
-      'name': 'Pad Thai',
-      'cusine': 'Thai',
-      'mealType': 'Main Course',
-      'ingredients': [
-        '200g rice noodles',
-        '150g chicken breast (or shrimp)',
-        '1 egg',
-        '2 tbsp soy sauce',
-        '1 tbsp fish sauce',
-        '1 tsp sugar',
-        '1/4 cup chopped peanuts',
-        '1 lime (cut into wedges)',
-        'Fresh cilantro (chopped)',
-        '2 tbsp vegetable oil',
-        '1 garlic clove (minced)',
-        '1/4 cup bean sprouts',
-        '1/4 cup green onions (chopped)',
-      ],
-      'steps': [
-        'Boil the rice noodles according to the package instructions.',
-        'In a pan, cook chicken until golden.',
-        'Add egg, scramble, then mix with meat.',
-        'Add garlic and stir until fragrant.',
-        'Add cooked noodles, sauces, and sugar. Mix well.',
-        'Stir in peanuts, green onions, and sprouts.',
-        'Serve garnished with cilantro and lime wedges.',
-      ],
-        'timeTaken': '25 minutes',
-      'difficulty': 'Medium',
-        'image': 'Pad Thai.jpg',
-        'available_ingredients': [
-          '200g rice noodles',
-          '150g chicken breast (or shrimp)',
-          '1 egg',
-          '2 tbsp soy sauce',
-          '1 tbsp fish sauce',
-          '1 tsp sugar',
-          '1/4 cup chopped peanuts',
-          '1 lime (cut into wedges)',
-          'Fresh cilantro (chopped)',
-          '2 tbsp vegetable oil',
-          '1 garlic clove (minced)',
-          '1/4 cup bean sprouts',
-          '1/4 cup green onions (chopped)',
-        ],
-        'missing_ingredients': [],
-      },
-                        ),
-                  ),
-                );
