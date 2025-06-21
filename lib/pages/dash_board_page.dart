@@ -7,6 +7,8 @@ import 'package:LILI/services/expense_goal_service.dart';
 import 'package:LILI/services/transaction_service.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class ReportDashboard extends StatefulWidget {
   final String userId;
@@ -23,26 +25,32 @@ class _ReportDashboardState extends State<ReportDashboard> {
   bool _isLoading = true;
   double totalSpent = 0.0;
   double totalBudget = 0.0;
+  List<dynamic> lowInventoryItems = [];
 
   @override
   void initState() {
     super.initState();
     _loadBudgetData();
+    _fetchLowInventory();
   }
 
   Future<void> _loadBudgetData() async {
     setState(() => _isLoading = true);
     try {
       // Load expense goals
-      final loadedGoals = await ExpenseGoalService.getExpenseGoalsWithProgress(widget.userId);
-      
+      final loadedGoals = await ExpenseGoalService.getExpenseGoalsWithProgress(
+        widget.userId,
+      );
+
       // Load recent transactions to calculate current spending
-      final transactions = await TransactionService.getTransactions(widget.userId);
-      
+      final transactions = await TransactionService.getTransactions(
+        widget.userId,
+      );
+
       // Calculate spending by category
       Map<String, double> spending = {};
       double total = 0.0;
-      
+
       for (var transaction in transactions) {
         if (transaction['transaction_type'] == 'expense') {
           final category = transaction['category'];
@@ -51,7 +59,7 @@ class _ReportDashboardState extends State<ReportDashboard> {
           total += amount;
         }
       }
-      
+
       setState(() {
         goals = loadedGoals;
         categorySpending = spending;
@@ -71,6 +79,61 @@ class _ReportDashboardState extends State<ReportDashboard> {
     }
   }
 
+  Future<void> _fetchLowInventory() async {
+    final userId = widget.userId;
+    if (userId == null || userId.isEmpty) return;
+    try {
+      final response = await http.post(
+        Uri.parse('http://10.0.2.2:8000/user/inventory/get-items'),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({"user_id": userId}),
+      );
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        final List<dynamic> lowItems = data.where((item) {
+          // Use the same low stock logic as inventory_page.dart
+          final String category = item['category'] ?? '';
+          final int quantity = item['quantity'] ?? 0;
+          final double amount = (item['amount'] ?? 1.0).toDouble();
+          final String unit = (item['unit'] ?? 'pieces').toLowerCase();
+          if (category != 'Food') return false;
+          switch (unit) {
+            case 'kg':
+            case 'kilograms':
+              return quantity * amount < 0.5;
+            case 'l':
+            case 'liters':
+            case 'litres':
+              return quantity * amount < 0.5;
+            case 'g':
+            case 'grams':
+              return quantity * amount < 100;
+            case 'ml':
+            case 'milliliters':
+              return quantity * amount < 100;
+            case 'pieces':
+            case 'pcs':
+            case 'units':
+              return quantity <= 1;
+            case 'packets':
+            case 'packs':
+              return quantity <= 1;
+            case 'bottles':
+            case 'cans':
+              return quantity <= 1;
+            default:
+              return quantity <= 1;
+          }
+        }).toList();
+        setState(() {
+          lowInventoryItems = lowItems;
+        });
+      }
+    } catch (e) {
+      print('Error fetching inventory: $e');
+    }
+  }
+
   Widget buildCard(
     String title,
     IconData icon,
@@ -83,7 +146,7 @@ class _ReportDashboardState extends State<ReportDashboard> {
       onTap: onTap,
       borderRadius: BorderRadius.circular(20),
       child: SizedBox(
-        width: 162,
+        width: 340,
         height: 190,
         child: Card(
           shape: RoundedRectangleBorder(
@@ -186,10 +249,11 @@ class _ReportDashboardState extends State<ReportDashboard> {
   void showBudgetAnalysis(BuildContext context) async {
     // Refresh data before showing the modal
     await _loadBudgetData();
-    
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      backgroundColor: const Color(0xFF1F3354),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -200,17 +264,33 @@ class _ReportDashboardState extends State<ReportDashboard> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text(
-                    "Spending Limits Analysis",
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back, color: Colors.white),
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                      const SizedBox(width: 8),
+                      const Text(
+                        "Spending Limits Analysis",
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 12),
-                  
                   // Summary cards
                   Row(
                     children: [
                       Expanded(
                         child: Card(
+                          color: const Color(0xFF3E5879),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
                           child: Padding(
                             padding: const EdgeInsets.all(12),
                             child: Column(
@@ -223,7 +303,13 @@ class _ReportDashboardState extends State<ReportDashboard> {
                                     color: Colors.red,
                                   ),
                                 ),
-                                const Text("Total Spent", style: TextStyle(fontSize: 12)),
+                                const Text(
+                                  "Total Spent",
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.white,
+                                  ),
+                                ),
                               ],
                             ),
                           ),
@@ -232,6 +318,10 @@ class _ReportDashboardState extends State<ReportDashboard> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Card(
+                          color: const Color(0xFF3E5879),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
                           child: Padding(
                             padding: const EdgeInsets.all(12),
                             child: Column(
@@ -244,7 +334,13 @@ class _ReportDashboardState extends State<ReportDashboard> {
                                     color: Colors.green,
                                   ),
                                 ),
-                                const Text("Total Budget", style: TextStyle(fontSize: 12)),
+                                const Text(
+                                  "Total Budget",
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.white,
+                                  ),
+                                ),
                               ],
                             ),
                           ),
@@ -252,14 +348,10 @@ class _ReportDashboardState extends State<ReportDashboard> {
                       ),
                     ],
                   ),
-                  
                   const SizedBox(height: 16),
-                  
                   // Goals vs Spending Chart
                   buildGoalsVsSpendingChart(),
-                  
                   const SizedBox(height: 16),
-                  
                   // Goals breakdown
                   buildGoalsBreakdown(),
                 ],
@@ -291,7 +383,10 @@ class _ReportDashboardState extends State<ReportDashboard> {
                     SizedBox(height: 8),
                     Text(
                       "No spending limits found",
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                     SizedBox(height: 4),
                     Text(
@@ -311,7 +406,7 @@ class _ReportDashboardState extends State<ReportDashboard> {
     final categories = goals.map((goal) => goal.category).toList();
     final targets = goals.map((goal) => goal.targetAmount).toList();
     final current = goals.map((goal) => goal.currentAmount).toList();
-    
+
     final maxValue = targets.reduce((a, b) => a > b ? a : b);
 
     return Card(
@@ -345,14 +440,21 @@ class _ReportDashboardState extends State<ReportDashboard> {
                         final spent = current[group.x];
                         final isOver = spent > target;
                         final remaining = target - spent;
-                        
+
                         return BarTooltipItem(
                           '$category\n',
-                          const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                          const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
                           children: [
                             TextSpan(
                               text: 'Limit: \$${target.toStringAsFixed(0)}\n',
-                              style: const TextStyle(color: Colors.white, fontSize: 12),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                              ),
                             ),
                             TextSpan(
                               text: 'Spent: \$${spent.toStringAsFixed(0)}\n',
@@ -363,9 +465,10 @@ class _ReportDashboardState extends State<ReportDashboard> {
                               ),
                             ),
                             TextSpan(
-                              text: isOver 
-                                ? 'Over limit by: \$${(spent - target).toStringAsFixed(0)}'
-                                : 'Under limit by: \$${remaining.toStringAsFixed(0)}',
+                              text:
+                                  isOver
+                                      ? 'Over limit by: \$${(spent - target).toStringAsFixed(0)}'
+                                      : 'Under limit by: \$${remaining.toStringAsFixed(0)}',
                               style: TextStyle(
                                 color: isOver ? Colors.red : Colors.green,
                                 fontSize: 12,
@@ -381,13 +484,17 @@ class _ReportDashboardState extends State<ReportDashboard> {
                       sideTitles: SideTitles(
                         showTitles: true,
                         getTitlesWidget: (value, meta) {
-                          if (value.toInt() >= categories.length) return const Text('');
+                          if (value.toInt() >= categories.length)
+                            return const Text('');
                           final label = categories[value.toInt()];
                           return Padding(
                             padding: const EdgeInsets.only(top: 8),
                             child: Text(
                               label,
-                              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
+                              style: const TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
                           );
                         },
@@ -427,7 +534,7 @@ class _ReportDashboardState extends State<ReportDashboard> {
                     final target = targets[index];
                     final spent = current[index];
                     final isOver = spent > target;
-                    
+
                     return BarChartGroupData(
                       x: index,
                       barRods: [
@@ -457,7 +564,10 @@ class _ReportDashboardState extends State<ReportDashboard> {
                   ),
                 ),
                 const SizedBox(width: 6),
-                const Text("Under Limit", style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
+                const Text(
+                  "Under Limit",
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+                ),
                 const SizedBox(width: 20),
                 Container(
                   width: 16,
@@ -468,7 +578,10 @@ class _ReportDashboardState extends State<ReportDashboard> {
                   ),
                 ),
                 const SizedBox(width: 6),
-                const Text("Over Limit", style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
+                const Text(
+                  "Over Limit",
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+                ),
               ],
             ),
             const SizedBox(height: 16),
@@ -481,11 +594,17 @@ class _ReportDashboardState extends State<ReportDashboard> {
                 final spent = current[index];
                 final isOver = spent > target;
                 final percentage = (spent / target * 100).clamp(0.0, 999.9);
-                
+
                 return Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
-                    color: isOver ? Colors.red.withOpacity(0.1) : Colors.green.withOpacity(0.1),
+                    color:
+                        isOver
+                            ? Colors.red.withOpacity(0.1)
+                            : Colors.green.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
                       color: isOver ? Colors.red : Colors.green,
@@ -531,7 +650,10 @@ class _ReportDashboardState extends State<ReportDashboard> {
                     SizedBox(height: 8),
                     Text(
                       "No limits to display",
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                     SizedBox(height: 4),
                     Text(
@@ -564,7 +686,10 @@ class _ReportDashboardState extends State<ReportDashboard> {
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.blue.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
@@ -585,15 +710,21 @@ class _ReportDashboardState extends State<ReportDashboard> {
               final progress = goal.progressPercentage;
               final isOver = goal.isOverBudget;
               final remaining = goal.targetAmount - goal.currentAmount;
-              
+
               return Container(
                 margin: const EdgeInsets.only(bottom: 12),
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: isOver ? Colors.red.withOpacity(0.05) : Colors.green.withOpacity(0.05),
+                  color:
+                      isOver
+                          ? Colors.red.withOpacity(0.05)
+                          : Colors.green.withOpacity(0.05),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: isOver ? Colors.red.withOpacity(0.3) : Colors.green.withOpacity(0.3),
+                    color:
+                        isOver
+                            ? Colors.red.withOpacity(0.3)
+                            : Colors.green.withOpacity(0.3),
                     width: 1,
                   ),
                 ),
@@ -617,9 +748,15 @@ class _ReportDashboardState extends State<ReportDashboard> {
                           ),
                         ),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
-                            color: isOver ? Colors.red.withOpacity(0.1) : Colors.green.withOpacity(0.1),
+                            color:
+                                isOver
+                                    ? Colors.red.withOpacity(0.1)
+                                    : Colors.green.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
@@ -661,9 +798,9 @@ class _ReportDashboardState extends State<ReportDashboard> {
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
                             Text(
-                              isOver 
-                                ? "Over limit by: \$${(goal.currentAmount - goal.targetAmount).toStringAsFixed(0)}"
-                                : "Under limit by: \$${remaining.toStringAsFixed(0)}",
+                              isOver
+                                  ? "Over limit by: \$${(goal.currentAmount - goal.targetAmount).toStringAsFixed(0)}"
+                                  : "Under limit by: \$${remaining.toStringAsFixed(0)}",
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w500,
@@ -697,8 +834,8 @@ class _ReportDashboardState extends State<ReportDashboard> {
               );
             }).toList(),
           ],
-            ),
-          ),
+        ),
+      ),
     );
   }
 
@@ -779,10 +916,7 @@ class _ReportDashboardState extends State<ReportDashboard> {
               const SizedBox(height: 8),
               Text(
                 "${goals.length} active limits",
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: Colors.black54,
-                ),
+                style: const TextStyle(fontSize: 12, color: Colors.black54),
               ),
             ],
           ],
@@ -844,52 +978,25 @@ class _ReportDashboardState extends State<ReportDashboard> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 40),
-                  Wrap(
-                    alignment: WrapAlignment.center,
-                    spacing: 16,
-                    runSpacing: 16,
+                  Column(
                     children: [
                       buildCard(
                         'Low Inventory',
                         Icons.inventory_2,
-                        Colors.white,
-                        '6 items',
-                        'Check milk, rice, oil...',
-                        onTap:
-                            () => showDetailSheet(context, 'Low Inventory', [
-                              'Milk - 1 day left',
-                              'Rice - Running low',
-                              'Cooking Oil - Refill soon',
-                            ]),
+                        const Color(0xFF3E5879),
+                        '${lowInventoryItems.length} items',
+                        lowInventoryItems.isNotEmpty
+                            ? 'Check: ${lowInventoryItems.take(3).map((item) => item['name']).join(', ')}${lowInventoryItems.length > 3 ? ', ...' : ''}'
+                            : 'All good!',
+                        onTap: () => showDetailSheet(
+                          context,
+                          'Low Inventory',
+                          lowInventoryItems.isNotEmpty
+                              ? lowInventoryItems.map<String>((item) => item['name']).toList()
+                              : ['No low inventory items!'],
+                        ),
                       ),
-                      buildCard(
-                        "Today's Tasks",
-                        Icons.check_circle,
-                        Colors.white,
-                        '5 tasks',
-                        '2 overdue',
-                        onTap:
-                            () => showDetailSheet(context, "Today's Tasks", [
-                              'Clean kitchen',
-                              'Buy groceries',
-                              'Water plants',
-                              'Do laundry',
-                              'Call plumber',
-                            ], showCheckboxes: true),
-                      ),
-                      buildCard(
-                        'Meal Suggestions',
-                        Icons.restaurant,
-                        Colors.white,
-                        '3 meals',
-                        'Based on fridge items',
-                        onTap:
-                            () => showDetailSheet(context, 'Suggested Meals', [
-                              'Pasta with tomato sauce',
-                              'Vegetable stir-fry',
-                              'Egg & toast breakfast',
-                            ]),
-                      ),
+                      const SizedBox(height: 16),
                       buildCard(
                         'Home Workout',
                         Icons.fitness_center,
