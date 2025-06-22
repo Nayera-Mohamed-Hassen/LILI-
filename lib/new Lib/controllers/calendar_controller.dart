@@ -4,6 +4,10 @@ import '../models/event.dart' as myevent;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../services/calendar_service.dart';
 import '../../user_session.dart';
+import '../../services/notification_service.dart';
+import '../../services/user_service.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class CalendarController extends GetxController {
   final RxList<myevent.Event> events = <myevent.Event>[].obs;
@@ -28,13 +32,13 @@ class CalendarController extends GetxController {
       isSyncing.value = true;
       final userId = UserSession().getUserId();
       final houseId = UserSession().getHouseId();
-      print('[DEBUG] Fetching events for userId=$userId, houseId=$houseId');
       if (userId == null || userId.isEmpty) {
-        print('[DEBUG] No userId found, aborting fetchEvents');
         return;
       }
-      final fetchedEvents = await CalendarService.fetchEvents(userId: userId, houseId: houseId);
-      print('[DEBUG] Fetched events: $fetchedEvents');
+      final fetchedEvents = await CalendarService.fetchEvents(
+        userId: userId,
+        houseId: houseId,
+      );
       events.assignAll(fetchedEvents);
     } catch (e, st) {
       print('[DEBUG] Failed to fetch events: $e');
@@ -60,12 +64,46 @@ class CalendarController extends GetxController {
     try {
       isSyncing.value = true;
       final userId = UserSession().getUserId();
-      final houseId = UserSession().getHouseId != null ? UserSession().getHouseId() : null;
+      final houseId =
+          UserSession().getHouseId != null ? UserSession().getHouseId() : null;
       if (userId == null || userId.isEmpty) return;
       eventData['creator_id'] = userId;
       eventData['house_id'] = houseId;
       await CalendarService.addEvent(eventData);
       await fetchEvents();
+      // --- Notification logic ---
+      final notificationService = NotificationService();
+      final isPublic = eventData['privacy'] == 'public';
+      List<String> recipientIds = [];
+      if (isPublic && houseId != null && houseId.isNotEmpty) {
+        // Fetch all household users
+        try {
+          final url = Uri.parse(
+            'http://10.0.2.2:8000/user/household-users/$userId',
+          );
+          final response = await http.get(url);
+          if (response.statusCode == 200) {
+            final List<dynamic> data = jsonDecode(response.body);
+            recipientIds =
+                data.map<String>((u) => u['user_id'].toString()).toList();
+          }
+        } catch (e) {
+          recipientIds = [userId]; // fallback: at least notify self
+        }
+      } else {
+        recipientIds = [userId];
+      }
+      await notificationService.sendNotification(
+        userIds: recipientIds,
+        title: 'New Event Added',
+        body: '"${eventData['title']}" was added to the calendar.',
+        type: 'event',
+        data: {
+          'event_title': eventData['title'],
+          'event_id': eventData['id'] ?? '',
+        },
+      );
+      // --- End notification logic ---
     } finally {
       isSyncing.value = false;
     }

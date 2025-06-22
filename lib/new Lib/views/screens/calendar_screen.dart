@@ -11,7 +11,22 @@ class CalendarScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    DateTime? initialDate;
+    String? focusEventId;
+    final args = ModalRoute.of(context)?.settings.arguments;
+    if (args != null) {
+      if (args is DateTime) {
+        initialDate = args;
+      } else if (args is Map && args['event_id'] != null) {
+        focusEventId = args['event_id'].toString();
+      }
+    }
     final controller = Get.put(CalendarController());
+    if (initialDate != null && controller.selectedDate.value != initialDate) {
+      controller.selectedDate.value = initialDate;
+    }
+    // Only open the dialog once per navigation (for event_id deep link)
+    final openedDialog = ValueNotifier(false);
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
@@ -46,6 +61,30 @@ class CalendarScreen extends StatelessWidget {
                 child: Obx(() {
                   if (controller.isSyncing.value && controller.events.isEmpty) {
                     return const Center(child: CircularProgressIndicator());
+                  }
+                  // Open dialog after events are loaded
+                  if (focusEventId != null &&
+                      controller.events.isNotEmpty &&
+                      !openedDialog.value) {
+                    final event = controller.events.firstWhereOrNull(
+                      (e) => e.id == focusEventId,
+                    );
+                    if (event != null) {
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        controller.selectedDate.value = event.startTime;
+                        Get.dialog(
+                          EventDialog(
+                            event: event,
+                            selectedDate: event.startTime,
+                          ),
+                        );
+                        openedDialog.value = true;
+                      });
+                    } else {
+                      print(
+                        '[DEBUG] Event with id $focusEventId not found in loaded events',
+                      );
+                    }
                   }
                   return SingleChildScrollView(
                     child: Padding(
@@ -96,19 +135,17 @@ class CalendarScreen extends StatelessWidget {
                               ),
                               calendarStyle: CalendarStyle(
                                 todayDecoration: BoxDecoration(
-                                  color: Color(0xFF3E5879),
+                                  color: const Color(
+                                    0xFF1F3354,
+                                  ).withOpacity(0.7),
                                   shape: BoxShape.circle,
                                 ),
-                                selectedDecoration: BoxDecoration(
-                                  color: Colors.blue.withOpacity(0.2),
+                                selectedDecoration: const BoxDecoration(
+                                  color: Color(0xFF1F3354),
                                   shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: Color(0xFF3E5879),
-                                    width: 1,
-                                  ),
                                 ),
-                                markerDecoration: BoxDecoration(
-                                  color: Color(0xFF3E5879),
+                                markerDecoration: const BoxDecoration(
+                                  color: Color(0xFF1F3354),
                                   shape: BoxShape.circle,
                                 ),
                                 markerSize: 6,
@@ -188,8 +225,8 @@ class CalendarScreen extends StatelessWidget {
                                       vertical: 8,
                                     ),
                                     decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(16),
-                                      color: Colors.white.withOpacity(0.18),
+                                      borderRadius: BorderRadius.circular(12),
+                                      color: Colors.white.withOpacity(0.1),
                                       boxShadow: [
                                         BoxShadow(
                                           color: Colors.black.withOpacity(0.08),
@@ -198,12 +235,12 @@ class CalendarScreen extends StatelessWidget {
                                         ),
                                       ],
                                       border: Border.all(
-                                        color: Colors.white.withOpacity(0.3),
+                                        color: Colors.white24,
                                         width: 1.2,
                                       ),
                                     ),
                                     child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(16),
+                                      borderRadius: BorderRadius.circular(12),
                                       child: BackdropFilter(
                                         filter: ImageFilter.blur(
                                           sigmaX: 12,

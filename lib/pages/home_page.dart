@@ -11,6 +11,8 @@ import '../services/notification_service.dart';
 import 'package:LILI/user_session.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../models/notification.dart';
+import 'package:LILI/new Lib/models/event.dart';
+import 'package:LILI/services/calendar_service.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -20,9 +22,11 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  late CalendarFormat _calendarFormat;
+  late CalendarFormat _calendarFormat = CalendarFormat.month;
   late DateTime _focusedDay;
   late DateTime _selectedDay;
+  Map<DateTime, List<Event>> _events = {};
+  bool _loadingEvents = false;
 
   int _currentIndex = 0; // Home Page is index 0
   bool _checkbox1 = false;
@@ -36,18 +40,51 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    _calendarFormat = CalendarFormat.week;
     _focusedDay = DateTime.now();
     _selectedDay = DateTime.now();
-    // Fetch tasks when the page loads
+    _fetchEvents();
     Provider.of<TaskService>(context, listen: false).fetchTasks();
     _fetchNotifications();
+  }
+
+  Future<void> _fetchEvents() async {
+    setState(() => _loadingEvents = true);
+    try {
+      final userId = UserSession().getUserId();
+      final houseId = UserSession().getHouseId();
+      final events = await CalendarService.fetchEvents(
+        userId: userId ?? '',
+        houseId: houseId,
+      );
+      final Map<DateTime, List<Event>> eventMap = {};
+      for (final event in events) {
+        final date = DateTime(
+          event.startTime.year,
+          event.startTime.month,
+          event.startTime.day,
+        );
+        eventMap.putIfAbsent(date, () => []).add(event);
+      }
+      setState(() {
+        _events = eventMap;
+        _loadingEvents = false;
+      });
+    } catch (e) {
+      setState(() => _loadingEvents = false);
+    }
+  }
+
+  List<Event> _getEventsForDay(DateTime day) {
+    final date = DateTime(day.year, day.month, day.day);
+    return _events[date] ?? [];
   }
 
   void _fetchNotifications() async {
     setState(() => _loadingNotifications = true);
     try {
-      final notifs = await NotificationService().fetchNotifications(UserSession().getUserId().toString());
+      final notifs = await NotificationService().fetchNotifications(
+        UserSession().getUserId().toString(),
+      );
       setState(() {
         _latestNotifications = notifs.take(5).toList();
         _loadingNotifications = false;
@@ -99,10 +136,7 @@ class _HomePageState extends State<HomePage> {
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [
-                  const Color(0xFF1F3354),
-                  const Color(0xFF3E5879),
-                ],
+                colors: [const Color(0xFF1F3354), const Color(0xFF3E5879)],
               ),
             ),
             child: SafeArea(
@@ -175,8 +209,10 @@ class _HomePageState extends State<HomePage> {
                                 firstDay: DateTime.utc(2020, 1, 1),
                                 lastDay: DateTime.utc(2030, 12, 31),
                                 focusedDay: _focusedDay,
-                                selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+                                selectedDayPredicate:
+                                    (day) => isSameDay(_selectedDay, day),
                                 calendarFormat: _calendarFormat,
+                                eventLoader: _getEventsForDay,
                                 onFormatChanged: (format) {
                                   setState(() {
                                     _calendarFormat = format;
@@ -187,6 +223,15 @@ class _HomePageState extends State<HomePage> {
                                     _selectedDay = selectedDay;
                                     _focusedDay = focusedDay;
                                   });
+                                  if (_getEventsForDay(
+                                    selectedDay,
+                                  ).isNotEmpty) {
+                                    Navigator.pushNamed(
+                                      context,
+                                      '/family_calendar',
+                                      arguments: selectedDay,
+                                    ).then((_) => _fetchEvents());
+                                  }
                                 },
                                 onPageChanged: (focusedDay) {
                                   _focusedDay = focusedDay;
@@ -201,7 +246,9 @@ class _HomePageState extends State<HomePage> {
                                 ),
                                 calendarStyle: CalendarStyle(
                                   todayDecoration: BoxDecoration(
-                                    color: const Color(0xFF1F3354).withOpacity(0.7),
+                                    color: const Color(
+                                      0xFF1F3354,
+                                    ).withOpacity(0.7),
                                     shape: BoxShape.circle,
                                   ),
                                   selectedDecoration: const BoxDecoration(
@@ -260,19 +307,39 @@ class _HomePageState extends State<HomePage> {
                               offset: Offset(0, 4),
                             ),
                           ],
-                          border: Border.all(color: Colors.white.withOpacity(0.4), width: 2),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.4),
+                            width: 2,
+                          ),
                         ),
                         padding: EdgeInsets.all(10),
-                        child: Icon(FontAwesomeIcons.bell, size: 28, color: Colors.white),
+                        child: Icon(
+                          FontAwesomeIcons.bell,
+                          size: 28,
+                          color: Colors.white,
+                        ),
                       ),
                       if (_latestNotifications.any((n) => !n.isRead))
                         Positioned(
                           right: 0,
                           child: Container(
                             padding: EdgeInsets.all(2),
-                            decoration: BoxDecoration(color: Colors.red, borderRadius: BorderRadius.circular(6)),
-                            constraints: BoxConstraints(minWidth: 12, minHeight: 12),
-                            child: Text('!', style: TextStyle(color: Colors.white, fontSize: 8), textAlign: TextAlign.center),
+                            decoration: BoxDecoration(
+                              color: Colors.red,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            constraints: BoxConstraints(
+                              minWidth: 12,
+                              minHeight: 12,
+                            ),
+                            child: Text(
+                              '!',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 8,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
                           ),
                         ),
                     ],
@@ -314,16 +381,28 @@ class _HomePageState extends State<HomePage> {
                   padding: const EdgeInsets.all(16.0),
                   child: Text('No notifications'),
                 )
-              else ..._latestNotifications.map((notif) => ListTile(
-                leading: Icon(_iconForType(notif.type), color: notif.isRead ? Colors.grey : Colors.blue),
-                title: Text(notif.title, style: TextStyle(fontWeight: notif.isRead ? FontWeight.normal : FontWeight.bold)),
-                onTap: () async {
-                  await NotificationService().markAsRead(notif.id);
-                  _fetchNotifications();
-                  setState(() => _dropdownOpen = false);
-                  _handleNotificationTap(notif);
-                },
-              )),
+              else
+                ..._latestNotifications.map(
+                  (notif) => ListTile(
+                    leading: Icon(
+                      _iconForType(notif.type),
+                      color: notif.isRead ? Colors.grey : Colors.blue,
+                    ),
+                    title: Text(
+                      notif.title,
+                      style: TextStyle(
+                        fontWeight:
+                            notif.isRead ? FontWeight.normal : FontWeight.bold,
+                      ),
+                    ),
+                    onTap: () async {
+                      await NotificationService().markAsRead(notif.id);
+                      _fetchNotifications();
+                      setState(() => _dropdownOpen = false);
+                      _handleNotificationTap(notif);
+                    },
+                  ),
+                ),
               Divider(),
               if (_latestNotifications.any((n) => !n.isRead))
                 TextButton.icon(
@@ -331,11 +410,15 @@ class _HomePageState extends State<HomePage> {
                   label: Text('Mark All as Read'),
                   onPressed: () async {
                     final userId = UserSession().getUserId().toString();
-                    final success = await NotificationService().markAllAsRead(userId);
+                    final success = await NotificationService().markAllAsRead(
+                      userId,
+                    );
                     if (success) {
                       _fetchNotifications();
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('All notifications marked as read!')),
+                        SnackBar(
+                          content: Text('All notifications marked as read!'),
+                        ),
                       );
                     }
                   },
@@ -348,9 +431,10 @@ class _HomePageState extends State<HomePage> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => NotificationsPage(
-                        userId: UserSession().getUserId().toString(),
-                      ),
+                      builder:
+                          (context) => NotificationsPage(
+                            userId: UserSession().getUserId().toString(),
+                          ),
                     ),
                   );
                 },
@@ -363,14 +447,39 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _handleNotificationTap(NotificationModel notif) {
+    final eventId = notif.data['event_id'];
+    if (eventId != null && eventId.toString().isNotEmpty) {
+      Navigator.pushNamed(
+        context,
+        '/family_calendar',
+        arguments: {'event_id': eventId},
+      );
+      return;
+    }
     if (notif.type == 'task' && notif.data['task_id'] != null) {
-      Navigator.pushNamed(context, '/task home', arguments: notif.data['task_id']);
+      Navigator.pushNamed(
+        context,
+        '/task home',
+        arguments: notif.data['task_id'],
+      );
     } else if (notif.type == 'recipe' && notif.data['recipe_id'] != null) {
-      Navigator.pushNamed(context, '/Recipe', arguments: notif.data['recipe_id']);
+      Navigator.pushNamed(
+        context,
+        '/Recipe',
+        arguments: notif.data['recipe_id'],
+      );
     } else if (notif.type == 'inventory' && notif.data['item_name'] != null) {
-      Navigator.pushNamed(context, '/inventory', arguments: notif.data['item_name']);
+      Navigator.pushNamed(
+        context,
+        '/inventory',
+        arguments: notif.data['item_name'],
+      );
     } else if (notif.type == 'spending' && notif.data['category'] != null) {
-      Navigator.pushNamed(context, '/Expenses ', arguments: notif.data['category']);
+      Navigator.pushNamed(
+        context,
+        '/Expenses ',
+        arguments: notif.data['category'],
+      );
     }
   }
 
@@ -463,7 +572,8 @@ class _HomePageState extends State<HomePage> {
                   task.title,
                   style: TextStyle(
                     color: Colors.white,
-                    decoration: task.isCompleted ? TextDecoration.lineThrough : null,
+                    decoration:
+                        task.isCompleted ? TextDecoration.lineThrough : null,
                   ),
                 ),
                 subtitle: Text(
@@ -474,7 +584,10 @@ class _HomePageState extends State<HomePage> {
                   value: task.isCompleted,
                   onChanged: (val) async {
                     if (val != null) {
-                      final success = await taskService.updateTaskStatus(task, val);
+                      final success = await taskService.updateTaskStatus(
+                        task,
+                        val,
+                      );
                       if (!success) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
@@ -486,14 +599,14 @@ class _HomePageState extends State<HomePage> {
                     }
                   },
                   checkColor: Colors.white,
-                  fillColor: MaterialStateProperty.resolveWith<Color>(
-                    (Set<MaterialState> states) {
-                      if (states.contains(MaterialState.selected)) {
-                        return Colors.white24;
-                      }
-                      return Colors.transparent;
-                    },
-                  ),
+                  fillColor: MaterialStateProperty.resolveWith<Color>((
+                    Set<MaterialState> states,
+                  ) {
+                    if (states.contains(MaterialState.selected)) {
+                      return Colors.white24;
+                    }
+                    return Colors.transparent;
+                  }),
                   side: BorderSide(color: Colors.white60),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(4),

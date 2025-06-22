@@ -12,7 +12,6 @@ class EventParticipant {
   EventParticipant({required this.userId, this.userName});
 
   factory EventParticipant.fromApiJson(Map<String, dynamic> json) {
-    print('[DEBUG] EventParticipant.fromApiJson input: $json');
     return EventParticipant(
       userId: json['user_id']?['\$oid'] ?? json['user_id'] ?? '',
       userName: json['user_name'],
@@ -100,16 +99,12 @@ class Event {
   }
 
   factory Event.fromApiJson(Map<String, dynamic> json) {
-    print('[DEBUG] Event.fromApiJson input: $json');
     List<EventParticipant> parsedParticipants = [];
     if (json['participants'] is List) {
       for (var p in (json['participants'] as List)) {
-        print('[DEBUG] Parsing participant: $p');
         if (p is Map<String, dynamic>) {
           parsedParticipants.add(EventParticipant.fromApiJson(p));
-        } else {
-          print('[DEBUG] Skipping non-map participant: $p');
-        }
+        } else {}
       }
     }
     final Map<String, dynamic> additionalDetails = {};
@@ -117,9 +112,10 @@ class Event {
       additionalDetails['privacy'] = json['privacy'];
     }
     return Event(
-      id: (json['_id'] is Map && json['_id']['\$oid'] != null)
-          ? json['_id']['\$oid']
-          : (json['_id'] ?? const Uuid().v4()),
+      id:
+          (json['_id'] is Map && json['_id']['\$oid'] != null)
+              ? json['_id']['\$oid']
+              : (json['_id'] ?? const Uuid().v4()),
       title: json['title'] ?? 'No Title',
       description: json['description'] ?? '',
       startTime: _parseDate(json['start_time']),
@@ -134,8 +130,12 @@ class Event {
       isCancelled: json['status'] == 'cancelled',
       attachments: [],
       additionalDetails: additionalDetails,
-      createdAt: json['created_at'] != null ? _parseDate(json['created_at']) : DateTime.now(),
-      lastModified: json['updated_at'] != null ? _parseDate(json['updated_at']) : null,
+      createdAt:
+          json['created_at'] != null
+              ? _parseDate(json['created_at'])
+              : DateTime.now(),
+      lastModified:
+          json['updated_at'] != null ? _parseDate(json['updated_at']) : null,
     );
   }
 

@@ -37,4 +37,25 @@ class NotificationService {
     );
     return response.statusCode == 200;
   }
+
+  Future<bool> sendNotification({
+    required List<String> userIds,
+    required String title,
+    required String body,
+    String? type,
+    Map<String, dynamic>? data,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/notifications/send'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'user_ids': userIds,
+        'title': title,
+        'body': body,
+        'type': type ?? 'event',
+        'data': data ?? {},
+      }),
+    );
+    return response.statusCode == 200;
+  }
 } 

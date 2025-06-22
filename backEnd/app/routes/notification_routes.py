@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Body, Request
 from pydantic import BaseModel
-from ..notification_utils import get_notifications, mark_notification_read, delete_notification
+from ..notification_utils import get_notifications, mark_notification_read, delete_notification, create_notification
 from pymongo import MongoClient
 import os
 from dotenv import load_dotenv
@@ -44,4 +44,20 @@ async def mark_all_notifications_as_read(request: Request):
         {"user_id": user_id, "is_read": False},
         {"$set": {"is_read": True}}
     )
-    return {"marked_count": result.modified_count} 
+    return {"marked_count": result.modified_count}
+
+@router.post("/send")
+async def send_notification(request: Request):
+    data = await request.json()
+    user_ids = data.get("user_ids", [])
+    title = data.get("title", "")
+    body = data.get("body", "")
+    notif_type = data.get("type", "event")
+    extra_data = data.get("data", {})
+    if not user_ids or not title or not body:
+        raise HTTPException(status_code=400, detail="Missing required fields")
+    notif_ids = []
+    for user_id in user_ids:
+        notif_id = create_notification(user_id, notif_type, title, body, extra_data)
+        notif_ids.append(notif_id)
+    return {"success": True, "notification_ids": notif_ids} 

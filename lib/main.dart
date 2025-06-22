@@ -37,13 +37,12 @@ import 'pages/dash_board_page.dart';
 import 'pages/expenses_page.dart';
 import 'package:provider/provider.dart';
 import 'package:LILI/services/task_service.dart';
-import 'pages/newlib_workout_screen_wrapper.dart';
 import 'new Lib/views/screens/calendar_screen.dart';
 import 'package:get/get.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
- 
+
   runApp(
     MultiProvider(
       providers: [ChangeNotifierProvider(create: (_) => TaskService())],
@@ -103,7 +102,6 @@ class LiliApp extends StatelessWidget {
         '/Expenses ':
             (context) =>
                 ExpensesPage(userId: UserSession().getUserId().toString()),
-        '/workout_planner': (context) => NewLibWorkoutScreenWrapper(),
         '/family_calendar': (context) => CalendarScreen(),
       },
     );
