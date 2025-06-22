@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:LILI/new Lib/models/event.dart';
 import '../../controllers/calendar_controller.dart';
-import '../../controllers/home_controller.dart';
+import 'dart:ui';
 
 class EventDialog extends StatefulWidget {
   final Event? event;
@@ -24,6 +24,7 @@ class _EventDialogState extends State<EventDialog> {
   late DateTime _endDate;
   late TimeOfDay _endTime;
   late String _eventType;
+  late bool _isPublic;
 
   @override
   void initState() {
@@ -48,7 +49,12 @@ class _EventDialogState extends State<EventDialog> {
           widget.selectedDate.add(const Duration(hours: 2)),
     );
 
-    _eventType = widget.event?.type.toString().split('.').last ?? 'general';
+    _eventType = widget.event?.type
+        .toString()
+        .split('.')
+        .last ?? 'general';
+    _isPublic = (widget.event != null &&
+        widget.event!.additionalDetails['privacy'] == 'public');
   }
 
   @override
@@ -61,146 +67,349 @@ class _EventDialogState extends State<EventDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final homeController = Get.find<HomeController>();
-
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                widget.event == null ? 'Add Event' : 'Edit Event',
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _titleController,
-                decoration: const InputDecoration(
-                  labelText: 'Title',
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a title';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _descriptionController,
-                decoration: const InputDecoration(
-                  labelText: 'Description',
-                  border: OutlineInputBorder(),
-                ),
-                maxLines: 3,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _locationController,
-                decoration: const InputDecoration(
-                  labelText: 'Location',
-                  border: OutlineInputBorder(),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      elevation: 8,
+      backgroundColor: Colors.transparent,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.12),
+              blurRadius: 24,
+              offset: const Offset(0, 8),
+            ),
+          ],
+          border: Border.all(color: Colors.white.withOpacity(0.3), width: 1.2),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Header
+            Container(
+              decoration: const BoxDecoration(
+                color: Color(0xFF1F3354),
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(10),
+                  topRight: Radius.circular(10),
                 ),
               ),
-              const SizedBox(height: 16),
-              Row(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Expanded(
-                    child: TextButton(
-                      onPressed: () => _selectDate(context, isStartDate: true),
-                      child: Text('Date: ${_formatDate(_startDate)}'),
+                  Text(
+                    widget.event == null ? 'Add Event' : 'Edit Event',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.1,
                     ),
                   ),
-                  Expanded(
-                    child: TextButton(
-                      onPressed: () => _selectTime(context, isStartTime: true),
-                      child: Text('Time: ${_formatTime(_startTime)}'),
-                    ),
+                  InkWell(
+                    onTap: () =>
+                        Navigator.of(context, rootNavigator: true).pop(),
+                    child: const Icon(
+                        Icons.close, color: Colors.white, size: 24),
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextButton(
-                      onPressed: () => _selectDate(context, isStartDate: false),
-                      child: Text('End Date: ${_formatDate(_endDate)}'),
-                    ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Form(
+                key: _formKey,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextFormField(
+                        controller: _titleController,
+                        decoration: InputDecoration(
+                          labelText: 'Title',
+                          prefixIcon: const Icon(Icons.title,
+                              color: Color(0xFF1F3354)),
+                          filled: true,
+                          fillColor: Colors.grey[100],
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                        validator: (value) =>
+                        value == null || value.isEmpty ? 'Enter a title' : null,
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _descriptionController,
+                        decoration: InputDecoration(
+                          labelText: 'Description',
+                          prefixIcon: const Icon(Icons.description,
+                              color: Color(0xFF1F3354)),
+                          filled: true,
+                          fillColor: Colors.grey[100],
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                        maxLines: 2,
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _locationController,
+                        decoration: InputDecoration(
+                          labelText: 'Location',
+                          prefixIcon: const Icon(Icons.location_on,
+                              color: Color(0xFF1F3354)),
+                          filled: true,
+                          fillColor: Colors.grey[100],
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: InkWell(
+                              onTap: () =>
+                                  _selectDate(context, isStartDate: true),
+                              child: InputDecorator(
+                                decoration: InputDecoration(
+                                  labelText: 'Start Date',
+                                  prefixIcon: const Icon(Icons.calendar_today,
+                                      color: Color(0xFF1F3354)),
+                                  filled: true,
+                                  fillColor: Colors.grey[100],
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                    borderSide: BorderSide.none,
+                                  ),
+                                ),
+                                child: Text(_formatDate(_startDate)),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: InkWell(
+                              onTap: () =>
+                                  _selectTime(context, isStartTime: true),
+                              child: InputDecorator(
+                                decoration: InputDecoration(
+                                  labelText: 'Start Time',
+                                  prefixIcon: const Icon(Icons.access_time,
+                                      color: Color(0xFF1F3354)),
+                                  filled: true,
+                                  fillColor: Colors.grey[100],
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                    borderSide: BorderSide.none,
+                                  ),
+                                ),
+                                child: Text(_formatTime(_startTime)),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: InkWell(
+                              onTap: () =>
+                                  _selectDate(context, isStartDate: false),
+                              child: InputDecorator(
+                                decoration: InputDecoration(
+                                  labelText: 'End Date',
+                                  prefixIcon: const Icon(Icons.calendar_today,
+                                      color: Color(0xFF1F3354)),
+                                  filled: true,
+                                  fillColor: Colors.grey[100],
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                    borderSide: BorderSide.none,
+                                  ),
+                                ),
+                                child: Text(_formatDate(_endDate)),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: InkWell(
+                              onTap: () =>
+                                  _selectTime(context, isStartTime: false),
+                              child: InputDecorator(
+                                decoration: InputDecoration(
+                                  labelText: 'End Time',
+                                  prefixIcon: const Icon(Icons.access_time,
+                                      color: Color(0xFF1F3354)),
+                                  filled: true,
+                                  fillColor: Colors.grey[100],
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                    borderSide: BorderSide.none,
+                                  ),
+                                ),
+                                child: Text(_formatTime(_endTime)),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Icon(_isPublic ? Icons.public : Icons.lock,
+                              color: _isPublic ? Colors.green : Colors.grey),
+                          const SizedBox(width: 8),
+                          const Text('Visibility:'),
+                          Switch(
+                            value: _isPublic,
+                            onChanged: (val) {
+                              setState(() {
+                                _isPublic = val;
+                              });
+                            },
+                          ),
+                          const SizedBox(width: 8),
+                          Text(_isPublic ? 'Public' : 'Private',
+                              style: TextStyle(
+                                  color: _isPublic ? Colors.green : Colors
+                                      .grey)),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      DropdownButtonFormField<String>(
+                        value: _eventType,
+                        decoration: InputDecoration(
+                          labelText: 'Event Type',
+                          prefixIcon: const Icon(Icons.category,
+                              color: Color(0xFF1F3354)),
+                          filled: true,
+                          fillColor: Colors.grey[100],
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                        items: [
+                          'general',
+                          'birthday',
+                          'appointment',
+                          'meeting',
+                          'reminder',
+                          'other',
+                        ].map((type) {
+                          return DropdownMenuItem(
+                            value: type,
+                            child: Text(
+                                type[0].toUpperCase() + type.substring(1)),
+                          );
+                        }).toList(),
+                        onChanged: (value) {
+                          if (value != null) {
+                            setState(() {
+                              _eventType = value;
+                            });
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 24),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          TextButton(
+                            onPressed: () =>
+                                Navigator
+                                    .of(context, rootNavigator: true)
+                                    .pop(),
+                            style: TextButton.styleFrom(
+                              foregroundColor: const Color(0xFFC30606),
+                              textStyle: const TextStyle(
+                                  fontWeight: FontWeight.bold),
+                            ),
+                            child: const Text('Cancel'),
+                          ),
+                          const SizedBox(width: 8),
+                          ElevatedButton(
+                            onPressed: () async {
+                              if (_formKey.currentState!.validate()) {
+                                final eventData = {
+                                  'title': _titleController.text,
+                                  'description': _descriptionController.text,
+                                  'location': _locationController.text,
+                                  'start_time': DateTime(
+                                    _startDate.year,
+                                    _startDate.month,
+                                    _startDate.day,
+                                    _startTime.hour,
+                                    _startTime.minute,
+                                  ).toIso8601String(),
+                                  'end_time': DateTime(
+                                    _endDate.year,
+                                    _endDate.month,
+                                    _endDate.day,
+                                    _endTime.hour,
+                                    _endTime.minute,
+                                  ).toIso8601String(),
+                                  'type': _eventType,
+                                  'privacy': _isPublic ? 'public' : 'private',
+                                  'participants': widget.event?.participants
+                                      .map((p) => p.userId).toList() ?? [],
+                                };
+                                print('[DEBUG] eventData to send: $eventData');
+                                final controller = Get.find<
+                                    CalendarController>();
+                                if (widget.event == null) {
+                                  await controller.addEventFromForm(eventData);
+                                } else {
+                                  await controller.editEvent(
+                                      widget.event!.id, eventData);
+                                }
+                                Navigator
+                                    .of(context, rootNavigator: true)
+                                    .pop();
+                              }
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF1F3354),
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 32, vertical: 14),
+                              textStyle: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            child: Text(widget.event == null ? 'Add' : 'Save'),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
-                  Expanded(
-                    child: TextButton(
-                      onPressed: () => _selectTime(context, isStartTime: false),
-                      child: Text('End Time: ${_formatTime(_endTime)}'),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                value: _eventType,
-                decoration: const InputDecoration(
-                  labelText: 'Event Type',
-                  border: OutlineInputBorder(),
                 ),
-                items:
-                    [
-                      'general',
-                      'birthday',
-                      'appointment',
-                      'meeting',
-                      'reminder',
-                      'other',
-                    ].map((type) {
-                      return DropdownMenuItem(
-                        value: type,
-                        child: Text(type.capitalizeFirst!),
-                      );
-                    }).toList(),
-                onChanged: (value) {
-                  if (value != null) {
-                    setState(() {
-                      _eventType = value;
-                    });
-                  }
-                },
               ),
-              const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    onPressed: () => Get.back(),
-                    child: const Text('Cancel'),
-                  ),
-                  const SizedBox(width: 8),
-                  ElevatedButton(
-                    onPressed: () => _saveEvent(homeController),
-                    child: Text(widget.event == null ? 'Add' : 'Save'),
-                  ),
-                ],
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Future<void> _selectDate(
-    BuildContext context, {
-    required bool isStartDate,
-  }) async {
+  Future<void> _selectDate(BuildContext context,
+      {required bool isStartDate}) async {
     final picked = await showDatePicker(
       context: context,
       initialDate: isStartDate ? _startDate : _endDate,
@@ -218,10 +427,8 @@ class _EventDialogState extends State<EventDialog> {
     }
   }
 
-  Future<void> _selectTime(
-    BuildContext context, {
-    required bool isStartTime,
-  }) async {
+  Future<void> _selectTime(BuildContext context,
+      {required bool isStartTime}) async {
     final picked = await showTimePicker(
       context: context,
       initialTime: isStartTime ? _startTime : _endTime,
@@ -234,57 +441,6 @@ class _EventDialogState extends State<EventDialog> {
           _endTime = picked;
         }
       });
-    }
-  }
-
-  Future<void> _saveEvent(HomeController homeController) async {
-    if (_formKey.currentState?.validate() ?? false) {
-      final controller = Get.find<CalendarController>();
-
-      final startDateTime = DateTime(
-        _startDate.year,
-        _startDate.month,
-        _startDate.day,
-        _startTime.hour,
-        _startTime.minute,
-      );
-
-      final endDateTime = DateTime(
-        _endDate.year,
-        _endDate.month,
-        _endDate.day,
-        _endTime.hour,
-        _endTime.minute,
-      );
-
-      if (endDateTime.isBefore(startDateTime)) {
-        Get.snackbar('Error', 'End time cannot be before start time');
-        return;
-      }
-
-      final eventData = {
-        "title": _titleController.text,
-        "description": _descriptionController.text,
-        "location": _locationController.text,
-        "start_time": startDateTime.toUtc().toIso8601String(),
-        "end_time": endDateTime.toUtc().toIso8601String(),
-        "type": _eventType,
-        "priority": "normal",
-        "family_id": homeController.familyId,
-        "created_by": homeController.userId,
-      };
-
-      try {
-        if (widget.event == null) {
-          await controller.addEventFromForm(eventData);
-        } else {
-          // TODO: Implement update event
-          Get.snackbar('Info', 'Update functionality not implemented yet');
-        }
-        Get.back();
-      } catch (e) {
-        Get.snackbar('Error', 'Failed to save event');
-      }
     }
   }
 

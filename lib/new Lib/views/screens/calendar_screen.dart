@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:table_calendar/table_calendar.dart';
-import '../../core/constants/routes.dart';
 import '../../controllers/calendar_controller.dart';
 import '../../models/event.dart';
 import '../widgets/event_dialog.dart';
-import '../../controllers/home_controller.dart';
+import 'dart:ui';
 
 class CalendarScreen extends StatelessWidget {
   const CalendarScreen({super.key});
@@ -13,346 +12,462 @@ class CalendarScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.put(CalendarController());
-    final homeController = Get.find<HomeController>();
-
-    return Scaffold(
-      body: Obx(() {
-        if (controller.isSyncing.value && controller.events.isEmpty) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        return RefreshIndicator(
-          onRefresh: () async {
-            // Show loading indicator while refreshing
-            controller.isSyncing.value = true;
-            try {
-              await controller.fetchFamilyEvents(homeController.userId.value);
-            } finally {
-              controller.isSyncing.value = false;
-            }
-          },
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 20),
-                  // Profile header
-                  Row(
-                    children: [
-                      const CircleAvatar(
-                        radius: 32,
-                        backgroundImage: NetworkImage(
-                          'https://randomuser.me/api/portraits/women/44.jpg',
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Good Morning,',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 18,
-                                fontWeight: FontWeight.w400,
-                              ),
-                            ),
-                            Text(
-                              homeController.username.value,
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Obx(() => IconButton(
-                          icon: Icon(
-                            controller.isAutoSyncEnabled.value
-                                ? Icons.sync_disabled
-                                : Icons.sync,
-                            color: Colors.white,
-                            size: 32,
-                          ),
-                          onPressed: () async {
-                            final newValue =
-                                !controller.isAutoSyncEnabled.value;
-                            controller.isAutoSyncEnabled.value = newValue;
-                            await controller.prefs
-                                ?.setBool('autoSync', newValue);
-
-                            if (newValue) {
-                              await controller.syncAllEventsToPhoneCalendar();
-                              Get.snackbar('Auto Sync', 'Auto-sync is ON');
-                            } else {
-                              Get.snackbar('Auto Sync', 'Auto-sync is OFF');
-                            }
-                          })),
-                    ],
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [const Color(0xFF1F3354), const Color(0xFF3E5879)],
+        ),
+      ),
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: SafeArea(
+          child: Column(
+            children: [
+              AppBar(
+                surfaceTintColor: Colors.transparent,
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                leading: IconButton(
+                  icon: const Icon(Icons.arrow_back, color: Colors.white),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+                title: const Text(
+                  'Calendar',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
                   ),
-                  const SizedBox(height: 24),
-
-                  // Calendar Section
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: TableCalendar(
-                      firstDay:
-                          DateTime.now().subtract(const Duration(days: 365)),
-                      lastDay: DateTime.now().add(const Duration(days: 365)),
-                      focusedDay: controller.selectedDate.value,
-                      calendarFormat: CalendarFormat.month,
-                      startingDayOfWeek: StartingDayOfWeek.monday,
-                      headerStyle: HeaderStyle(
-                        formatButtonVisible: false,
-                        titleCentered: true,
-                        titleTextStyle: const TextStyle(
-                          color: AppRoute.secondaryColor,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        leftChevronIcon: const Icon(
-                          Icons.chevron_left,
-                          color: AppRoute.secondaryColor,
-                        ),
-                        rightChevronIcon: const Icon(
-                          Icons.chevron_right,
-                          color: AppRoute.secondaryColor,
-                        ),
-                      ),
-                      calendarStyle: CalendarStyle(
-                        todayDecoration: BoxDecoration(
-                          color: AppRoute.secondaryColor,
-                          shape: BoxShape.circle,
-                        ),
-                        selectedDecoration: BoxDecoration(
-                          color: AppRoute.primaryColor.withOpacity(0.2),
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: AppRoute.primaryColor,
-                            width: 1,
-                          ),
-                        ),
-                        markerDecoration: BoxDecoration(
-                          color: AppRoute.primaryColor,
-                          shape: BoxShape.circle,
-                        ),
-                        markerSize: 6,
-                        markerMargin: const EdgeInsets.only(top: 2),
-                      ),
-                      eventLoader: (day) => controller.getEventsForDate(day),
-                      selectedDayPredicate: (day) {
-                        return isSameDay(controller.selectedDate.value, day);
-                      },
-                      onDaySelected: (selectedDay, focusedDay) {
-                        controller.selectedDate.value = selectedDay;
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Tasks Section
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'Events',
-                        style: TextStyle(
-                          color: AppRoute.primaryColor,
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      IconButton(
-                        onPressed: () {
-                          Get.dialog(
-                            EventDialog(
-                              selectedDate: controller.selectedDate.value,
-                            ),
-                          );
-                        },
-                        icon: const Icon(Icons.add_circle_outline),
-                        color: AppRoute.primaryColor,
-                        iconSize: 32,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Events List
-                  Obx(() {
-                    final dayEvents = controller.getEventsForDate(
-                      controller.selectedDate.value,
-                    );
-
-                    if (dayEvents.isEmpty) {
-                      return const Center(
-                        child: Text(
-                          'No events for this day',
-                          style: TextStyle(color: Colors.grey),
-                        ),
-                      );
-                    }
-
-                    return Column(
-                      children: dayEvents.map((event) {
-                        final isCurrentUserCreator =
-                            event.creatorId == homeController.userId.value;
-                        return Card(
-                          margin: const EdgeInsets.only(bottom: 12),
-                          child: ListTile(
-                            leading: Container(
-                              width: 12,
-                              height: 12,
-                              decoration: BoxDecoration(
-                                color: event.color,
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                            title: Text(
-                              event.title,
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                decoration: event.isCompleted
-                                    ? TextDecoration.lineThrough
-                                    : null,
-                              ),
-                            ),
-                            subtitle: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  '${event.startTime.hour}:${event.startTime.minute.toString().padLeft(2, '0')} - '
-                                  '${event.endTime.hour}:${event.endTime.minute.toString().padLeft(2, '0')}\n'
-                                  '${event.location}',
-                                ),
-                                if (event.participants.isNotEmpty) ...[
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    'Participants: ' +
-                                        event.participants
-                                            .map((p) => p.userName ?? 'Unknown')
-                                            .join(', '),
-                                    style: const TextStyle(
-                                        fontSize: 12, color: Colors.grey),
-                                  ),
-                                ],
-                              ],
-                            ),
-                            trailing: isCurrentUserCreator
-                                ? PopupMenuButton(
-                                    itemBuilder: (context) => [
-                                      const PopupMenuItem(
-                                        value: 'delete',
-                                        child: Text('Delete'),
-                                      ),
-                                    ],
-                                    onSelected: (value) async {
-                                      if (value == 'edit') {
-                                        Get.dialog(
-                                          EventDialog(
-                                            event: event,
-                                            selectedDate: event.startTime,
-                                          ),
-                                        );
-                                      } else if (value == 'delete') {
-                                        await controller.deleteEvent(event.id);
-                                      }
-                                    },
-                                  )
-                                : null,
-                            onTap: () {
-                              _showEventDetails(context, event);
-                            },
-                          ),
-                        );
-                      }).toList(),
-                    );
-                  }),
-                ],
-              ),
-            ),
-          ),
-        );
-      }),
-    );
-  }
-
-  void _showEventDetails(BuildContext context, Event event) {
-    final controller = Get.find<CalendarController>();
-    final homeController = Get.find<HomeController>();
-    final isCurrentUserCreator = event.creatorId == homeController.userId.value;
-    final isCurrentUserParticipant =
-        event.participants.any((p) => p.userId == homeController.userId.value);
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(event.title),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              event.description,
-              style: const TextStyle(fontSize: 16),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              '${_formatDate(event.startTime)} - ${_formatTime(event.endTime)}',
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            if (event.location.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Text('Location: ${event.location}'),
-            ],
-            if (event.participants.isNotEmpty) ...[
-              const SizedBox(height: 16),
-              const Text('Participants:',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-              ...event.participants
-                  .map((p) => Text(p.userName ?? 'Unknown'))
-                  .toList(),
-            ],
-            const SizedBox(height: 16),
-            if (!isCurrentUserParticipant && !isCurrentUserCreator)
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    controller.joinEvent(event.id, homeController.userId.value,
-                        homeController.username.value);
-                  },
-                  child: const Text('Join Event'),
                 ),
               ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
+              Expanded(
+                child: Obx(() {
+                  if (controller.isSyncing.value && controller.events.isEmpty) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  return SingleChildScrollView(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const SizedBox(height: 24),
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.08),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: TableCalendar(
+                              firstDay: DateTime.now().subtract(
+                                const Duration(days: 365),
+                              ),
+                              lastDay: DateTime.now().add(
+                                const Duration(days: 365),
+                              ),
+                              focusedDay: controller.selectedDate.value,
+                              calendarFormat: CalendarFormat.month,
+                              startingDayOfWeek: StartingDayOfWeek.monday,
+                              headerStyle: HeaderStyle(
+                                formatButtonVisible: false,
+                                titleCentered: true,
+                                titleTextStyle: const TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                leftChevronIcon: const Icon(
+                                  Icons.chevron_left,
+                                  color: Colors.black,
+                                ),
+                                rightChevronIcon: const Icon(
+                                  Icons.chevron_right,
+                                  color: Colors.black,
+                                ),
+                              ),
+                              calendarStyle: CalendarStyle(
+                                todayDecoration: BoxDecoration(
+                                  color: Color(0xFF3E5879),
+                                  shape: BoxShape.circle,
+                                ),
+                                selectedDecoration: BoxDecoration(
+                                  color: Colors.blue.withOpacity(0.2),
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: Color(0xFF3E5879),
+                                    width: 1,
+                                  ),
+                                ),
+                                markerDecoration: BoxDecoration(
+                                  color: Color(0xFF3E5879),
+                                  shape: BoxShape.circle,
+                                ),
+                                markerSize: 6,
+                                markerMargin: const EdgeInsets.only(top: 2),
+                              ),
+                              eventLoader:
+                                  (day) => controller.getEventsForDate(day),
+                              selectedDayPredicate: (day) {
+                                return isSameDay(
+                                  controller.selectedDate.value,
+                                  day,
+                                );
+                              },
+                              onDaySelected: (selectedDay, focusedDay) {
+                                controller.selectedDate.value = selectedDay;
+                              },
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 4.0,
+                            ),
+                            child: Text(
+                              'Events',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 28,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1.2,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Obx(() {
+                            final dayEvents = controller.getEventsForDate(
+                              controller.selectedDate.value,
+                            );
+                            if (dayEvents.isEmpty) {
+                              return const Center(
+                                child: Text(
+                                  'No events for this day',
+                                  style: TextStyle(color: Colors.white70),
+                                ),
+                              );
+                            }
+                            return ListView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: dayEvents.length,
+                              itemBuilder: (_, index) {
+                                final event = dayEvents[index];
+                                return Dismissible(
+                                  key: Key(event.id),
+                                  direction: DismissDirection.endToStart,
+                                  background: Container(
+                                    margin: const EdgeInsets.symmetric(
+                                      vertical: 8,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.red.withOpacity(0.2),
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    alignment: Alignment.centerRight,
+                                    padding: const EdgeInsets.only(right: 24),
+                                    child: const Icon(
+                                      Icons.delete_outline,
+                                      color: Colors.white,
+                                      size: 32,
+                                    ),
+                                  ),
+                                  onDismissed: (direction) async {
+                                    await controller.deleteEvent(event.id);
+                                  },
+                                  child: Container(
+                                    margin: const EdgeInsets.symmetric(
+                                      vertical: 8,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(16),
+                                      color: Colors.white.withOpacity(0.18),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(0.08),
+                                          blurRadius: 12,
+                                          offset: const Offset(0, 4),
+                                        ),
+                                      ],
+                                      border: Border.all(
+                                        color: Colors.white.withOpacity(0.3),
+                                        width: 1.2,
+                                      ),
+                                    ),
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(16),
+                                      child: BackdropFilter(
+                                        filter: ImageFilter.blur(
+                                          sigmaX: 12,
+                                          sigmaY: 12,
+                                        ),
+                                        child: ListTile(
+                                          contentPadding:
+                                              const EdgeInsets.symmetric(
+                                                horizontal: 20,
+                                                vertical: 12,
+                                              ),
+                                          title: Text(
+                                            event.title,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 18,
+                                              color: Colors.white,
+                                              shadows: [
+                                                Shadow(
+                                                  blurRadius: 2,
+                                                  color: Colors.black26,
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          subtitle: Text(
+                                            event.description,
+                                            style: const TextStyle(
+                                              color: Colors.white70,
+                                            ),
+                                          ),
+                                          onTap: () {
+                                            showModalBottomSheet(
+                                              context: context,
+                                              backgroundColor:
+                                                  Colors.transparent,
+                                              isScrollControlled: true,
+                                              builder: (context) {
+                                                return Container(
+                                                  decoration: const BoxDecoration(
+                                                    color: Color(0xFF1F3354),
+                                                    borderRadius:
+                                                        BorderRadius.vertical(
+                                                          top: Radius.circular(
+                                                            20,
+                                                          ),
+                                                        ),
+                                                  ),
+                                                  child: Padding(
+                                                    padding:
+                                                        const EdgeInsets.fromLTRB(
+                                                          20,
+                                                          16,
+                                                          20,
+                                                          32,
+                                                        ),
+                                                    child: Column(
+                                                      mainAxisSize:
+                                                          MainAxisSize.min,
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        Center(
+                                                          child: Container(
+                                                            width: 40,
+                                                            height: 4,
+                                                            margin:
+                                                                const EdgeInsets.only(
+                                                                  bottom: 16,
+                                                                ),
+                                                            decoration: BoxDecoration(
+                                                              color:
+                                                                  Colors
+                                                                      .white24,
+                                                              borderRadius:
+                                                                  BorderRadius.circular(
+                                                                    2,
+                                                                  ),
+                                                            ),
+                                                          ),
+                                                        ),
+                                                        Text(
+                                                          event.title,
+                                                          style:
+                                                              const TextStyle(
+                                                                color:
+                                                                    Colors
+                                                                        .white,
+                                                                fontSize: 24,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                              ),
+                                                        ),
+                                                        const SizedBox(
+                                                          height: 16,
+                                                        ),
+                                                        if (event
+                                                            .description
+                                                            .isNotEmpty)
+                                                          _buildDetailRow(
+                                                            Icons
+                                                                .description_outlined,
+                                                            event.description,
+                                                          ),
+                                                        if (event
+                                                            .location
+                                                            .isNotEmpty)
+                                                          _buildDetailRow(
+                                                            Icons.location_on,
+                                                            event.location,
+                                                          ),
+                                                        _buildDetailRow(
+                                                          Icons
+                                                              .calendar_today_outlined,
+                                                          '${event.startTime.toLocal()} - ${event.endTime.toLocal()}',
+                                                        ),
+                                                        _buildDetailRow(
+                                                          Icons.category,
+                                                          event.type
+                                                              .toString()
+                                                              .split('.')
+                                                              .last,
+                                                        ),
+                                                        _buildDetailRow(
+                                                          event.additionalDetails['privacy'] ==
+                                                                  'public'
+                                                              ? Icons.public
+                                                              : Icons.lock,
+                                                          event.additionalDetails['privacy'] ==
+                                                                  'public'
+                                                              ? 'Public'
+                                                              : 'Private',
+                                                        ),
+                                                        if (event
+                                                            .participants
+                                                            .isNotEmpty)
+                                                          _buildDetailRow(
+                                                            Icons.people,
+                                                            event.participants
+                                                                .map(
+                                                                  (p) =>
+                                                                      p.userName ??
+                                                                      p.userId,
+                                                                )
+                                                                .join(', '),
+                                                          ),
+                                                        const SizedBox(
+                                                          height: 24,
+                                                        ),
+                                                        Row(
+                                                          children: [
+                                                            Expanded(
+                                                              child: ElevatedButton(
+                                                                onPressed: () {
+                                                                  Navigator.pop(
+                                                                    context,
+                                                                  ); // Close bottom sheet
+                                                                  Get.dialog(
+                                                                    EventDialog(
+                                                                      event:
+                                                                          event,
+                                                                      selectedDate:
+                                                                          controller
+                                                                              .selectedDate
+                                                                              .value,
+                                                                    ),
+                                                                  );
+                                                                },
+                                                                style: ElevatedButton.styleFrom(
+                                                                  backgroundColor:
+                                                                      Colors
+                                                                          .white24,
+                                                                  padding:
+                                                                      const EdgeInsets.symmetric(
+                                                                        vertical:
+                                                                            16,
+                                                                      ),
+                                                                  shape: RoundedRectangleBorder(
+                                                                    borderRadius:
+                                                                        BorderRadius.circular(
+                                                                          12,
+                                                                        ),
+                                                                  ),
+                                                                ),
+                                                                child: const Text(
+                                                                  'Edit Event',
+                                                                  style: TextStyle(
+                                                                    color:
+                                                                        Colors
+                                                                            .white,
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                );
+                                              },
+                                            );
+                                          },
+                                          trailing: IconButton(
+                                            icon: const Icon(
+                                              Icons.edit,
+                                              color: Color(0xfff2f2f2),
+                                            ),
+                                            onPressed: () {
+                                              Get.dialog(
+                                                EventDialog(
+                                                  event: event,
+                                                  selectedDate:
+                                                      controller
+                                                          .selectedDate
+                                                          .value,
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            );
+                          }),
+                        ],
+                      ),
+                    ),
+                  );
+                }),
+              ),
+            ],
           ),
-        ],
+        ),
+        floatingActionButton: FloatingActionButton(
+          backgroundColor: const Color(0xFF1F3354),
+          onPressed: () {
+            Get.dialog(
+              EventDialog(selectedDate: controller.selectedDate.value),
+            );
+          },
+          child: const Icon(Icons.add, color: Colors.white),
+        ),
       ),
     );
   }
 
-  String _formatDate(DateTime date) {
-    return '${date.day}/${date.month}/${date.year}';
-  }
-
-  String _formatTime(DateTime time) {
-    return '${time.hour}:${time.minute.toString().padLeft(2, '0')}';
+  Widget _buildDetailRow(IconData icon, String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        children: [
+          Icon(icon, color: Colors.white60, size: 20),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(text, style: const TextStyle(color: Colors.white70)),
+          ),
+        ],
+      ),
+    );
   }
 }

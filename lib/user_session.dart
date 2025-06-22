@@ -11,6 +11,7 @@ class UserSession {
   String? userId = '';
   String? username = '';
   String? name = '';
+  String? houseId = '';
 
   void setUserId(String id) {
     userId = id;
@@ -24,6 +25,10 @@ class UserSession {
     name = n;
   }
 
+  void setHouseId(String id) {
+    houseId = id;
+  }
+
   String? getUserId() {
     return userId;
   }
@@ -34,6 +39,10 @@ class UserSession {
 
   String? getName() {
     return name;
+  }
+
+  String? getHouseId() {
+    return houseId;
   }
 
   void setRecipeCount(int count) {

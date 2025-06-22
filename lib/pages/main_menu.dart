@@ -219,7 +219,7 @@ class _MainMenuPageState extends State<MainMenuPage> {
                       borderRadius: BorderRadius.circular(230),
                     ),
                   ),
-                  SizedBox(height: 40),
+                  SizedBox(height: 10),
                   Expanded(
                     child: SingleChildScrollView(
                       child: Column(
@@ -252,19 +252,19 @@ class _MainMenuPageState extends State<MainMenuPage> {
                             text: "Track Expenses",
                             image: "assets/images/money.gif",
                           ),
-                          Menuitem(
-                            onPressed: () {
-                              Navigator.pushNamed(context, '/workout_planner');
-                            },
-                            text: "Workout Planner",
-                            image: "assets/images/food.gif",
-                          ),
+                          // Menuitem(
+                          //   onPressed: () {
+                          //     Navigator.pushNamed(context, '/workout_planner');
+                          //   },
+                          //   text: "Workout Planner",
+                          //   image: "assets/images/food.gif",
+                          // ),
                           Menuitem(
                             onPressed: () {
                               Navigator.pushNamed(context, '/family_calendar');
                             },
                             text: "Family Calendar",
-                            image: "assets/images/food.gif",
+                            image: "assets/images/calendar.gif",
                           ),
                         ],
                       ),

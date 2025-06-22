@@ -1,14 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:LILI/new Lib/core/constants/routes.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import '../../controllers/emergency_controller.dart';
 import '../../models/emergency_alert.dart';
-import '../../controllers/home_controller.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 
 class SosScreen extends StatefulWidget {
   const SosScreen({super.key});
@@ -19,26 +14,12 @@ class SosScreen extends StatefulWidget {
 
 class _SosScreenState extends State<SosScreen> {
   late EmergencyController controller;
-  late HomeController homeController;
 
   @override
   void initState() {
     super.initState();
     controller = Get.put(EmergencyController());
-    homeController = Get.find<HomeController>();
-    controller.updateCurrentLocation(); // move map to user location
-    // Fetch family alerts after a short delay to ensure familyId is loaded
-    Future.delayed(const Duration(milliseconds: 500), () {
-      if (homeController.familyId.value.isNotEmpty) {
-        controller.fetchFamilyAlerts(homeController.familyId.value);
-      } else {
-        ever(homeController.familyId, (id) {
-          if ((id as String).isNotEmpty) {
-            controller.fetchFamilyAlerts(id);
-          }
-        });
-      }
-    });
+    controller.updateCurrentLocation();
   }
 
   @override
@@ -63,8 +44,6 @@ class _SosScreenState extends State<SosScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        // _buildQuickActions(),
-                        // const SizedBox(height: 24),
                         _buildEmergencyContacts(),
                         const SizedBox(height: 24),
                         _buildLocationMap(),
@@ -104,99 +83,6 @@ class _SosScreenState extends State<SosScreen> {
     ),
   );
 
-  Widget _buildQuickActions() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Quick Actions',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-        const SizedBox(height: 16),
-        Row(
-          children: [
-            Expanded(
-              child: _buildActionButton(
-                'Medical\nEmergency',
-                Icons.medical_services,
-                Colors.blue,
-                EmergencyType.medical,
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: _buildActionButton(
-                'Fire\nEmergency',
-                Icons.local_fire_department,
-                Colors.orange,
-                EmergencyType.fire,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        Row(
-          children: [
-            Expanded(
-              child: _buildActionButton(
-                'Security\nAlert',
-                Icons.security,
-                Colors.purple,
-                EmergencyType.security,
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: _buildActionButton(
-                'Other\nEmergency',
-                Icons.warning,
-                Colors.red,
-                EmergencyType.other,
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildActionButton(
-    String label,
-    IconData icon,
-    Color color,
-    EmergencyType type,
-  ) {
-    return Material(
-      color: Colors.white.withOpacity(0.1),
-      borderRadius: BorderRadius.circular(16),
-      child: InkWell(
-        onTap: () => _showEmergencyDialog(type),
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              Icon(icon, color: color, size: 32),
-              const SizedBox(height: 8),
-              Text(
-                label,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildEmergencyContacts() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -218,36 +104,32 @@ class _SosScreenState extends State<SosScreen> {
           ),
           child: Column(
             children: [
-              Obx(() {
-                final loading = controller.isSendingSos.value;
-                return ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor: Colors.purple.withOpacity(0.2),
-                    child: const Icon(Icons.sos, color: Colors.purple),
+              ListTile(
+                leading: CircleAvatar(
+                  backgroundColor: Colors.purple.withOpacity(0.2),
+                  child: const Icon(Icons.sos, color: Colors.purple),
+                ),
+                title: const Text(
+                  'Family',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
                   ),
-                  title: const Text(
-                    'Family',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  subtitle: const Text(
-                    'Send SOS',
-                    style: TextStyle(color: Colors.white70),
-                  ),
-                  trailing:
-                      loading
-                          ? const CircularProgressIndicator(strokeWidth: 2)
-                          : IconButton(
-                            icon: const Icon(
-                              Icons.notifications_active,
-                              color: Colors.white,
-                            ),
-                            onPressed: _sendSosNotification,
-                          ),
-                );
-              }),
+                ),
+                subtitle: const Text(
+                  'Send SOS',
+                  style: TextStyle(color: Colors.white70),
+                ),
+                trailing: Obx(() => controller.isSendingSos.value
+                    ? const CircularProgressIndicator(strokeWidth: 2)
+                    : IconButton(
+                        icon: const Icon(
+                          Icons.notifications_active,
+                          color: Colors.white,
+                        ),
+                        onPressed: _sendSosNotification,
+                      )),
+              ),
               const Divider(color: Colors.white24),
               _buildContactItem(
                 'Police',
@@ -316,42 +198,11 @@ class _SosScreenState extends State<SosScreen> {
   }
 
   void _sendEmergencyContactAlert(EmergencyType type, String name) async {
-    final homeController = Get.find<HomeController>();
     await controller.updateCurrentLocation();
-
-    final payload = {
-      "user_id": homeController.userId.value,
-      "family_id": homeController.getFamilyId(),
-      "location": {
-        "type": "Point",
-        "coordinates": [
-          controller.currentLongitude.value,
-          controller.currentLatitude.value,
-        ],
-      },
-      "type": type.name,
-      "message": "Urgent: Contacted $name (${type.name})",
-    };
-
-    try {
-      final response = await http.post(
-        Uri.parse('${AppRoute.baseUrl}/api/emergency/'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(payload),
-      );
-
-      if (response.statusCode == 201) {
-        controller.fetchFamilyAlerts(homeController.familyId.value);
-        Get.snackbar(
-          'Notification Sent',
-          'Alert for $name dispatched successfully',
-        );
-      } else {
-        Get.snackbar('Error', 'Failed to send alert: ${response.body}');
-      }
-    } catch (e) {
-      Get.snackbar('Error', 'Failed to send alert: $e');
-    }
+    await controller.sendEmergencyAlert(
+      type: type,
+      message: "Urgent: Contacted $name (${type.name})",
+    );
   }
 
   Widget _buildLocationMap() {
@@ -381,8 +232,7 @@ class _SosScreenState extends State<SosScreen> {
                 child: FlutterMap(
                   mapController: controller.mapController,
                   options: MapOptions(
-                    center:
-                        controller.selectedAlertLocation.value ??
+                    center: controller.selectedAlertLocation.value ??
                         LatLng(
                           controller.currentLatitude.value,
                           controller.currentLongitude.value,
@@ -397,7 +247,6 @@ class _SosScreenState extends State<SosScreen> {
                     ),
                     MarkerLayer(
                       markers: [
-                        // User location marker
                         Marker(
                           point: LatLng(
                             controller.currentLatitude.value,
@@ -411,7 +260,6 @@ class _SosScreenState extends State<SosScreen> {
                             size: 40,
                           ),
                         ),
-                        // Selected alert marker
                         if (controller.selectedAlertLocation.value != null)
                           Marker(
                             point: controller.selectedAlertLocation.value!,
@@ -466,7 +314,7 @@ class _SosScreenState extends State<SosScreen> {
             IconButton(
               icon: const Icon(Icons.refresh, color: Colors.white),
               onPressed: () {
-                controller.fetchFamilyAlerts(homeController.familyId.value);
+                setState(() {});
               },
               tooltip: 'Refresh Alerts',
             ),
@@ -495,7 +343,6 @@ class _SosScreenState extends State<SosScreen> {
   }
 
   Widget _buildAlertItem(EmergencyAlert alert) {
-    final isMine = alert.senderId == homeController.userId.value;
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
@@ -526,17 +373,14 @@ class _SosScreenState extends State<SosScreen> {
         onTap: () {
           controller.centerMapOnAlert(alert.latitude, alert.longitude);
         },
-        trailing:
-            isMine
-                ? IconButton(
-                  icon: const Icon(Icons.check_circle, color: Colors.green),
-                  tooltip: 'Resolve Alert',
-                  onPressed: () async {
-                    await controller.resolveAlertApi(alert.id);
-                    controller.fetchFamilyAlerts(homeController.familyId.value);
-                  },
-                )
-                : null,
+        trailing: IconButton(
+          icon: const Icon(Icons.check_circle, color: Colors.green),
+          tooltip: 'Resolve Alert',
+          onPressed: () async {
+            controller.resolveAlert(alert.id);
+            setState(() {});
+          },
+        ),
       ),
     );
   }
@@ -577,51 +421,18 @@ class _SosScreenState extends State<SosScreen> {
   }
 
   void _sendSosNotification() async {
-    final homeController = Get.find<HomeController>();
     if (controller.isSendingSos.value) return;
-
     controller.isSendingSos.value = true;
     await controller.updateCurrentLocation();
-
-    final payload = {
-      "user_id": homeController.userId.value,
-      "family_id": homeController.getFamilyId(),
-      "location": {
-        "type": "Point",
-        "coordinates": [
-          controller.currentLongitude.value,
-          controller.currentLatitude.value,
-        ],
-      },
-    };
-
-    try {
-      final response = await http.post(
-        Uri.parse('${AppRoute.baseUrl}/api/emergency/'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(payload),
-      );
-
-      if (response.statusCode == 201) {
-        controller.fetchFamilyAlerts(homeController.familyId.value);
-        Get.snackbar('Success', 'SOS notification sent!');
-      } else {
-        Get.snackbar('Error', 'Failed to send SOS: ${response.body}');
-      }
-    } catch (e) {
-      Get.snackbar('Error', 'Failed to send SOS: $e');
-    } finally {
-      controller.isSendingSos.value = false;
-    }
+    await controller.sendEmergencyAlert(
+      type: EmergencyType.other,
+      message: "SOS Emergency!",
+    );
+    controller.isSendingSos.value = false;
   }
 
   Future<void> _launchEmergencyCall(String number) async {
-    final Uri url = Uri.parse('tel:$number');
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url);
-    } else {
-      Get.snackbar('Error', 'Could not launch call');
-    }
+    // This is a placeholder for launching a call
   }
 
   IconData _getIconForEmergencyType(EmergencyType type) {
@@ -664,7 +475,6 @@ class _SosScreenState extends State<SosScreen> {
   }
 
   String _formatDateTime(DateTime dateTime) {
-    final cairoTime = dateTime.add(const Duration(hours: 3));
-    return '${cairoTime.hour.toString().padLeft(2, '0')}:${cairoTime.minute.toString().padLeft(2, '0')} ${cairoTime.day}/${cairoTime.month}/${cairoTime.year}';
+    return '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')} ${dateTime.day}/${dateTime.month}/${dateTime.year}';
   }
 }

@@ -12,6 +12,7 @@ class EventParticipant {
   EventParticipant({required this.userId, this.userName});
 
   factory EventParticipant.fromApiJson(Map<String, dynamic> json) {
+    print('[DEBUG] EventParticipant.fromApiJson input: $json');
     return EventParticipant(
       userId: json['user_id']?['\$oid'] ?? json['user_id'] ?? '',
       userName: json['user_name'],
@@ -99,40 +100,53 @@ class Event {
   }
 
   factory Event.fromApiJson(Map<String, dynamic> json) {
+    print('[DEBUG] Event.fromApiJson input: $json');
     List<EventParticipant> parsedParticipants = [];
     if (json['participants'] is List) {
-      parsedParticipants = (json['participants'] as List)
-          .map((p) => EventParticipant.fromApiJson(p))
-          .where((p) => p.userId.isNotEmpty)
-          .toList();
+      for (var p in (json['participants'] as List)) {
+        print('[DEBUG] Parsing participant: $p');
+        if (p is Map<String, dynamic>) {
+          parsedParticipants.add(EventParticipant.fromApiJson(p));
+        } else {
+          print('[DEBUG] Skipping non-map participant: $p');
+        }
+      }
+    }
+    final Map<String, dynamic> additionalDetails = {};
+    if (json.containsKey('privacy')) {
+      additionalDetails['privacy'] = json['privacy'];
     }
     return Event(
-      id: json['_id']?['\$oid'] ?? json['_id'] ?? const Uuid().v4(),
+      id: (json['_id'] is Map && json['_id']['\$oid'] != null)
+          ? json['_id']['\$oid']
+          : (json['_id'] ?? const Uuid().v4()),
       title: json['title'] ?? 'No Title',
       description: json['description'] ?? '',
-      startTime: DateTime.parse(json['start_time']).toLocal(),
-      endTime: DateTime.parse(json['end_time']).toLocal(),
+      startTime: _parseDate(json['start_time']),
+      endTime: _parseDate(json['end_time']),
       type: _parseEventType(json['type'] ?? 'general'),
       color: _getColorForType(json['type'] ?? 'general'),
       location: json['location'] ?? '',
       participants: parsedParticipants,
-      creatorId: json['created_by']?.toString() ?? '',
+      creatorId: json['creator_id']?.toString() ?? '',
       recurrence: RecurrenceType.none,
       isCompleted: json['status'] == 'completed',
       isCancelled: json['status'] == 'cancelled',
       attachments: [],
-      additionalDetails: {},
-      createdAt: json['created_at'] != null
-          ? (json['created_at']['\$date'] != null
-              ? DateTime.parse(json['created_at']['\$date']).toLocal()
-              : DateTime.parse(json['created_at']).toLocal())
-          : DateTime.now(),
-      lastModified: json['updated_at'] != null
-          ? (json['updated_at']['\$date'] != null
-              ? DateTime.parse(json['updated_at']['\$date']).toLocal()
-              : DateTime.parse(json['updated_at']).toLocal())
-          : null,
+      additionalDetails: additionalDetails,
+      createdAt: json['created_at'] != null ? _parseDate(json['created_at']) : DateTime.now(),
+      lastModified: json['updated_at'] != null ? _parseDate(json['updated_at']) : null,
     );
+  }
+
+  static DateTime _parseDate(dynamic value) {
+    if (value is String) {
+      return DateTime.parse(value).toLocal();
+    }
+    if (value is Map && value['\$date'] != null) {
+      return DateTime.parse(value['\$date']).toLocal();
+    }
+    throw Exception('Invalid date format: $value');
   }
 
   static EventType _parseEventType(String type) {

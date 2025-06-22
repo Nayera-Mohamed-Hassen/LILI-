@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .routes import user_routes, transaction_routes, notification_routes, ocr_routes  # Add ocr_routes import
+from .routes import user_routes, transaction_routes, notification_routes, ocr_routes, calendar_routes  # Add calendar_routes import
 from fastapi.exception_handlers import RequestValidationError
 from fastapi.requests import Request
 from fastapi.responses import JSONResponse
@@ -23,6 +23,7 @@ app.include_router(user_routes.router)
 app.include_router(transaction_routes.router)  # Add transaction routes
 app.include_router(notification_routes.router)  # Add notification routes
 app.include_router(ocr_routes.router)  # Add OCR routes
+app.include_router(calendar_routes.router)  # Add calendar routes
 
 @app.get("/")
 async def root():

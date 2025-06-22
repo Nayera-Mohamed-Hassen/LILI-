@@ -38,14 +38,12 @@ import 'pages/expenses_page.dart';
 import 'package:provider/provider.dart';
 import 'package:LILI/services/task_service.dart';
 import 'pages/newlib_workout_screen_wrapper.dart';
-import 'pages/newlib_calendar_screen_wrapper.dart';
-import 'new Lib/firebase_options.dart';
+import 'new Lib/views/screens/calendar_screen.dart';
+import 'package:get/get.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+ 
   runApp(
     MultiProvider(
       providers: [ChangeNotifierProvider(create: (_) => TaskService())],
@@ -57,7 +55,7 @@ void main() async {
 class LiliApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return GetMaterialApp(
       title: 'LILI',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
@@ -94,7 +92,6 @@ class LiliApp extends StatelessWidget {
         '/create new category': (context) => CreateNewCategoryPage(),
         '/inventory': (context) => InventoryPage(),
         '/new item inventory': (context) => CreateNewItemPage(),
-
         '/my card': (context) => MyCardPage(),
         '/add new expenses': (context) => CreateNewExpensesPage(),
         '/create new category budget':
@@ -107,7 +104,7 @@ class LiliApp extends StatelessWidget {
             (context) =>
                 ExpensesPage(userId: UserSession().getUserId().toString()),
         '/workout_planner': (context) => NewLibWorkoutScreenWrapper(),
-        '/family_calendar': (context) => NewLibCalendarScreenWrapper(),
+        '/family_calendar': (context) => CalendarScreen(),
       },
     );
   }
