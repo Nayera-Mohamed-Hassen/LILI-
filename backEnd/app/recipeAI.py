@@ -155,6 +155,11 @@ def get_recipe_recommendations(user_id, count=1):
         user_preferences = get_user_preferences_for_recommendations(user_id)
         has_preferences = user_preferences.get("has_preferences", False)
 
+        # ---------- LOAD USER ALLERGIES ----------
+        user_allergies = selectAllergy(query={"user_Id": str(user_id)})
+        allergy_names = [a["allergy_name"] for a in user_allergies]
+        cleaned_allergies = set(clean_ingredient(a) for a in allergy_names if a)
+
         # ---------- LOAD INVENTORY FROM MONGODB ----------
         mongo_client = MongoClient(MONGO_URI)
         inventory_col = mongo_client["lili"]["inventory"]
@@ -216,6 +221,10 @@ def get_recipe_recommendations(user_id, count=1):
                                     cleaned_ingredients.add(INGREDIENT_MAPPING[cleaned_ing])
                     
                     if not cleaned_ingredients:
+                        continue
+                    
+                    # Allergy filtering: skip recipes containing any allergy ingredient
+                    if any(allergy in cleaned_ingredients for allergy in cleaned_allergies):
                         continue
                     
                     # Calculate available and missing ingredients using similarity matching

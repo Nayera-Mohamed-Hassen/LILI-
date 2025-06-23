@@ -1,133 +1,72 @@
 {
   "d99f7950-2254-44ad-8ec9-1fdb9ed661c5": {
     "preferences": {
-      "peach": 5.8,
-      "honey": 8.2,
-      "banana": 7.4,
-      "apple juice": 4.2,
-      "vanilla yogurt": 4.2,
-      "flaxseed oil": 4.2,
-      "pitted": 4.2,
-      "ice cubes": 4.2,
-      "almond milk": 3.4,
-      "almond butter": 3.4,
-      "scoops chocolate protein powder": 2.6,
-      "iced coffee concentrate gradys regular coffee": 2.6,
-      "regular low-fat milk": 2.6,
-      "raspberries": 2.6
+      "apricot": 4.0,
+      "sugar": 4.0,
+      "of kosher salt": 4.0,
+      "split lengthwise": 3.0,
+      "peach": 3.0,
+      "jam plum": 3.0,
+      "unsweetened almond milk": 3.0,
+      "vanilla bean": 3.0,
+      "short-grain brown rice": 3.0,
+      "blanched hazelnuts": 3.0
     },
     "meal_type_preferences": {
-      "beverage": 4
+      "breakfast": 2
     },
     "cooking_time_preferences": {
-      "medium": 4
+      "medium": 2
     },
     "ingredient_combinations": {
-      "peach+honey": 2,
-      "peach+banana": 2,
-      "honey+banana": 2,
-      "honey+apple juice": 2,
-      "banana+apple juice": 2,
-      "banana+vanilla yogurt": 2,
-      "apple juice+vanilla yogurt": 2,
-      "apple juice+flaxseed oil": 2,
-      "vanilla yogurt+flaxseed oil": 2,
-      "vanilla yogurt+pitted": 2,
-      "flaxseed oil+pitted": 2,
-      "flaxseed oil+ice cubes": 2,
-      "pitted+ice cubes": 2,
-      "almond milk+honey": 1,
-      "almond milk+almond butter": 1,
-      "honey+almond butter": 1,
-      "honey+scoops chocolate protein powder": 1,
-      "almond butter+scoops chocolate protein powder": 1,
-      "almond butter+iced coffee concentrate gradys regular coffee": 1,
-      "scoops chocolate protein powder+iced coffee concentrate gradys regular coffee": 1,
-      "scoops chocolate protein powder+regular low-fat milk": 1,
-      "iced coffee concentrate gradys regular coffee+regular low-fat milk": 1,
-      "iced coffee concentrate gradys regular coffee+banana": 1,
-      "regular low-fat milk+banana": 1,
-      "regular low-fat milk+raspberries": 1,
-      "banana+raspberries": 1
+      "apricot+sugar": 1,
+      "apricot+of kosher salt": 1,
+      "sugar+of kosher salt": 1,
+      "sugar+split lengthwise": 1,
+      "of kosher salt+split lengthwise": 1,
+      "of kosher salt+peach": 1,
+      "split lengthwise+peach": 1,
+      "split lengthwise+jam plum": 1,
+      "peach+jam plum": 1,
+      "peach+unsweetened almond milk": 1,
+      "jam plum+unsweetened almond milk": 1,
+      "jam plum+vanilla bean": 1,
+      "unsweetened almond milk+vanilla bean": 1,
+      "unsweetened almond milk+short-grain brown rice": 1,
+      "vanilla bean+short-grain brown rice": 1,
+      "vanilla bean+blanched hazelnuts": 1,
+      "short-grain brown rice+blanched hazelnuts": 1
     },
-    "updated_at": "2025-06-21T10:17:02.953163",
+    "updated_at": "2025-06-23T20:08:43.483482",
     "cooking_history": [
       {
-        "recipe_name": "Sweet Peach Smoothie",
+        "recipe_name": "Brown Rice Porridge with Hazelnuts and Jam",
         "ingredients": [
+          "apricot",
+          "sugar",
+          "of kosher salt",
+          "split lengthwise",
           "peach",
-          "honey",
-          "banana",
-          "apple juice",
-          "vanilla yogurt",
-          "flaxseed oil",
-          "pitted",
-          "ice cubes"
+          "jam plum",
+          "unsweetened almond milk",
+          "vanilla bean",
+          "short-grain brown rice",
+          "blanched hazelnuts"
         ],
-        "meal_type": "Beverage",
+        "meal_type": "Breakfast",
         "cooking_time": "Under 30 mins",
-        "cooked_at": "2025-06-21T09:40:37.580122",
+        "cooked_at": "2025-06-23T20:08:43.483482",
         "preference_boosts": {
-          "peach": 3.4,
-          "honey": 3.4,
-          "banana": 3.4,
-          "apple juice": 2.6,
-          "vanilla yogurt": 2.6,
-          "flaxseed oil": 2.6,
-          "pitted": 2.6,
-          "ice cubes": 2.6
-        }
-      },
-      {
-        "recipe_name": "Sweet Peach Smoothie",
-        "ingredients": [
-          "peach",
-          "honey",
-          "banana",
-          "apple juice",
-          "vanilla yogurt",
-          "flaxseed oil",
-          "pitted",
-          "ice cubes"
-        ],
-        "meal_type": "Beverage",
-        "cooking_time": "Under 30 mins",
-        "cooked_at": "2025-06-21T09:41:39.832332",
-        "preference_boosts": {
-          "peach": 5.8,
-          "honey": 5.8,
-          "banana": 5.8,
-          "apple juice": 4.2,
-          "vanilla yogurt": 4.2,
-          "flaxseed oil": 4.2,
-          "pitted": 4.2,
-          "ice cubes": 4.2
-        }
-      },
-      {
-        "recipe_name": "Mocha Berry-Almond Smoothie",
-        "ingredients": [
-          "almond milk",
-          "honey",
-          "almond butter",
-          "scoops chocolate protein powder",
-          "iced coffee concentrate gradys regular coffee",
-          "regular low-fat milk",
-          "banana",
-          "raspberries"
-        ],
-        "meal_type": "Beverage",
-        "cooking_time": "Under 30 mins",
-        "cooked_at": "2025-06-21T10:17:02.953163",
-        "preference_boosts": {
-          "almond milk": 3.4,
-          "honey": 8.2,
-          "almond butter": 3.4,
-          "scoops chocolate protein powder": 2.6,
-          "iced coffee concentrate gradys regular coffee": 2.6,
-          "regular low-fat milk": 2.6,
-          "banana": 7.4,
-          "raspberries": 2.6
+          "apricot": 4.0,
+          "sugar": 4.0,
+          "of kosher salt": 4.0,
+          "split lengthwise": 3.0,
+          "peach": 3.0,
+          "jam plum": 3.0,
+          "unsweetened almond milk": 3.0,
+          "vanilla bean": 3.0,
+          "short-grain brown rice": 3.0,
+          "blanched hazelnuts": 3.0
         }
       }
     ]

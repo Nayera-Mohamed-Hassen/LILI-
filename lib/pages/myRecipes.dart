@@ -147,19 +147,21 @@ class _MyRecipesPageState extends State<MyRecipesPage> {
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
-          title: const Text(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          surfaceTintColor: Colors.transparent,
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          title: Text(
             'My Recipes',
             style: TextStyle(
               color: Colors.white,
               fontSize: 24,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.bold,
             ),
           ),
-          backgroundColor: Color(0xFF1F3354),
-          elevation: 0,
-          iconTheme: const IconThemeData(color: Colors.white),
-          centerTitle: true,
-          actions: [],
         ),
         body: SafeArea(
           child: Stack(
@@ -167,9 +169,9 @@ class _MyRecipesPageState extends State<MyRecipesPage> {
               // Main content
               Positioned.fill(
                 child:
-                  _isLoading
-                      ? Center(child: CircularProgressIndicator())
-                      : SingleChildScrollView(
+                    _isLoading
+                        ? Center(child: CircularProgressIndicator())
+                        : SingleChildScrollView(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -198,17 +200,20 @@ class _MyRecipesPageState extends State<MyRecipesPage> {
                                         icon: const Icon(Icons.add),
                                         label: const Text('Create Recipe'),
                                         style: ElevatedButton.styleFrom(
-                                          backgroundColor: Colors.white.withOpacity(
-                                            0.15,
-                                          ),
+                                          backgroundColor: Colors.white
+                                              .withOpacity(0.15),
                                           foregroundColor: Colors.white,
                                           padding: const EdgeInsets.symmetric(
                                             horizontal: 24,
                                             vertical: 12,
                                           ),
                                           shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(14),
-                                            side: BorderSide(color: Colors.white24),
+                                            borderRadius: BorderRadius.circular(
+                                              14,
+                                            ),
+                                            side: BorderSide(
+                                              color: Colors.white24,
+                                            ),
                                           ),
                                         ),
                                       ),
@@ -228,34 +233,56 @@ class _MyRecipesPageState extends State<MyRecipesPage> {
                                         Navigator.push(
                                           context,
                                           MaterialPageRoute(
-                                            builder: (context) => RecipePage(
-                                              recipe: {
-                                                'name': recipe.name,
-                                                'cusine': recipe.cusine,
-                                                'mealType': recipe.mealType,
-                                                'ingredients': recipe.ingredients.toList(),
-                                                'available_ingredients': recipe.availableIngredients.toList(),
-                                                'missing_ingredients': recipe.missingIngredients.toList(),
-                                                'steps': recipe.steps?.toList() ?? [],
-                                                'timeTaken': recipe.timeTaken,
-                                                'difficulty': recipe.difficulty,
-                                                'image': recipe.image,
-                                              },
-                                            ),
+                                            builder:
+                                                (context) => RecipePage(
+                                                  recipe: {
+                                                    'name': recipe.name,
+                                                    'cusine': recipe.cusine,
+                                                    'mealType': recipe.mealType,
+                                                    'ingredients':
+                                                        recipe.ingredients
+                                                            .toList(),
+                                                    'available_ingredients':
+                                                        recipe
+                                                            .availableIngredients
+                                                            .toList(),
+                                                    'missing_ingredients':
+                                                        recipe
+                                                            .missingIngredients
+                                                            .toList(),
+                                                    'steps':
+                                                        recipe.steps
+                                                            ?.toList() ??
+                                                        [],
+                                                    'timeTaken':
+                                                        recipe.timeTaken,
+                                                    'difficulty':
+                                                        recipe.difficulty,
+                                                    'image': recipe.image,
+                                                  },
+                                                ),
                                           ),
                                         );
                                       },
                                       child: Card(
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(20),
+                                          borderRadius: BorderRadius.circular(
+                                            20,
+                                          ),
                                           side: BorderSide(
-                                            color: Colors.white.withOpacity(0.2),
+                                            color: Colors.white.withOpacity(
+                                              0.2,
+                                            ),
                                             width: 1,
                                           ),
                                         ),
                                         elevation: 4,
-                                        shadowColor: Colors.black.withOpacity(0.2),
-                                        margin: const EdgeInsets.symmetric(vertical: 8),
+                                        shadowColor: Colors.black.withOpacity(
+                                          0.2,
+                                        ),
+                                        margin: const EdgeInsets.symmetric(
+                                          vertical: 8,
+                                        ),
                                         color: Colors.white.withOpacity(0.15),
                                         child: Container(
                                           padding: const EdgeInsets.all(12),
@@ -268,17 +295,24 @@ class _MyRecipesPageState extends State<MyRecipesPage> {
                                                     CrossAxisAlignment.start,
                                                 children: [
                                                   ClipRRect(
-                                                    borderRadius: BorderRadius.circular(
-                                                      16,
-                                                    ),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          16,
+                                                        ),
                                                     child: Container(
                                                       decoration: BoxDecoration(
                                                         boxShadow: [
                                                           BoxShadow(
                                                             color: Colors.black
-                                                                .withOpacity(0.2),
+                                                                .withOpacity(
+                                                                  0.2,
+                                                                ),
                                                             blurRadius: 8,
-                                                            offset: const Offset(0, 2),
+                                                            offset:
+                                                                const Offset(
+                                                                  0,
+                                                                  2,
+                                                                ),
                                                           ),
                                                         ],
                                                       ),
@@ -296,17 +330,24 @@ class _MyRecipesPageState extends State<MyRecipesPage> {
                                                               width: 100,
                                                               height: 110,
                                                               decoration: BoxDecoration(
-                                                                color: Colors.white
-                                                                    .withOpacity(0.1),
+                                                                color: Colors
+                                                                    .white
+                                                                    .withOpacity(
+                                                                      0.1,
+                                                                    ),
                                                                 borderRadius:
                                                                     BorderRadius.circular(
                                                                       16,
                                                                     ),
                                                               ),
                                                               child: Icon(
-                                                                Icons.broken_image,
-                                                                color: Colors.white
-                                                                    .withOpacity(0.7),
+                                                                Icons
+                                                                    .broken_image,
+                                                                color: Colors
+                                                                    .white
+                                                                    .withOpacity(
+                                                                      0.7,
+                                                                    ),
                                                               ),
                                                             ),
                                                       ),
@@ -316,44 +357,63 @@ class _MyRecipesPageState extends State<MyRecipesPage> {
                                                   Expanded(
                                                     child: Column(
                                                       crossAxisAlignment:
-                                                          CrossAxisAlignment.start,
+                                                          CrossAxisAlignment
+                                                              .start,
                                                       children: [
                                                         Text(
                                                           recipe.name,
-                                                          style: const TextStyle(
-                                                            fontWeight: FontWeight.w600,
-                                                            fontSize: 16,
-                                                            color: Colors.white,
-                                                          ),
+                                                          style:
+                                                              const TextStyle(
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w600,
+                                                                fontSize: 16,
+                                                                color:
+                                                                    Colors
+                                                                        .white,
+                                                              ),
                                                         ),
-                                                        const SizedBox(height: 4),
+                                                        const SizedBox(
+                                                          height: 4,
+                                                        ),
                                                         Text(
                                                           recipe.cusine,
                                                           style: TextStyle(
-                                                            fontWeight: FontWeight.w500,
+                                                            fontWeight:
+                                                                FontWeight.w500,
                                                             fontSize: 14,
                                                             color: Colors.white
-                                                                .withOpacity(0.8),
+                                                                .withOpacity(
+                                                                  0.8,
+                                                                ),
                                                           ),
                                                         ),
-                                                        const SizedBox(height: 4),
+                                                        const SizedBox(
+                                                          height: 4,
+                                                        ),
                                                         Row(
                                                           children: [
                                                             Container(
                                                               padding:
                                                                   const EdgeInsets.symmetric(
-                                                                    horizontal: 8,
+                                                                    horizontal:
+                                                                        8,
                                                                     vertical: 4,
                                                                   ),
                                                               decoration: BoxDecoration(
-                                                                color: Colors.white
-                                                                    .withOpacity(0.15),
+                                                                color: Colors
+                                                                    .white
+                                                                    .withOpacity(
+                                                                      0.15,
+                                                                    ),
                                                                 borderRadius:
                                                                     BorderRadius.circular(
                                                                       12,
                                                                     ),
                                                                 border: Border.all(
-                                                                  color: Colors.white24,
+                                                                  color:
+                                                                      Colors
+                                                                          .white24,
                                                                 ),
                                                               ),
                                                               child: Row(
@@ -362,7 +422,8 @@ class _MyRecipesPageState extends State<MyRecipesPage> {
                                                                     Icons
                                                                         .timer_outlined,
                                                                     size: 14,
-                                                                    color: Colors.white
+                                                                    color: Colors
+                                                                        .white
                                                                         .withOpacity(
                                                                           0.8,
                                                                         ),
@@ -371,12 +432,14 @@ class _MyRecipesPageState extends State<MyRecipesPage> {
                                                                     width: 4,
                                                                   ),
                                                                   Text(
-                                                                    recipe.timeTaken,
+                                                                    recipe
+                                                                        .timeTaken,
                                                                     style: TextStyle(
                                                                       fontWeight:
                                                                           FontWeight
                                                                               .w400,
-                                                                      fontSize: 12,
+                                                                      fontSize:
+                                                                          12,
                                                                       color: Colors
                                                                           .white
                                                                           .withOpacity(
@@ -395,11 +458,12 @@ class _MyRecipesPageState extends State<MyRecipesPage> {
                                                   PopupMenuButton<String>(
                                                     icon: Icon(
                                                       Icons.more_vert,
-                                                      color: Colors.white.withOpacity(
-                                                        0.9,
-                                                      ),
+                                                      color: Colors.white
+                                                          .withOpacity(0.9),
                                                     ),
-                                                    color: const Color(0xFF1F3354),
+                                                    color: const Color(
+                                                      0xFF1F3354,
+                                                    ),
                                                     itemBuilder:
                                                         (context) => [
                                                           PopupMenuItem(
@@ -409,8 +473,11 @@ class _MyRecipesPageState extends State<MyRecipesPage> {
                                                                 Icon(
                                                                   Icons.edit,
                                                                   size: 20,
-                                                                  color: Colors.white
-                                                                      .withOpacity(0.9),
+                                                                  color: Colors
+                                                                      .white
+                                                                      .withOpacity(
+                                                                        0.9,
+                                                                      ),
                                                                 ),
                                                                 const SizedBox(
                                                                   width: 8,
@@ -418,7 +485,8 @@ class _MyRecipesPageState extends State<MyRecipesPage> {
                                                                 Text(
                                                                   'Edit',
                                                                   style: TextStyle(
-                                                                    color: Colors.white
+                                                                    color: Colors
+                                                                        .white
                                                                         .withOpacity(
                                                                           0.9,
                                                                         ),
@@ -463,11 +531,16 @@ class _MyRecipesPageState extends State<MyRecipesPage> {
                                                               children: [
                                                                 Icon(
                                                                   recipe.shared
-                                                                      ? Icons.lock
-                                                                      : Icons.public,
+                                                                      ? Icons
+                                                                          .lock
+                                                                      : Icons
+                                                                          .public,
                                                                   size: 20,
-                                                                  color: Colors.white
-                                                                      .withOpacity(0.9),
+                                                                  color: Colors
+                                                                      .white
+                                                                      .withOpacity(
+                                                                        0.9,
+                                                                      ),
                                                                 ),
                                                                 const SizedBox(
                                                                   width: 8,
@@ -477,7 +550,8 @@ class _MyRecipesPageState extends State<MyRecipesPage> {
                                                                       ? 'Make Private'
                                                                       : 'Make Public',
                                                                   style: TextStyle(
-                                                                    color: Colors.white
+                                                                    color: Colors
+                                                                        .white
                                                                         .withOpacity(
                                                                           0.9,
                                                                         ),
@@ -490,19 +564,23 @@ class _MyRecipesPageState extends State<MyRecipesPage> {
                                                     onSelected: (value) async {
                                                       if (value == 'edit') {
                                                         _editRecipe(recipe);
-                                                      } else if (value == 'delete') {
+                                                      } else if (value ==
+                                                          'delete') {
                                                         _deleteRecipe(recipe);
                                                       } else if (value ==
                                                               'make_private' ||
-                                                          value == 'make_public') {
+                                                          value ==
+                                                              'make_public') {
                                                         final newShared =
-                                                            value == 'make_public';
+                                                            value ==
+                                                            'make_public';
                                                         await _updateRecipeShared(
                                                           recipe.id,
                                                           newShared,
                                                         );
                                                         setState(() {
-                                                          recipe.shared = newShared;
+                                                          recipe.shared =
+                                                              newShared;
                                                         });
                                                       }
                                                     },
@@ -512,22 +590,24 @@ class _MyRecipesPageState extends State<MyRecipesPage> {
                                               const SizedBox(height: 8),
                                               Container(
                                                 width: double.infinity,
-                                                padding: const EdgeInsets.symmetric(
-                                                  vertical: 6,
-                                                  horizontal: 12,
-                                                ),
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      vertical: 6,
+                                                      horizontal: 12,
+                                                    ),
                                                 decoration: BoxDecoration(
-                                                  color: Colors.white.withOpacity(0.15),
-                                                  borderRadius: BorderRadius.circular(
-                                                    12,
-                                                  ),
+                                                  color: Colors.white
+                                                      .withOpacity(0.15),
+                                                  borderRadius:
+                                                      BorderRadius.circular(12),
                                                   border: Border.all(
                                                     color: Colors.white24,
                                                   ),
                                                 ),
                                                 child: Row(
                                                   mainAxisAlignment:
-                                                      MainAxisAlignment.spaceBetween,
+                                                      MainAxisAlignment
+                                                          .spaceBetween,
                                                   children: [
                                                     Row(
                                                       children: [
@@ -537,13 +617,17 @@ class _MyRecipesPageState extends State<MyRecipesPage> {
                                                           color: Colors.white
                                                               .withOpacity(0.8),
                                                         ),
-                                                        const SizedBox(width: 4),
+                                                        const SizedBox(
+                                                          width: 4,
+                                                        ),
                                                         Text(
                                                           'Difficulty:',
                                                           style: TextStyle(
                                                             fontSize: 14,
                                                             color: Colors.white
-                                                                .withOpacity(0.8),
+                                                                .withOpacity(
+                                                                  0.8,
+                                                                ),
                                                           ),
                                                         ),
                                                       ],
@@ -555,18 +639,28 @@ class _MyRecipesPageState extends State<MyRecipesPage> {
                                                             vertical: 2,
                                                           ),
                                                       decoration: BoxDecoration(
-                                                        color: const Color(0xFF1F3354),
+                                                        color: const Color(
+                                                          0xFF1F3354,
+                                                        ),
                                                         borderRadius:
-                                                            BorderRadius.circular(12),
+                                                            BorderRadius.circular(
+                                                              12,
+                                                            ),
                                                         border: Border.all(
                                                           color: Colors.white24,
                                                         ),
                                                         boxShadow: [
                                                           BoxShadow(
                                                             color: Colors.black
-                                                                .withOpacity(0.1),
+                                                                .withOpacity(
+                                                                  0.1,
+                                                                ),
                                                             blurRadius: 4,
-                                                            offset: const Offset(0, 2),
+                                                            offset:
+                                                                const Offset(
+                                                                  0,
+                                                                  2,
+                                                                ),
                                                           ),
                                                         ],
                                                       ),
@@ -575,7 +669,8 @@ class _MyRecipesPageState extends State<MyRecipesPage> {
                                                         style: const TextStyle(
                                                           color: Colors.white,
                                                           fontSize: 12,
-                                                          fontWeight: FontWeight.w500,
+                                                          fontWeight:
+                                                              FontWeight.w500,
                                                         ),
                                                       ),
                                                     ),
@@ -608,7 +703,9 @@ class _MyRecipesPageState extends State<MyRecipesPage> {
                                 ListView.builder(
                                   shrinkWrap: true,
                                   physics: NeverScrollableScrollPhysics(),
-                                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                  ),
                                   itemCount: _householdRecipes.length,
                                   itemBuilder: (context, index) {
                                     final recipe = _householdRecipes[index];
@@ -621,8 +718,12 @@ class _MyRecipesPageState extends State<MyRecipesPage> {
                                         ),
                                       ),
                                       elevation: 4,
-                                      shadowColor: Colors.black.withOpacity(0.2),
-                                      margin: const EdgeInsets.symmetric(vertical: 8),
+                                      shadowColor: Colors.black.withOpacity(
+                                        0.2,
+                                      ),
+                                      margin: const EdgeInsets.symmetric(
+                                        vertical: 8,
+                                      ),
                                       color: Colors.white.withOpacity(0.15),
                                       child: Container(
                                         padding: const EdgeInsets.all(12),
@@ -635,9 +736,8 @@ class _MyRecipesPageState extends State<MyRecipesPage> {
                                                   CrossAxisAlignment.start,
                                               children: [
                                                 ClipRRect(
-                                                  borderRadius: BorderRadius.circular(
-                                                    16,
-                                                  ),
+                                                  borderRadius:
+                                                      BorderRadius.circular(16),
                                                   child: Container(
                                                     decoration: BoxDecoration(
                                                       boxShadow: [
@@ -645,7 +745,10 @@ class _MyRecipesPageState extends State<MyRecipesPage> {
                                                           color: Colors.black
                                                               .withOpacity(0.2),
                                                           blurRadius: 8,
-                                                          offset: const Offset(0, 2),
+                                                          offset: const Offset(
+                                                            0,
+                                                            2,
+                                                          ),
                                                         ),
                                                       ],
                                                     ),
@@ -663,17 +766,24 @@ class _MyRecipesPageState extends State<MyRecipesPage> {
                                                             width: 100,
                                                             height: 110,
                                                             decoration: BoxDecoration(
-                                                              color: Colors.white
-                                                                  .withOpacity(0.1),
+                                                              color: Colors
+                                                                  .white
+                                                                  .withOpacity(
+                                                                    0.1,
+                                                                  ),
                                                               borderRadius:
                                                                   BorderRadius.circular(
                                                                     16,
                                                                   ),
                                                             ),
                                                             child: Icon(
-                                                              Icons.broken_image,
-                                                              color: Colors.white
-                                                                  .withOpacity(0.7),
+                                                              Icons
+                                                                  .broken_image,
+                                                              color: Colors
+                                                                  .white
+                                                                  .withOpacity(
+                                                                    0.7,
+                                                                  ),
                                                             ),
                                                           ),
                                                     ),
@@ -683,12 +793,14 @@ class _MyRecipesPageState extends State<MyRecipesPage> {
                                                 Expanded(
                                                   child: Column(
                                                     crossAxisAlignment:
-                                                        CrossAxisAlignment.start,
+                                                        CrossAxisAlignment
+                                                            .start,
                                                     children: [
                                                       Text(
                                                         recipe.name,
                                                         style: const TextStyle(
-                                                          fontWeight: FontWeight.w600,
+                                                          fontWeight:
+                                                              FontWeight.w600,
                                                           fontSize: 16,
                                                           color: Colors.white,
                                                         ),
@@ -697,7 +809,8 @@ class _MyRecipesPageState extends State<MyRecipesPage> {
                                                       Text(
                                                         recipe.cusine,
                                                         style: TextStyle(
-                                                          fontWeight: FontWeight.w500,
+                                                          fontWeight:
+                                                              FontWeight.w500,
                                                           fontSize: 14,
                                                           color: Colors.white
                                                               .withOpacity(0.8),
@@ -713,14 +826,19 @@ class _MyRecipesPageState extends State<MyRecipesPage> {
                                                                   vertical: 4,
                                                                 ),
                                                             decoration: BoxDecoration(
-                                                              color: Colors.white
-                                                                  .withOpacity(0.15),
+                                                              color: Colors
+                                                                  .white
+                                                                  .withOpacity(
+                                                                    0.15,
+                                                                  ),
                                                               borderRadius:
                                                                   BorderRadius.circular(
                                                                     12,
                                                                   ),
                                                               border: Border.all(
-                                                                color: Colors.white24,
+                                                                color:
+                                                                    Colors
+                                                                        .white24,
                                                               ),
                                                             ),
                                                             child: Row(
@@ -729,7 +847,8 @@ class _MyRecipesPageState extends State<MyRecipesPage> {
                                                                   Icons
                                                                       .timer_outlined,
                                                                   size: 14,
-                                                                  color: Colors.white
+                                                                  color: Colors
+                                                                      .white
                                                                       .withOpacity(
                                                                         0.8,
                                                                       ),
@@ -738,12 +857,14 @@ class _MyRecipesPageState extends State<MyRecipesPage> {
                                                                   width: 4,
                                                                 ),
                                                                 Text(
-                                                                  recipe.timeTaken,
+                                                                  recipe
+                                                                      .timeTaken,
                                                                   style: TextStyle(
                                                                     fontWeight:
                                                                         FontWeight
                                                                             .w400,
-                                                                    fontSize: 12,
+                                                                    fontSize:
+                                                                        12,
                                                                     color: Colors
                                                                         .white
                                                                         .withOpacity(
@@ -764,22 +885,25 @@ class _MyRecipesPageState extends State<MyRecipesPage> {
                                             const SizedBox(height: 8),
                                             Container(
                                               width: double.infinity,
-                                              padding: const EdgeInsets.symmetric(
-                                                vertical: 6,
-                                                horizontal: 12,
-                                              ),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    vertical: 6,
+                                                    horizontal: 12,
+                                                  ),
                                               decoration: BoxDecoration(
-                                                color: Colors.white.withOpacity(0.15),
-                                                borderRadius: BorderRadius.circular(
-                                                  12,
+                                                color: Colors.white.withOpacity(
+                                                  0.15,
                                                 ),
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
                                                 border: Border.all(
                                                   color: Colors.white24,
                                                 ),
                                               ),
                                               child: Row(
                                                 mainAxisAlignment:
-                                                    MainAxisAlignment.spaceBetween,
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
                                                 children: [
                                                   Row(
                                                     children: [
@@ -807,9 +931,13 @@ class _MyRecipesPageState extends State<MyRecipesPage> {
                                                           vertical: 2,
                                                         ),
                                                     decoration: BoxDecoration(
-                                                      color: const Color(0xFF1F3354),
+                                                      color: const Color(
+                                                        0xFF1F3354,
+                                                      ),
                                                       borderRadius:
-                                                          BorderRadius.circular(12),
+                                                          BorderRadius.circular(
+                                                            12,
+                                                          ),
                                                       border: Border.all(
                                                         color: Colors.white24,
                                                       ),
@@ -818,7 +946,10 @@ class _MyRecipesPageState extends State<MyRecipesPage> {
                                                           color: Colors.black
                                                               .withOpacity(0.1),
                                                           blurRadius: 4,
-                                                          offset: const Offset(0, 2),
+                                                          offset: const Offset(
+                                                            0,
+                                                            2,
+                                                          ),
                                                         ),
                                                       ],
                                                     ),
@@ -827,7 +958,8 @@ class _MyRecipesPageState extends State<MyRecipesPage> {
                                                       style: const TextStyle(
                                                         color: Colors.white,
                                                         fontSize: 12,
-                                                        fontWeight: FontWeight.w500,
+                                                        fontWeight:
+                                                            FontWeight.w500,
                                                       ),
                                                     ),
                                                   ),

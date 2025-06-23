@@ -1,3 +1,4 @@
+import 'package:LILI/user_session.dart';
 import 'package:flutter/material.dart';
 import '../../../../models/user.dart';
 import 'package:LILI/pages/profile.dart';
@@ -31,7 +32,7 @@ class _MoreInfoPageState extends State<MoreInfoPage> {
       final userId = widget.user.email.isNotEmpty ? widget.user.email : null;
       // Try to get userId from profile if available
       // If you have userId in User, use that instead
-      final id = userId ?? '';
+      final id = UserSession().getUserId() ?? '';
       if (id.isNotEmpty) {
         _allergies = await _userService.getUserAllergies(id);
       }
@@ -52,10 +53,7 @@ class _MoreInfoPageState extends State<MoreInfoPage> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              const Color(0xFF1F3354),
-              const Color(0xFF3E5879),
-            ],
+            colors: [const Color(0xFF1F3354), const Color(0xFF3E5879)],
           ),
         ),
         child: SafeArea(
@@ -80,13 +78,18 @@ class _MoreInfoPageState extends State<MoreInfoPage> {
                             Container(
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                border: Border.all(color: Colors.white, width: 4),
+                                border: Border.all(
+                                  color: Colors.white,
+                                  width: 4,
+                                ),
                               ),
                               child: CircleAvatar(
                                 radius: 50,
                                 backgroundColor: Colors.white24,
                                 child: Text(
-                                  widget.user.name.isNotEmpty ? widget.user.name[0].toUpperCase() : '?',
+                                  widget.user.name.isNotEmpty
+                                      ? widget.user.name[0].toUpperCase()
+                                      : '?',
                                   style: const TextStyle(
                                     fontSize: 40,
                                     fontWeight: FontWeight.bold,
@@ -136,9 +139,7 @@ class _MoreInfoPageState extends State<MoreInfoPage> {
     return Card(
       elevation: 4,
       shadowColor: Colors.black26,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -168,9 +169,7 @@ class _MoreInfoPageState extends State<MoreInfoPage> {
     return Card(
       elevation: 4,
       shadowColor: Colors.black26,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -189,7 +188,11 @@ class _MoreInfoPageState extends State<MoreInfoPage> {
               _buildInfoRow(Icons.height, 'Height', '${widget.user.height} cm'),
             if (widget.user.height != null) const Divider(height: 24),
             if (widget.user.weight != null)
-              _buildInfoRow(Icons.monitor_weight, 'Weight', '${widget.user.weight} kg'),
+              _buildInfoRow(
+                Icons.monitor_weight,
+                'Weight',
+                '${widget.user.weight} kg',
+              ),
           ],
         ),
       ),
@@ -200,9 +203,7 @@ class _MoreInfoPageState extends State<MoreInfoPage> {
     return Card(
       elevation: 4,
       shadowColor: Colors.black26,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -220,10 +221,10 @@ class _MoreInfoPageState extends State<MoreInfoPage> {
             _isLoadingAllergies
                 ? const Center(child: CircularProgressIndicator())
                 : _buildInfoRow(
-                    Icons.no_food,
-                    'Allergies',
-                    _allergies.isEmpty ? 'None' : _allergies.join(", "),
-                  ),
+                  Icons.no_food,
+                  'Allergies',
+                  _allergies.isEmpty ? 'None' : _allergies.join(", "),
+                ),
           ],
         ),
       ),
@@ -248,10 +249,7 @@ class _MoreInfoPageState extends State<MoreInfoPage> {
             children: [
               Text(
                 label,
-                style: TextStyle(
-                  color: Colors.grey[600],
-                  fontSize: 12,
-                ),
+                style: TextStyle(color: Colors.grey[600], fontSize: 12),
               ),
               Text(
                 value.isNotEmpty ? value : 'Not set',

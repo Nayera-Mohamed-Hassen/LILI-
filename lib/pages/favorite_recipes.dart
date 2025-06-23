@@ -33,7 +33,7 @@ class FavoritesPage extends StatelessWidget {
         backgroundColor: Color(0xFF1F3354),
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
-        centerTitle: true,
+        centerTitle: false,
       ),
       body: Container(
         decoration: const BoxDecoration(
