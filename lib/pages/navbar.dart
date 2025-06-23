@@ -8,6 +8,7 @@ import 'profile.dart';
 import 'dash_board_page.dart';
 import '../user_session.dart';
 import 'newlib_sos_screen_wrapper.dart';
+import 'package:LILI/new Lib/views/screens/sos_screen.dart';
 
 class Navbar extends StatefulWidget {
   @override
@@ -28,7 +29,7 @@ class _NavbarState extends State<Navbar> {
     HomePage(),
     MainMenuPage(),
     ReportDashboard(userId: userId),
-    NewLibSosScreenWrapper(),
+    SosScreen(),
     ProfilePage(),
   ];
 
