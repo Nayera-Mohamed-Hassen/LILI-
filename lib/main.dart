@@ -48,10 +48,18 @@ void main() async {
   final prefs = await SharedPreferences.getInstance();
   final userId = prefs.getString('user_id');
   final houseId = prefs.getString('house_id');
+  final username = prefs.getString('username');
+  final name = prefs.getString('name');
   if (userId != null && userId.isNotEmpty) {
     UserSession().setUserId(userId);
     if (houseId != null) {
       UserSession().setHouseId(houseId);
+    }
+    if (username != null) {
+      UserSession().setUsername(username);
+    }
+    if (name != null) {
+      UserSession().setName(name);
     }
   }
 

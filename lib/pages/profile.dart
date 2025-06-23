@@ -400,6 +400,8 @@ class _ProfilePageState extends State<ProfilePage> {
                           final prefs = await SharedPreferences.getInstance();
                           await prefs.remove('user_id');
                           await prefs.remove('house_id');
+                          await prefs.remove('username');
+                          await prefs.remove('name');
 
                           // Close the dialog
                           Navigator.of(context).pop();

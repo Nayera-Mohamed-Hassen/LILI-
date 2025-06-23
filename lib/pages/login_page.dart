@@ -18,6 +18,7 @@ class _LoginPageState extends State<LoginPage> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
+  bool _rememberMe = false;
 
   @override
   Widget build(BuildContext context) {
@@ -74,6 +75,25 @@ class _LoginPageState extends State<LoginPage> {
                         _isPasswordVisible = !_isPasswordVisible;
                       });
                     },
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Checkbox(
+                        value: _rememberMe,
+                        onChanged: (value) {
+                          setState(() {
+                            _rememberMe = value ?? false;
+                          });
+                        },
+                        activeColor: Colors.white,
+                        checkColor: Color(0xFF1F3354),
+                      ),
+                      const Text(
+                        'Remember Me',
+                        style: TextStyle(color: Colors.white70, fontSize: 14),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 16),
                   Row(
@@ -252,10 +272,14 @@ class _LoginPageState extends State<LoginPage> {
             final houseId = profile['house_Id']?.toString() ?? '';
             UserSession().setHouseId(houseId);
 
-            // Save userId and houseId to shared_preferences for persistent login
-            final prefs = await SharedPreferences.getInstance();
-            await prefs.setString('user_id', userId);
-            await prefs.setString('house_id', houseId);
+            // Save userId, houseId, and username to shared_preferences for persistent login if Remember Me is checked
+            if (_rememberMe) {
+              final prefs = await SharedPreferences.getInstance();
+              await prefs.setString('user_id', userId);
+              await prefs.setString('house_id', houseId);
+              await prefs.setString('username', profile['username'] ?? '');
+              await prefs.setString('name', profile['name'] ?? '');
+            }
 
             if (houseId.isEmpty) {
               Navigator.pushNamed(context, '/hosting');
