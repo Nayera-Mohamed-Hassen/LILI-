@@ -154,9 +154,9 @@ class _ProfilePageState extends State<ProfilePage> {
       setState(() {
         _feedbackStatus = 'Error saving feedback.';
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: $e')));
     } finally {
       setState(() {
         _isSavingFeedback = false;
@@ -176,7 +176,9 @@ class _ProfilePageState extends State<ProfilePage> {
         final houseId = data['house_Id'];
         if (houseId != null && houseId != "") {
           // Fetch household by houseId to get join_code
-          final urlHouse = Uri.parse('http://10.0.2.2:8000/user/household/$houseId');
+          final urlHouse = Uri.parse(
+            'http://10.0.2.2:8000/user/household/$houseId',
+          );
           final responseHouse = await http.get(urlHouse);
           if (responseHouse.statusCode == 200) {
             final houseData = jsonDecode(responseHouse.body);
@@ -195,7 +197,9 @@ class _ProfilePageState extends State<ProfilePage> {
     final userId = UserSession().getUserId();
     if (userId == null || userId.isEmpty) return;
     try {
-      final url = Uri.parse('http://10.0.2.2:8000/user/household-users/$userId');
+      final url = Uri.parse(
+        'http://10.0.2.2:8000/user/household-users/$userId',
+      );
       final response = await http.get(url);
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
@@ -299,7 +303,9 @@ class _ProfilePageState extends State<ProfilePage> {
       context: context,
       builder: (BuildContext context) {
         return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
           backgroundColor: Colors.white,
           child: Padding(
             padding: const EdgeInsets.all(0),
@@ -310,9 +316,14 @@ class _ProfilePageState extends State<ProfilePage> {
                 Container(
                   decoration: const BoxDecoration(
                     color: Color(0xFF1F3354),
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(20),
+                    ),
                   ),
-                  padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 20,
+                    horizontal: 24,
+                  ),
                   child: Row(
                     children: const [
                       Icon(Icons.logout, color: Colors.white, size: 28),
@@ -334,11 +345,17 @@ class _ProfilePageState extends State<ProfilePage> {
                   padding: const EdgeInsets.all(24),
                   child: Text(
                     'Are you sure you want to log out?',
-                    style: const TextStyle(fontSize: 16, color: Color(0xFF1F3354)),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: Color(0xFF1F3354),
+                    ),
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 8,
+                  ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
@@ -352,10 +369,18 @@ class _ProfilePageState extends State<ProfilePage> {
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF1F3354),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 24),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 14,
+                            horizontal: 24,
+                          ),
                         ),
-                        child: const Text('Logout', style: TextStyle(color: Colors.white)),
+                        child: const Text(
+                          'Logout',
+                          style: TextStyle(color: Colors.white),
+                        ),
                         onPressed: () async {
                           // Set isLoggedIn to false in the database
                           final userId = UserSession().getUserId();
@@ -375,7 +400,9 @@ class _ProfilePageState extends State<ProfilePage> {
 
                           // Navigate to the signing page and remove all previous routes
                           Navigator.of(context).pushAndRemoveUntil(
-                            MaterialPageRoute(builder: (context) => LoginPage()),
+                            MaterialPageRoute(
+                              builder: (context) => LoginPage(),
+                            ),
                             (Route<dynamic> route) => false,
                           );
                         },
@@ -407,7 +434,9 @@ class _ProfilePageState extends State<ProfilePage> {
       context: context,
       builder: (context) {
         return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
           backgroundColor: Colors.white,
           child: Padding(
             padding: const EdgeInsets.all(0),
@@ -418,9 +447,14 @@ class _ProfilePageState extends State<ProfilePage> {
                 Container(
                   decoration: const BoxDecoration(
                     color: Color(0xFF1F3354),
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(20),
+                    ),
                   ),
-                  padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 20,
+                    horizontal: 24,
+                  ),
                   child: Row(
                     children: const [
                       Icon(Icons.lock_reset, color: Colors.white, size: 28),
@@ -445,19 +479,26 @@ class _ProfilePageState extends State<ProfilePage> {
                       TextField(
                         controller: _newPasswordController,
                         obscureText: true,
-                        decoration: const InputDecoration(labelText: 'New Password'),
+                        decoration: const InputDecoration(
+                          labelText: 'New Password',
+                        ),
                       ),
                       const SizedBox(height: 12),
                       TextField(
                         controller: _confirmPasswordController,
                         obscureText: true,
-                        decoration: const InputDecoration(labelText: 'Confirm Password'),
+                        decoration: const InputDecoration(
+                          labelText: 'Confirm Password',
+                        ),
                       ),
                     ],
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 8,
+                  ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
@@ -469,36 +510,56 @@ class _ProfilePageState extends State<ProfilePage> {
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF1F3354),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 24),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 14,
+                            horizontal: 24,
+                          ),
                         ),
                         onPressed: () async {
-                          final newPassword = _newPasswordController.text.trim();
-                          final confirmPassword = _confirmPasswordController.text.trim();
+                          final newPassword =
+                              _newPasswordController.text.trim();
+                          final confirmPassword =
+                              _confirmPasswordController.text.trim();
                           if (newPassword.isEmpty || confirmPassword.isEmpty) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Please fill in both fields')),
+                              const SnackBar(
+                                content: Text('Please fill in both fields'),
+                              ),
                             );
                             return;
                           }
                           if (newPassword != confirmPassword) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Passwords do not match')),
+                              const SnackBar(
+                                content: Text('Passwords do not match'),
+                              ),
                             );
                             return;
                           }
                           // Call backend to update password
                           try {
                             final userId = UserSession().getUserId();
-                            final response = await resetPassword(userId, newPassword);
+                            final response = await resetPassword(
+                              userId,
+                              newPassword,
+                            );
                             if (response) {
                               Navigator.of(context).pop();
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Password updated successfully')),
+                                const SnackBar(
+                                  content: Text(
+                                    'Password updated successfully',
+                                  ),
+                                ),
                               );
                             } else {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Failed to update password')),
+                                const SnackBar(
+                                  content: Text('Failed to update password'),
+                                ),
                               );
                             }
                           } catch (e) {
@@ -507,7 +568,10 @@ class _ProfilePageState extends State<ProfilePage> {
                             );
                           }
                         },
-                        child: const Text('Update', style: TextStyle(color: Colors.white)),
+                        child: const Text(
+                          'Update',
+                          style: TextStyle(color: Colors.white),
+                        ),
                       ),
                     ],
                   ),
@@ -526,10 +590,7 @@ class _ProfilePageState extends State<ProfilePage> {
     final response = await http.post(
       url,
       headers: {"Content-Type": "application/json"},
-      body: jsonEncode({
-        "user_id": userId,
-        "new_password": newPassword,
-      }),
+      body: jsonEncode({"user_id": userId, "new_password": newPassword}),
     );
     return response.statusCode == 200;
   }
@@ -544,55 +605,65 @@ class _ProfilePageState extends State<ProfilePage> {
         bool showProfile = _showProfileToOthers;
         bool activityStatus = _enableActivityStatus;
         return StatefulBuilder(
-          builder: (context, setState) => Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Privacy Settings',
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 24),
-                SwitchListTile(
-                  value: showProfile,
-                  onChanged: (val) => setState(() => showProfile = val),
-                  title: const Text('Show my profile to others'),
-                  subtitle: const Text('Allow your profile to be visible to other users.'),
-                ),
-                SwitchListTile(
-                  value: activityStatus,
-                  onChanged: (val) => setState(() => activityStatus = val),
-                  title: const Text('Enable activity status'),
-                  subtitle: const Text('Let others see when you are active.'),
-                ),
-                const SizedBox(height: 24),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
+          builder:
+              (context, setState) => Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      child: const Text('Cancel'),
+                    const Text(
+                      'Privacy Settings',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                    ElevatedButton(
-                      onPressed: () {
-                        setState(() {
-                          _showProfileToOthers = showProfile;
-                          _enableActivityStatus = activityStatus;
-                        });
-                        Navigator.of(context).pop();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Privacy settings updated')),
-                        );
-                      },
-                      child: const Text('Save'),
+                    const SizedBox(height: 24),
+                    SwitchListTile(
+                      value: showProfile,
+                      onChanged: (val) => setState(() => showProfile = val),
+                      title: const Text('Show my profile to others'),
+                      subtitle: const Text(
+                        'Allow your profile to be visible to other users.',
+                      ),
+                    ),
+                    SwitchListTile(
+                      value: activityStatus,
+                      onChanged: (val) => setState(() => activityStatus = val),
+                      title: const Text('Enable activity status'),
+                      subtitle: const Text(
+                        'Let others see when you are active.',
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: const Text('Cancel'),
+                        ),
+                        ElevatedButton(
+                          onPressed: () {
+                            setState(() {
+                              _showProfileToOthers = showProfile;
+                              _enableActivityStatus = activityStatus;
+                            });
+                            Navigator.of(context).pop();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Privacy settings updated'),
+                              ),
+                            );
+                          },
+                          child: const Text('Save'),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ],
-            ),
-          ),
+              ),
         );
       },
     );
@@ -601,7 +672,9 @@ class _ProfilePageState extends State<ProfilePage> {
   void _fetchNotifications() async {
     setState(() => _loadingNotifications = true);
     try {
-      final notifs = await NotificationService().fetchNotifications(UserSession().getUserId().toString());
+      final notifs = await NotificationService().fetchNotifications(
+        UserSession().getUserId().toString(),
+      );
       setState(() {
         _latestNotifications = notifs.take(5).toList();
         _loadingNotifications = false;
@@ -638,16 +711,28 @@ class _ProfilePageState extends State<ProfilePage> {
                   padding: const EdgeInsets.all(16.0),
                   child: Text('No notifications'),
                 )
-              else ..._latestNotifications.map((notif) => ListTile(
-                leading: Icon(_iconForType(notif.type), color: notif.isRead ? Colors.grey : Colors.blue),
-                title: Text(notif.title, style: TextStyle(fontWeight: notif.isRead ? FontWeight.normal : FontWeight.bold)),
-                onTap: () async {
-                  await NotificationService().markAsRead(notif.id);
-                  _fetchNotifications();
-                  setState(() => _dropdownOpen = false);
-                  _handleNotificationTap(notif);
-                },
-              )),
+              else
+                ..._latestNotifications.map(
+                  (notif) => ListTile(
+                    leading: Icon(
+                      _iconForType(notif.type),
+                      color: notif.isRead ? Colors.grey : Colors.blue,
+                    ),
+                    title: Text(
+                      notif.title,
+                      style: TextStyle(
+                        fontWeight:
+                            notif.isRead ? FontWeight.normal : FontWeight.bold,
+                      ),
+                    ),
+                    onTap: () async {
+                      await NotificationService().markAsRead(notif.id);
+                      _fetchNotifications();
+                      setState(() => _dropdownOpen = false);
+                      _handleNotificationTap(notif);
+                    },
+                  ),
+                ),
               Divider(),
               if (_latestNotifications.any((n) => !n.isRead))
                 TextButton.icon(
@@ -655,11 +740,15 @@ class _ProfilePageState extends State<ProfilePage> {
                   label: Text('Mark All as Read'),
                   onPressed: () async {
                     final userId = UserSession().getUserId().toString();
-                    final success = await NotificationService().markAllAsRead(userId);
+                    final success = await NotificationService().markAllAsRead(
+                      userId,
+                    );
                     if (success) {
                       _fetchNotifications();
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('All notifications marked as read!')),
+                        SnackBar(
+                          content: Text('All notifications marked as read!'),
+                        ),
                       );
                     }
                   },
@@ -672,9 +761,10 @@ class _ProfilePageState extends State<ProfilePage> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => NotificationsPage(
-                        userId: UserSession().getUserId().toString(),
-                      ),
+                      builder:
+                          (context) => NotificationsPage(
+                            userId: UserSession().getUserId().toString(),
+                          ),
                     ),
                   );
                 },
@@ -688,13 +778,29 @@ class _ProfilePageState extends State<ProfilePage> {
 
   void _handleNotificationTap(NotificationModel notif) {
     if (notif.type == 'task' && notif.data['task_id'] != null) {
-      Navigator.pushNamed(context, '/task home', arguments: notif.data['task_id']);
+      Navigator.pushNamed(
+        context,
+        '/task home',
+        arguments: notif.data['task_id'],
+      );
     } else if (notif.type == 'recipe' && notif.data['recipe_id'] != null) {
-      Navigator.pushNamed(context, '/Recipe', arguments: notif.data['recipe_id']);
+      Navigator.pushNamed(
+        context,
+        '/Recipe',
+        arguments: notif.data['recipe_id'],
+      );
     } else if (notif.type == 'inventory' && notif.data['item_name'] != null) {
-      Navigator.pushNamed(context, '/inventory', arguments: notif.data['item_name']);
+      Navigator.pushNamed(
+        context,
+        '/inventory',
+        arguments: notif.data['item_name'],
+      );
     } else if (notif.type == 'spending' && notif.data['category'] != null) {
-      Navigator.pushNamed(context, '/Expenses ', arguments: notif.data['category']);
+      Navigator.pushNamed(
+        context,
+        '/Expenses ',
+        arguments: notif.data['category'],
+      );
     }
   }
 
@@ -732,85 +838,85 @@ class _ProfilePageState extends State<ProfilePage> {
               child:
                   _isLoading
                       ? const Center(
-                          child: CircularProgressIndicator(color: Colors.white),
-                        )
+                        child: CircularProgressIndicator(color: Colors.white),
+                      )
                       : _error.isNotEmpty
-                          ? Center(
-                              child: Text(
-                                _error,
-                                style: const TextStyle(color: Colors.red),
-                              ),
-                            )
-                          : CustomScrollView(
-                              slivers: [
-                                SliverAppBar(
-                                  backgroundColor: Colors.transparent,
-                                  elevation: 0,
-                                  pinned: true,
-                                  expandedHeight: 200,
-                                  automaticallyImplyLeading: false,
-                                  flexibleSpace: FlexibleSpaceBar(
-                                    background: Center(
-                                      child: Column(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          Container(
-                                            decoration: BoxDecoration(
-                                              shape: BoxShape.circle,
-                                              border: Border.all(
-                                                color: Colors.white,
-                                                width: 4,
-                                              ),
-                                            ),
-                                            child: CircleAvatar(
-                                              radius: 50,
-                                              backgroundColor: Colors.white24,
-                                              child: Text(
-                                                user.name.isNotEmpty
-                                                    ? user.name[0].toUpperCase()
-                                                    : '?',
-                                                style: const TextStyle(
-                                                  fontSize: 40,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Colors.white,
-                                                ),
-                                              ),
-                                            ),
+                      ? Center(
+                        child: Text(
+                          _error,
+                          style: const TextStyle(color: Colors.red),
+                        ),
+                      )
+                      : CustomScrollView(
+                        slivers: [
+                          SliverAppBar(
+                            backgroundColor: Colors.transparent,
+                            elevation: 0,
+                            pinned: true,
+                            expandedHeight: 200,
+                            automaticallyImplyLeading: false,
+                            flexibleSpace: FlexibleSpaceBar(
+                              background: Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                          color: Colors.white,
+                                          width: 4,
+                                        ),
+                                      ),
+                                      child: CircleAvatar(
+                                        radius: 50,
+                                        backgroundColor: Colors.white24,
+                                        child: Text(
+                                          user.name.isNotEmpty
+                                              ? user.name[0].toUpperCase()
+                                              : '?',
+                                          style: const TextStyle(
+                                            fontSize: 40,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
                                           ),
-                                          const SizedBox(height: 16),
-                                          Text(
-                                            user.name,
-                                            style: const TextStyle(
-                                              fontSize: 24,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                        ],
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                ),
-                                SliverToBoxAdapter(
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(16),
-                                    child: Column(
-                                      children: [
-                                        _buildHouseholdUsersCard(),
-                                        const SizedBox(height: 24),
-                                        _buildInfoCard(),
-                                        const SizedBox(height: 24),
-                                        _buildActionButtons(),
-                                        const SizedBox(height: 24),
-                                        _buildSettingsSection(),
-                                        const SizedBox(height: 24),
-                                        _buildFeedbackCard(),
-                                      ],
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      user.name,
+                                      style: const TextStyle(
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                      ),
                                     ),
-                                  ),
+                                  ],
                                 ),
-                              ],
+                              ),
                             ),
+                          ),
+                          SliverToBoxAdapter(
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                children: [
+                                  _buildHouseholdUsersCard(),
+                                  const SizedBox(height: 24),
+                                  _buildInfoCard(),
+                                  const SizedBox(height: 24),
+                                  _buildActionButtons(),
+                                  const SizedBox(height: 24),
+                                  _buildSettingsSection(),
+                                  const SizedBox(height: 24),
+                                  _buildFeedbackCard(),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
             ),
           ),
           // Notification bell and dropdown overlay
@@ -838,19 +944,39 @@ class _ProfilePageState extends State<ProfilePage> {
                               offset: Offset(0, 4),
                             ),
                           ],
-                          border: Border.all(color: Colors.white.withOpacity(0.4), width: 2),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.4),
+                            width: 2,
+                          ),
                         ),
                         padding: EdgeInsets.all(10),
-                        child: Icon(FontAwesomeIcons.bell, size: 28, color: Colors.white),
+                        child: Icon(
+                          FontAwesomeIcons.bell,
+                          size: 28,
+                          color: Colors.white,
+                        ),
                       ),
                       if (_latestNotifications.any((n) => !n.isRead))
                         Positioned(
                           right: 0,
                           child: Container(
                             padding: EdgeInsets.all(2),
-                            decoration: BoxDecoration(color: Colors.red, borderRadius: BorderRadius.circular(6)),
-                            constraints: BoxConstraints(minWidth: 12, minHeight: 12),
-                            child: Text('!', style: TextStyle(color: Colors.white, fontSize: 8), textAlign: TextAlign.center),
+                            decoration: BoxDecoration(
+                              color: Colors.red,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            constraints: BoxConstraints(
+                              minWidth: 12,
+                              minHeight: 12,
+                            ),
+                            child: Text(
+                              '!',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 8,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
                           ),
                         ),
                     ],
@@ -991,14 +1117,6 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
           const Divider(height: 1),
           _buildSettingsTile(
-            'Notifications',
-            Icons.notifications_none,
-            onTap: () {
-              // Handle notifications settings
-            },
-          ),
-          const Divider(height: 1),
-          _buildSettingsTile(
             'Reset Password',
             Icons.lock_reset,
             onTap: _showResetPasswordDialog,
@@ -1052,7 +1170,9 @@ class _ProfilePageState extends State<ProfilePage> {
       context: context,
       builder: (context) {
         return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
           backgroundColor: Colors.white,
           child: Padding(
             padding: const EdgeInsets.all(0),
@@ -1063,9 +1183,14 @@ class _ProfilePageState extends State<ProfilePage> {
                 Container(
                   decoration: const BoxDecoration(
                     color: Color(0xFF1F3354),
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(20),
+                    ),
                   ),
-                  padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 20,
+                    horizontal: 24,
+                  ),
                   child: Row(
                     children: const [
                       Icon(Icons.help_outline, color: Colors.white, size: 28),
@@ -1091,14 +1216,24 @@ class _ProfilePageState extends State<ProfilePage> {
                       children: const [
                         Text('Need help or have questions?'),
                         SizedBox(height: 12),
-                        Text('• For technical support, app issues, or feedback, please contact us:'),
+                        Text(
+                          '• For technical support, app issues, or feedback, please contact us:',
+                        ),
                         SizedBox(height: 8),
-                        SelectableText('Email: support@liliapp.com', style: TextStyle(fontWeight: FontWeight.bold)),
+                        SelectableText(
+                          'Email: support@liliapp.com',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
                         SizedBox(height: 8),
-                        Text('• You can also reach us through the in-app feedback section below.'),
+                        Text(
+                          '• You can also reach us through the in-app feedback section below.',
+                        ),
                         SizedBox(height: 12),
                         Text('• For urgent issues, call us at:'),
-                        SelectableText('+1-800-555-LILI', style: TextStyle(fontWeight: FontWeight.bold)),
+                        SelectableText(
+                          '+1-800-555-LILI',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
                         SizedBox(height: 16),
                         Text('Thank you for using LILI!'),
                       ],
@@ -1106,15 +1241,23 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 8,
+                  ),
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF1F3354),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                       padding: const EdgeInsets.symmetric(vertical: 14),
                     ),
                     onPressed: () => Navigator.of(context).pop(),
-                    child: const Text('Close', style: TextStyle(fontSize: 16, color: Colors.white)),
+                    child: const Text(
+                      'Close',
+                      style: TextStyle(fontSize: 16, color: Colors.white),
+                    ),
                   ),
                 ),
               ],
@@ -1153,17 +1296,20 @@ class _ProfilePageState extends State<ProfilePage> {
             const SizedBox(height: 12),
             Row(
               children: [
-                ...List.generate(5, (index) => IconButton(
-                  icon: Icon(
-                    _feedbackRating > index ? Icons.star : Icons.star_border,
-                    color: Colors.amber,
+                ...List.generate(
+                  5,
+                  (index) => IconButton(
+                    icon: Icon(
+                      _feedbackRating > index ? Icons.star : Icons.star_border,
+                      color: Colors.amber,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _feedbackRating = index + 1;
+                      });
+                    },
                   ),
-                  onPressed: () {
-                    setState(() {
-                      _feedbackRating = index + 1;
-                    });
-                  },
-                )),
+                ),
                 const SizedBox(width: 8),
                 Text(_feedbackRating > 0 ? '$_feedbackRating/5' : 'Rate us'),
               ],
@@ -1193,18 +1339,24 @@ class _ProfilePageState extends State<ProfilePage> {
               children: [
                 ElevatedButton.icon(
                   onPressed: _isSavingFeedback ? null : _saveFeedback,
-                  icon: _isSavingFeedback
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                        )
-                      : const Icon(Icons.save),
+                  icon:
+                      _isSavingFeedback
+                          ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                          : const Icon(Icons.save),
                   label: const Text('Save'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF1F3354),
                     foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 ),
               ],
@@ -1215,7 +1367,10 @@ class _ProfilePageState extends State<ProfilePage> {
                 child: Text(
                   _feedbackStatus,
                   style: TextStyle(
-                    color: _feedbackStatus.contains('saved') ? Colors.green : Colors.red,
+                    color:
+                        _feedbackStatus.contains('saved')
+                            ? Colors.green
+                            : Colors.red,
                   ),
                 ),
               ),
@@ -1238,8 +1393,10 @@ class _ProfilePageState extends State<ProfilePage> {
             children: const [
               Icon(Icons.group, color: Color(0xFF1F3354)),
               SizedBox(width: 12),
-              Text('No other members in your household.',
-                  style: TextStyle(fontSize: 16, color: Color(0xFF1F3354))),
+              Text(
+                'No other members in your household.',
+                style: TextStyle(fontSize: 16, color: Color(0xFF1F3354)),
+              ),
             ],
           ),
         ),
@@ -1276,53 +1433,88 @@ class _ProfilePageState extends State<ProfilePage> {
               return Column(
                 children: [
                   ListTile(
-                    contentPadding: const EdgeInsets.symmetric(vertical: 4, horizontal: 0),
-                    leading: member['profile_pic'] != null && member['profile_pic'].toString().isNotEmpty
-                        ? CircleAvatar(
-                            backgroundImage: NetworkImage(member['profile_pic']),
-                            radius: 26,
-                          )
-                        : const CircleAvatar(
-                            backgroundColor: Color(0xFF3E5879),
-                            radius: 26,
-                            child: Icon(Icons.person, color: Colors.white, size: 28),
-                          ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      vertical: 4,
+                      horizontal: 0,
+                    ),
+                    leading:
+                        member['profile_pic'] != null &&
+                                member['profile_pic'].toString().isNotEmpty
+                            ? CircleAvatar(
+                              backgroundImage: NetworkImage(
+                                member['profile_pic'],
+                              ),
+                              radius: 26,
+                            )
+                            : const CircleAvatar(
+                              backgroundColor: Color(0xFF3E5879),
+                              radius: 26,
+                              child: Icon(
+                                Icons.person,
+                                color: Colors.white,
+                                size: 28,
+                              ),
+                            ),
                     title: Row(
                       children: [
                         Text(
                           member['name'] ?? '',
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
                         ),
                         if (isMe)
                           Container(
                             margin: const EdgeInsets.only(left: 8),
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
                             decoration: BoxDecoration(
                               color: const Color(0xFF3E5879),
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: const Text('You', style: TextStyle(color: Colors.white, fontSize: 12)),
+                            child: const Text(
+                              'You',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                              ),
+                            ),
                           ),
                       ],
                     ),
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('@${member['username'] ?? ''}', style: const TextStyle(fontSize: 13)),
-                        Text(member['email'] ?? '', style: const TextStyle(fontSize: 13)),
+                        Text(
+                          '@${member['username'] ?? ''}',
+                          style: const TextStyle(fontSize: 13),
+                        ),
+                        Text(
+                          member['email'] ?? '',
+                          style: const TextStyle(fontSize: 13),
+                        ),
                       ],
                     ),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.info_outline, color: Color(0xFF1F3354)),
+                          icon: const Icon(
+                            Icons.info_outline,
+                            color: Color(0xFF1F3354),
+                          ),
                           tooltip: 'View Profile',
                           onPressed: () => _showMemberProfileDialog(member),
                         ),
                         if (!isMe)
                           IconButton(
-                            icon: const Icon(Icons.remove_circle_outline, color: Colors.red),
+                            icon: const Icon(
+                              Icons.remove_circle_outline,
+                              color: Colors.red,
+                            ),
                             tooltip: 'Remove from household',
                             onPressed: () => _confirmRemoveMember(member),
                           ),
@@ -1330,7 +1522,12 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                   ),
                   if (i < _householdUsers.length - 1)
-                    const Divider(height: 16, thickness: 1, indent: 8, endIndent: 8),
+                    const Divider(
+                      height: 16,
+                      thickness: 1,
+                      indent: 8,
+                      endIndent: 8,
+                    ),
                 ],
               );
             }),
@@ -1346,7 +1543,9 @@ class _ProfilePageState extends State<ProfilePage> {
       barrierDismissible: false,
       builder: (context) {
         return FutureBuilder<http.Response>(
-          future: http.get(Uri.parse('http://10.0.2.2:8000/user/profile/${member['user_id']}')),
+          future: http.get(
+            Uri.parse('http://10.0.2.2:8000/user/profile/${member['user_id']}'),
+          ),
           builder: (context, snapshot) {
             if (!snapshot.hasData) {
               return const AlertDialog(
@@ -1370,24 +1569,34 @@ class _ProfilePageState extends State<ProfilePage> {
             }
             final data = jsonDecode(snapshot.data!.body);
             return AlertDialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
               title: Row(
                 children: [
-                  data['profile_pic'] != null && data['profile_pic'].toString().isNotEmpty
+                  data['profile_pic'] != null &&
+                          data['profile_pic'].toString().isNotEmpty
                       ? CircleAvatar(
-                          backgroundImage: NetworkImage(data['profile_pic']),
-                          radius: 24,
-                        )
+                        backgroundImage: NetworkImage(data['profile_pic']),
+                        radius: 24,
+                      )
                       : const CircleAvatar(
-                          backgroundColor: Color(0xFF3E5879),
-                          radius: 24,
-                          child: Icon(Icons.person, color: Colors.white, size: 28),
+                        backgroundColor: Color(0xFF3E5879),
+                        radius: 24,
+                        child: Icon(
+                          Icons.person,
+                          color: Colors.white,
+                          size: 28,
                         ),
+                      ),
                   const SizedBox(width: 16),
                   Expanded(
                     child: Text(
                       data['name'] ?? '',
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
                     ),
                   ),
                 ],
@@ -1401,8 +1610,12 @@ class _ProfilePageState extends State<ProfilePage> {
                     Text('Email: ${data['email'] ?? ''}'),
                     Text('Phone: ${data['phone'] ?? ''}'),
                     Text('Birthday: ${data['user_birthday'] ?? ''}'),
-                    Text('Height: ${data['height'] != null ? data['height'].toString() : ''}'),
-                    Text('Weight: ${data['weight'] != null ? data['weight'].toString() : ''}'),
+                    Text(
+                      'Height: ${data['height'] != null ? data['height'].toString() : ''}',
+                    ),
+                    Text(
+                      'Weight: ${data['weight'] != null ? data['weight'].toString() : ''}',
+                    ),
                     Text('Diet: ${data['diet'] ?? ''}'),
                     Text('Gender: ${data['gender'] ?? ''}'),
                     // Add more fields if needed
@@ -1427,9 +1640,13 @@ class _ProfilePageState extends State<ProfilePage> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           title: const Text('Remove Member'),
-          content: Text('Are you sure you want to remove ${member['name']} from the household?'),
+          content: Text(
+            'Are you sure you want to remove ${member['name']} from the household?',
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
@@ -1468,9 +1685,9 @@ class _ProfilePageState extends State<ProfilePage> {
         );
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: $e')));
     }
   }
 }
