@@ -66,6 +66,6 @@ def start_scheduler():
     scheduler.add_job(check_inventory_alerts, 'interval', hours=1)
     scheduler.add_job(check_overdue_tasks, 'interval', hours=1)
     scheduler.add_job(delete_old_completed_tasks, 'interval', hours=1)
-    scheduler.start() 
-    scheduler.start()
+    if not scheduler.running:
+        scheduler.start()
     print("Notification scheduler started.") 
