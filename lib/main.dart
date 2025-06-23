@@ -39,19 +39,35 @@ import 'package:provider/provider.dart';
 import 'package:LILI/services/task_service.dart';
 import 'new Lib/views/screens/calendar_screen.dart';
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Check for persistent login
+  final prefs = await SharedPreferences.getInstance();
+  final userId = prefs.getString('user_id');
+  final houseId = prefs.getString('house_id');
+  if (userId != null && userId.isNotEmpty) {
+    UserSession().setUserId(userId);
+    if (houseId != null) {
+      UserSession().setHouseId(houseId);
+    }
+  }
+
   runApp(
     MultiProvider(
       providers: [ChangeNotifierProvider(create: (_) => TaskService())],
-      child: LiliApp(),
+      child: LiliApp(isLoggedIn: userId != null && userId.isNotEmpty),
     ),
   );
 }
 
 class LiliApp extends StatelessWidget {
+  final bool isLoggedIn;
+
+  LiliApp({this.isLoggedIn = false});
+
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
@@ -61,7 +77,7 @@ class LiliApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         scaffoldBackgroundColor: Color(0xFFF2F2F2),
       ),
-      initialRoute: '/',
+      initialRoute: isLoggedIn ? '/homepage' : '/',
       routes: {
         '/': (context) => OnBoarding(),
         '/menu': (context) => MenuItem(),

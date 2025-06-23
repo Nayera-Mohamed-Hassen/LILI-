@@ -16,6 +16,7 @@ import 'package:LILI/pages/notifications_page.dart';
 import '../services/notification_service.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../models/notification.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ProfilePage extends StatefulWidget {
   @override
@@ -394,6 +395,11 @@ class _ProfilePageState extends State<ProfilePage> {
                           // Clear the user session
                           UserSession().setUserId('');
                           UserSession().setRecipeCount(1);
+
+                          // Clear persistent login
+                          final prefs = await SharedPreferences.getInstance();
+                          await prefs.remove('user_id');
+                          await prefs.remove('house_id');
 
                           // Close the dialog
                           Navigator.of(context).pop();

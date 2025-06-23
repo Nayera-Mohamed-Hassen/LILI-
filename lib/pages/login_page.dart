@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../user_session.dart';
 import 'package:LILI/services/user_service.dart';
@@ -250,6 +251,12 @@ class _LoginPageState extends State<LoginPage> {
             }
             final houseId = profile['house_Id']?.toString() ?? '';
             UserSession().setHouseId(houseId);
+
+            // Save userId and houseId to shared_preferences for persistent login
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.setString('user_id', userId);
+            await prefs.setString('house_id', houseId);
+
             if (houseId.isEmpty) {
               Navigator.pushNamed(context, '/hosting');
             } else {
