@@ -16,6 +16,7 @@ from email.mime.multipart import MIMEMultipart
 import json
 from ..notification_utils import create_notification
 from apscheduler.schedulers.background import BackgroundScheduler
+import re
 
 
 router = APIRouter(prefix="/user", tags=["User"])
@@ -39,7 +40,31 @@ class UserSignup(BaseModel):
 
 @router.post("/signup")
 def signup(user: UserSignup):
-    print("Received signup data:", user)
+    # Email validation
+    email_regex = r'^[\w\.-]+@[\w\.-]+\.[a-zA-Z]{2,}$'
+    if not re.match(email_regex, user.email):
+        raise HTTPException(status_code=400, detail="Invalid email format.")
+    # Phone validation (10-15 digits, optional +)
+    phone_regex = r'^\+?\d{10,15}$'
+    if not re.match(phone_regex, user.phone):
+        raise HTTPException(status_code=400, detail="Invalid phone number format.")
+    # Password validation
+    if len(user.password) < 8 or not re.search(r'[A-Za-z]', user.password) or not re.search(r'\d', user.password):
+        raise HTTPException(status_code=400, detail="Password must be at least 8 characters and include a letter and a number.")
+    # Height and weight validation
+    if user.height is None or user.height <= 0:
+        raise HTTPException(status_code=400, detail="Height must be a positive number.")
+    if user.weight is None or user.weight <= 0:
+        raise HTTPException(status_code=400, detail="Weight must be a positive number.")
+    # Birthdate validation (at least 10 years old)
+    try:
+        birthdate = datetime.strptime(user.birthday, "%Y-%m-%d")
+        today = datetime.today()
+        age = today.year - birthdate.year - ((today.month, today.day) < (birthdate.month, birthdate.day))
+        if age < 10:
+            raise HTTPException(status_code=400, detail="You must be at least 10 years old to sign up.")
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid birthdate format. Use YYYY-MM-DD.")
     # Always convert house_id to string
     house_id_str = str(user.house_id) if user.house_id is not None else ""
     # Uniqueness check
@@ -1095,8 +1120,18 @@ def get_household_users(user_id: str):
 @router.post("/remove-from-household")
 def remove_from_household(data: dict = Body(...)):
     user_id = data.get("user_id")
-    if not user_id:
-        raise HTTPException(status_code=400, detail="user_id required")
+    admin_id = data.get("admin_id")
+    if not user_id or not admin_id:
+        raise HTTPException(status_code=400, detail="user_id and admin_id required")
+    # Check admin_id is admin in the same household
+    admin_user = selectUser(query={"_id": admin_id})
+    if not admin_user or admin_user[0].get("user_role") != "admin":
+        raise HTTPException(status_code=403, detail="Only an admin can remove users from the household.")
+    house_id = admin_user[0].get("house_Id")
+    # Check user to be removed is in the same household
+    user_to_remove = selectUser(query={"_id": user_id})
+    if not user_to_remove or user_to_remove[0].get("house_Id") != house_id:
+        raise HTTPException(status_code=404, detail="User not found in the same household.")
     updated = updateUser(user_id, {"house_Id": ""})
     if updated:
         return {"message": "User removed from household"}

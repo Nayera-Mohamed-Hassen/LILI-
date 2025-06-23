@@ -1114,22 +1114,30 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Widget _buildSettingsSection() {
+    final myUserId = UserSession().getUserId();
+    final myMember = _householdUsers.firstWhere(
+      (u) => u['user_id'] == myUserId,
+      orElse: () => {},
+    );
+    final myRole = myMember['user_role'] ?? 'user';
     return Card(
       elevation: 4,
       shadowColor: Colors.black26,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Column(
         children: [
-          _buildSettingsTile(
-            'Add User',
-            Icons.person_add,
-            onTap: () {
-              showDetailSheet(context, "Household Join Code", [
-                _joinCode != null ? "Code: $_joinCode" : "No code available",
-              ], showCheckboxes: false);
-            },
-          ),
-          const Divider(height: 1),
+          if (myRole == 'admin')
+            _buildSettingsTile(
+              'Add User',
+              Icons.person_add,
+              onTap: () {
+                showDetailSheet(context, "Household Join Code", [
+                  _joinCode != null ? "Code: $_joinCode" : "No code available",
+                ], showCheckboxes: false);
+              },
+            ),
+          if (myRole == 'admin')
+            const Divider(height: 1),
           _buildSettingsTile(
             'Reset Password',
             Icons.lock_reset,
@@ -1549,7 +1557,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           tooltip: 'View Profile',
                           onPressed: () => _showMemberProfileDialog(member),
                         ),
-                        if (!isMe)
+                        if (!isMe && myRole == 'admin')
                           IconButton(
                             icon: const Icon(
                               Icons.remove_circle_outline,

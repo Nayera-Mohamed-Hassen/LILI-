@@ -367,6 +367,28 @@ class _InitSetupPageState extends State<InitSetupPage> {
   }
 
   Future<void> _handleFinish() async {
+    // Validate weight and height
+    final height = double.tryParse(_height.text);
+    final weight = double.tryParse(_weight.text);
+    if (height == null || height <= 0) {
+      _showError('Please enter a valid height (positive number)');
+      return;
+    }
+    if (weight == null || weight <= 0) {
+      _showError('Please enter a valid weight (positive number)');
+      return;
+    }
+    // Validate birthdate (at least 10 years old)
+    if (_selectedDate == null) {
+      _showError('Please select your date of birth');
+      return;
+    }
+    final now = DateTime.now();
+    final age = now.year - _selectedDate!.year - ((now.month < _selectedDate!.month || (now.month == _selectedDate!.month && now.day < _selectedDate!.day)) ? 1 : 0);
+    if (age < 10) {
+      _showError('You must be at least 10 years old to sign up');
+      return;
+    }
     try {
       final response = await http.post(
         Uri.parse('http://10.0.2.2:8000/user/signup'),
@@ -379,8 +401,8 @@ class _InitSetupPageState extends State<InitSetupPage> {
           "phone": widget.phone,
           "birthday": _dateController.text,
           "profile_pic": "",
-          "height": double.tryParse(_height.text),
-          "weight": double.tryParse(_weight.text),
+          "height": height,
+          "weight": weight,
           "diet": _selectedDiet,
           "gender": _selectedGender,
           "house_id": "",

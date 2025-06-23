@@ -38,10 +38,10 @@ class _LoginPageState extends State<LoginPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back, color: Colors.white),
-                    onPressed: () => Navigator.pop(context),
-                  ),
+                  // IconButton(
+                  //   icon: const Icon(Icons.arrow_back, color: Colors.white),
+                  //   onPressed: () => Navigator.pop(context),
+                  // ),
                   const SizedBox(height: 32),
                   const Text(
                     'Welcome\nBack',
@@ -240,7 +240,6 @@ class _LoginPageState extends State<LoginPage> {
       _showError('Please enter your username and password');
       return;
     }
-
     try {
       final response = await http.post(
         Uri.parse('http://10.0.2.2:8000/user/login'),

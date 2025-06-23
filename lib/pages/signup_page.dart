@@ -38,10 +38,10 @@ class _SignUpPageState extends State<SignUpPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back, color: Colors.white),
-                    onPressed: () => Navigator.pop(context),
-                  ),
+                  // IconButton(
+                  //   icon: const Icon(Icons.arrow_back, color: Colors.white),
+                  //   onPressed: () => Navigator.pop(context),
+                  // ),
                   const SizedBox(height: 32),
                   const Text(
                     'Create\nAccount',
@@ -229,12 +229,32 @@ class _SignUpPageState extends State<SignUpPage> {
       _showError('Please fill in all fields');
       return;
     }
-
+    // Email validation
+    final emailRegex = RegExp(r'^[\w\-.]+@([\w\-]+\.)+[\w\-]{2,4}$');
+    if (!emailRegex.hasMatch(_email.text)) {
+      _showError('Please enter a valid email address');
+      return;
+    }
+    // Phone validation (simple, 10-15 digits)
+    final phoneRegex = RegExp(r'^\+?\d{10,15}$');
+    if (!phoneRegex.hasMatch(_phoneNumber.text)) {
+      _showError('Please enter a valid phone number');
+      return;
+    }
+    // Password validation (min 8 chars, at least one letter and one number)
+    final password = _passwordController.text;
+    if (password.length < 8 ||
+        !RegExp(r'[A-Za-z]').hasMatch(password) ||
+        !RegExp(r'\d').hasMatch(password)) {
+      _showError(
+        'Password must be at least 8 characters and include a letter and a number',
+      );
+      return;
+    }
     if (_passwordController.text != _confirmPasswordController.text) {
       _showError('Passwords do not match');
       return;
     }
-
     // Uniqueness check before proceeding
     final response = await http.post(
       Uri.parse('http://10.0.2.2:8000/user/check-uniqueness'),
@@ -259,7 +279,6 @@ class _SignUpPageState extends State<SignUpPage> {
       _showError('Error checking uniqueness. Please try again.');
       return;
     }
-
     Navigator.push(
       context,
       MaterialPageRoute(
