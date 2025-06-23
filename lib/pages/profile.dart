@@ -205,7 +205,13 @@ class _ProfilePageState extends State<ProfilePage> {
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
         setState(() {
-          _householdUsers = List<Map<String, dynamic>>.from(data);
+          _householdUsers = List<Map<String, dynamic>>.from(
+            data.map((u) {
+              // Ensure user_role is present
+              if (!u.containsKey('user_role')) u['user_role'] = 'user';
+              return u;
+            }),
+          );
         });
       }
     } catch (e) {
@@ -1390,6 +1396,12 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Widget _buildHouseholdUsersCard() {
     final myUserId = UserSession().getUserId();
+    // Find my role
+    final myMember = _householdUsers.firstWhere(
+      (u) => u['user_id'] == myUserId,
+      orElse: () => {},
+    );
+    final myRole = myMember['user_role'] ?? 'user';
     if (_householdUsers.isEmpty) {
       return Card(
         elevation: 4,
@@ -1438,6 +1450,7 @@ class _ProfilePageState extends State<ProfilePage> {
               final i = entry.key;
               final member = entry.value;
               final isMe = member['user_id'] == myUserId;
+              final role = member['user_role'] ?? 'user';
               return Column(
                 children: [
                   ListTile(
@@ -1491,6 +1504,25 @@ class _ProfilePageState extends State<ProfilePage> {
                               ),
                             ),
                           ),
+                        Container(
+                          margin: const EdgeInsets.only(left: 8),
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          decoration: role == 'admin'
+                              ? BoxDecoration(
+                                  color: Colors.orange,
+                                  borderRadius: BorderRadius.circular(8),
+                                )
+                              : null,
+                          child: role == 'admin'
+                              ? const Text(
+                                  'Admin',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                  ),
+                                )
+                              : null,
+                        ),
                       ],
                     ),
                     subtitle: Column(
@@ -1525,6 +1557,15 @@ class _ProfilePageState extends State<ProfilePage> {
                             ),
                             tooltip: 'Remove from household',
                             onPressed: () => _confirmRemoveMember(member),
+                          ),
+                        if (!isMe && myRole == 'admin')
+                          IconButton(
+                            icon: Icon(
+                              role == 'admin' ? Icons.arrow_downward : Icons.arrow_upward,
+                              color: role == 'admin' ? Colors.orange : Colors.green,
+                            ),
+                            tooltip: role == 'admin' ? 'Demote to Standard' : 'Promote to Admin',
+                            onPressed: () => _confirmChangeRole(member, role == 'admin' ? 'user' : 'admin'),
                           ),
                       ],
                     ),
@@ -1647,28 +1688,96 @@ class _ProfilePageState extends State<ProfilePage> {
     showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
+        return Dialog(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(20),
           ),
-          title: const Text('Remove Member'),
-          content: Text(
-            'Are you sure you want to remove ${member['name']} from the household?',
+          backgroundColor: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.all(0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Container(
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF1F3354),
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(20),
+                    ),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 20,
+                    horizontal: 24,
+                  ),
+                  child: Row(
+                    children: const [
+                      Icon(Icons.remove_circle_outline, color: Colors.white, size: 28),
+                      SizedBox(width: 16),
+                      Expanded(
+                        child: Text(
+                          'Remove Member',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Text(
+                    'Are you sure you want to remove ${member['name']} from the household?',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: Color(0xFF1F3354),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 8,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        child: const Text('Cancel'),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                      const SizedBox(width: 8),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 14,
+                            horizontal: 24,
+                          ),
+                        ),
+                        child: const Text(
+                          'Remove',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        onPressed: () async {
+                          Navigator.of(context).pop();
+                          await _removeMember(member['user_id']);
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-              onPressed: () async {
-                Navigator.of(context).pop();
-                await _removeMember(member['user_id']);
-              },
-              child: const Text('Remove'),
-            ),
-          ],
         );
       },
     );
@@ -1696,6 +1805,45 @@ class _ProfilePageState extends State<ProfilePage> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Error: $e')));
+    }
+  }
+
+  void _confirmChangeRole(Map<String, dynamic> member, String newRole) async {
+    final action = newRole == 'admin' ? 'promote to Admin' : 'demote to Standard';
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Change Role'),
+        content: Text('Are you sure you want to $action for ${member['name']}?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Confirm'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      try {
+        final houseId = UserSession().getHouseId() ?? '';
+        await _userService.updateUserRole(
+          userId: member['user_id'],
+          newRole: newRole,
+          houseId: houseId,
+        );
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Role updated successfully.')),
+        );
+        _loadHouseholdUsers();
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update role: $e')),
+        );
+      }
     }
   }
 }

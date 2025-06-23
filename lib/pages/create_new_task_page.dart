@@ -31,6 +31,8 @@ class _CreateNewTaskPageState extends State<CreateNewTaskPage> {
   final UserService _userService = UserService();
   late TextEditingController _otherAssigneeController;
   bool _showOtherAssignee = false;
+  String _selectedPriority = 'Medium';
+  final List<String> _priorityOptions = ['Low', 'Medium', 'High'];
 
   @override
   void initState() {
@@ -46,6 +48,15 @@ class _CreateNewTaskPageState extends State<CreateNewTaskPage> {
         widget.taskToEdit?.category ?? widget.categories[0].name;
     _otherAssigneeController = TextEditingController();
     _selectedAssignee = widget.taskToEdit?.assignedTo;
+    _selectedPriority = widget.taskToEdit?.priority ?? 'Medium';
+    if (widget.taskToEdit != null &&
+        widget.taskToEdit!.category.isNotEmpty &&
+        !widget.categories.any((c) => c.name == widget.taskToEdit!.category)) {
+      widget.categories.insert(0, CategoryModel(
+        name: widget.taskToEdit!.category,
+        description: '',
+      ));
+    }
     _loadHouseholdUsers();
   }
 
@@ -65,7 +76,9 @@ class _CreateNewTaskPageState extends State<CreateNewTaskPage> {
       return;
     }
     try {
-      final url = Uri.parse('http://10.0.2.2:8000/user/household-users/$userId');
+      final url = Uri.parse(
+        'http://10.0.2.2:8000/user/household-users/$userId',
+      );
       final response = await http.get(url);
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
@@ -95,8 +108,18 @@ class _CreateNewTaskPageState extends State<CreateNewTaskPage> {
     }
   }
 
+  String get _myRole {
+    final myUserId = UserSession().getUserId();
+    final myMember = _householdUsers.firstWhere(
+      (u) => u['user_id'] == myUserId,
+      orElse: () => {},
+    );
+    return myMember['user_role'] ?? 'user';
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isAdmin = _myRole == 'admin';
     return Scaffold(
       appBar: AppBar(
         surfaceTintColor: Colors.transparent,
@@ -140,15 +163,18 @@ class _CreateNewTaskPageState extends State<CreateNewTaskPage> {
                 maxLines: 3,
               ),
               SizedBox(height: 16),
-              _buildAssigneeDropdown(),
-              if (_showOtherAssignee)
+              if (isAdmin) _buildAssigneeDropdown(),
+              if (!isAdmin)
+                Padding(padding: const EdgeInsets.only(bottom: 8.0)),
+              if (_showOtherAssignee && isAdmin)
                 Padding(
                   padding: const EdgeInsets.only(top: 12.0),
                   child: _buildTextField(
                     controller: _otherAssigneeController,
                     label: 'Enter Name',
                     validator: (value) {
-                      if (_showOtherAssignee && (value == null || value.isEmpty)) {
+                      if (_showOtherAssignee &&
+                          (value == null || value.isEmpty)) {
                         return 'Please enter a name';
                       }
                       return null;
@@ -159,6 +185,8 @@ class _CreateNewTaskPageState extends State<CreateNewTaskPage> {
               _buildDatePicker(),
               SizedBox(height: 16),
               _buildCategoryDropdown(),
+              SizedBox(height: 16),
+              _buildPriorityDropdown(),
               SizedBox(height: 24),
               ElevatedButton(
                 onPressed: () async {
@@ -170,20 +198,37 @@ class _CreateNewTaskPageState extends State<CreateNewTaskPage> {
                     final assignerId = UserSession().getUserId() ?? '';
                     String assigneeId = assignerId;
                     String assignedToDisplay = '';
-                    if (_showOtherAssignee) {
-                      assignedToDisplay = _otherAssigneeController.text;
-                      assigneeId = assignerId; // fallback: assign to self if not in household
-                    } else {
-                      // Find the selected household user by name
-                      final selectedMember = _householdUsers.firstWhere(
-                        (member) =>
-                          (member['name'] ?? member['username'] ?? member['email'] ?? '') == _selectedAssignee,
-                        orElse: () => {},
-                      );
-                      assignedToDisplay = _selectedAssignee ?? '';
-                      if (selectedMember.isNotEmpty && selectedMember['user_id'] != null) {
-                        assigneeId = selectedMember['user_id'];
+                    if (isAdmin) {
+                      if (_showOtherAssignee) {
+                        assignedToDisplay = _otherAssigneeController.text;
+                        assigneeId =
+                            assignerId; // fallback: assign to self if not in household
+                      } else {
+                        // Find the selected household user by name
+                        final selectedMember = _householdUsers.firstWhere(
+                          (member) =>
+                              (member['name'] ??
+                                  member['username'] ??
+                                  member['email'] ??
+                                  '') ==
+                              _selectedAssignee,
+                          orElse: () => {},
+                        );
+                        assignedToDisplay = _selectedAssignee ?? '';
+                        if (selectedMember.isNotEmpty &&
+                            selectedMember['user_id'] != null) {
+                          assigneeId = selectedMember['user_id'];
+                        }
                       }
+                    } else {
+                      // Standard user: can only assign to self
+                      assignedToDisplay =
+                          _householdUsers.firstWhere(
+                            (u) => u['user_id'] == assignerId,
+                            orElse: () => {'name': 'Me'},
+                          )['name'] ??
+                          'Me';
+                      assigneeId = assignerId;
                     }
                     final taskData = {
                       'title': _titleController.text,
@@ -195,6 +240,7 @@ class _CreateNewTaskPageState extends State<CreateNewTaskPage> {
                       'is_completed': widget.taskToEdit?.isCompleted ?? false,
                       'assignerId': assignerId,
                       'assigneeId': assigneeId,
+                      'priority': _selectedPriority,
                     };
 
                     if (widget.taskToEdit != null) {
@@ -336,22 +382,49 @@ class _CreateNewTaskPageState extends State<CreateNewTaskPage> {
     );
   }
 
+  Widget _buildPriorityDropdown() {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.white24),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: _selectedPriority,
+          isExpanded: true,
+          dropdownColor: Color(0xFF1F3354),
+          style: TextStyle(color: Colors.white),
+          icon: Icon(Icons.arrow_drop_down, color: Colors.white70),
+          items: _priorityOptions.map((priority) {
+            return DropdownMenuItem(
+              value: priority,
+              child: Text(priority),
+            );
+          }).toList(),
+          onChanged: (value) {
+            if (value != null) {
+              setState(() {
+                _selectedPriority = value;
+              });
+            }
+          },
+        ),
+      ),
+    );
+  }
+
   Widget _buildAssigneeDropdown() {
     if (_isLoadingMembers) {
       return Center(child: CircularProgressIndicator());
     }
     final List<DropdownMenuItem<String>> items = [
       ..._householdUsers.map((member) {
-        final name = member['name'] ?? member['username'] ?? member['email'] ?? '';
-        return DropdownMenuItem<String>(
-          value: name,
-          child: Text(name),
-        );
+        final name =
+            member['name'] ?? member['username'] ?? member['email'] ?? '';
+        return DropdownMenuItem<String>(value: name, child: Text(name));
       }),
-      DropdownMenuItem<String>(
-        value: '__other__',
-        child: Text('Other'),
-      ),
+      DropdownMenuItem<String>(value: '__other__', child: Text('Other')),
     ];
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 16),
@@ -361,10 +434,11 @@ class _CreateNewTaskPageState extends State<CreateNewTaskPage> {
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
-          value: _selectedAssignee != null &&
-                  items.any((item) => item.value == _selectedAssignee)
-              ? _selectedAssignee
-              : null,
+          value:
+              _selectedAssignee != null &&
+                      items.any((item) => item.value == _selectedAssignee)
+                  ? _selectedAssignee
+                  : null,
           hint: Text('Assigned To', style: TextStyle(color: Colors.white70)),
           isExpanded: true,
           dropdownColor: Color(0xFF1F3354),

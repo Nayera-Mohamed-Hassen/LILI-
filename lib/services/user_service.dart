@@ -109,4 +109,24 @@ class UserService {
       throw Exception('Failed to update profile: $e');
     }
   }
+
+  Future<void> updateUserRole({
+    required String userId,
+    required String newRole,
+    required String houseId,
+  }) async {
+    final url = Uri.parse('$baseUrl/update-user-role');
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'user_id': userId,
+        'new_role': newRole,
+        'house_id': houseId,
+      }),
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Failed to update user role: \\n${response.body}');
+    }
+  }
 }

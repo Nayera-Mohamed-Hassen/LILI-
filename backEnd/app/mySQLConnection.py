@@ -103,6 +103,14 @@ def updateUser(user_id: str, update_fields: dict) -> bool:
     except Exception as e:
         return False
 
+def updateUserRole(user_id: str, new_role: str) -> bool:
+    """Update a user's role. Returns True if modified, False otherwise or on error."""
+    try:
+        result = db["user_tbl"].update_one({"_id": user_id}, {"$set": {"user_role": new_role}})
+        return result.modified_count > 0
+    except Exception as e:
+        return False
+
 # Notification CRUD
 
 def insert_notification(title: str, body: str, user_id: str, is_read: bool = False) -> bool:

@@ -43,6 +43,7 @@ class _TasksHomePageState extends State<TasksHomePage> {
   Widget build(BuildContext context) {
     return Consumer<TaskService>(
       builder: (context, taskService, child) {
+        allTasks = taskService.tasks; // Always keep allTasks up to date
         final filteredTasks = taskService.getFilteredTasks(
           filter: selectedFilter,
           searchQuery: searchQuery,
@@ -343,6 +344,7 @@ class _TasksHomePageState extends State<TasksHomePage> {
                         ),
                       ),
                     ),
+                    _buildPriorityChip(task.priority),
                     Transform.scale(
                       scale: 1.2,
                       child: Checkbox(
@@ -427,6 +429,36 @@ class _TasksHomePageState extends State<TasksHomePage> {
           SizedBox(width: 4),
           Text(label, style: TextStyle(color: Colors.white60, fontSize: 12)),
         ],
+      ),
+    );
+  }
+
+  Widget _buildPriorityChip(String priority) {
+    Color color;
+    switch (priority) {
+      case 'High':
+        color = Colors.redAccent;
+        break;
+      case 'Low':
+        color = Colors.greenAccent;
+        break;
+      default:
+        color = Colors.orangeAccent;
+    }
+    return Container(
+      margin: EdgeInsets.only(left: 8),
+      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.8),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        priority,
+        style: TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+          fontSize: 12,
+        ),
       ),
     );
   }
@@ -667,82 +699,88 @@ class _TasksHomePageState extends State<TasksHomePage> {
   }
 
   Widget _buildCategoryList(TaskService taskService) {
-    return ListView.builder(
-      itemCount: categories.length,
-      itemBuilder: (context, index) {
-        final category = categories[index];
-        final categoryTasks =
-            allTasks.where((task) => task.category == category.name).toList();
+    return RefreshIndicator(
+      onRefresh: () async {
+        await taskService.fetchTasks();
+        setState(() {});
+      },
+      child: ListView.builder(
+        itemCount: categories.length,
+        itemBuilder: (context, index) {
+          final category = categories[index];
+          final categoryTasks =
+              allTasks.where((task) => task.category == category.name).toList();
 
-        return Card(
-          color: Color(0xFF1F3354),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15),
-          ),
-          margin: EdgeInsets.symmetric(vertical: 8),
-          child: ListTile(
-            title: Text(
-              category.name,
-              style: TextStyle(
-                color: Color(0xFFF5EFE7),
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+          return Card(
+            color: Color(0xFF1F3354),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(15),
+            ),
+            margin: EdgeInsets.symmetric(vertical: 8),
+            child: ListTile(
+              title: Text(
+                category.name,
+                style: TextStyle(
+                  color: Color(0xFFF5EFE7),
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-            subtitle: Text(
-              '${category.description} • ${categoryTasks.length} tasks',
-              style: TextStyle(color: Color(0xFFF5EFE7)),
-            ),
-            trailing: Icon(Icons.arrow_forward_ios, color: Color(0xFFF5EFE7)),
-            onTap: () {
-              showDialog(
-                context: context,
-                builder:
-                    (context) => AlertDialog(
-                      backgroundColor: Color(0xFF1F3354),
-                      title: Text(
-                        '${category.name} Tasks',
-                        style: TextStyle(color: Color(0xFFF5EFE7)),
-                      ),
-                      content: SizedBox(
-                        width: double.maxFinite,
-                        child: ListView.builder(
-                          shrinkWrap: true,
-                          itemCount: categoryTasks.length,
-                          itemBuilder: (context, i) {
-                            final task = categoryTasks[i];
-                            return ListTile(
-                              title: Text(
-                                task.title,
-                                style: TextStyle(color: Color(0xFFF5EFE7)),
-                              ),
-                              subtitle: Text(
-                                task.description,
-                                style: TextStyle(color: Color(0xFFF5EFE7)),
-                              ),
-                              // trailing: Text(
-                              //   '${(task.progress * 100).toInt()}%',
-                              //   style: TextStyle(color: Color(0xFFF5EFE7)),
-                              // ),
-                            );
-                          },
+              subtitle: Text(
+                '${category.description} • ${categoryTasks.length} tasks',
+                style: TextStyle(color: Color(0xFFF5EFE7)),
+              ),
+              trailing: Icon(Icons.arrow_forward_ios, color: Color(0xFFF5EFE7)),
+              onTap: () {
+                showDialog(
+                  context: context,
+                  builder:
+                      (context) => AlertDialog(
+                        backgroundColor: Color(0xFF1F3354),
+                        title: Text(
+                          '${category.name} Tasks',
+                          style: TextStyle(color: Color(0xFFF5EFE7)),
                         ),
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.of(context).pop(),
-                          child: Text(
-                            'Close',
-                            style: TextStyle(color: Color(0xFFF5EFE7)),
+                        content: SizedBox(
+                          width: double.maxFinite,
+                          child: ListView.builder(
+                            shrinkWrap: true,
+                            itemCount: categoryTasks.length,
+                            itemBuilder: (context, i) {
+                              final task = categoryTasks[i];
+                              return ListTile(
+                                title: Text(
+                                  task.title,
+                                  style: TextStyle(color: Color(0xFFF5EFE7)),
+                                ),
+                                subtitle: Text(
+                                  task.description,
+                                  style: TextStyle(color: Color(0xFFF5EFE7)),
+                                ),
+                                // trailing: Text(
+                                //   '${(task.progress * 100).toInt()}%',
+                                //   style: TextStyle(color: Color(0xFFF5EFE7)),
+                                // ),
+                              );
+                            },
                           ),
                         ),
-                      ],
-                    ),
-              );
-            },
-          ),
-        );
-      },
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            child: Text(
+                              'Close',
+                              style: TextStyle(color: Color(0xFFF5EFE7)),
+                            ),
+                          ),
+                        ],
+                      ),
+                );
+              },
+            ),
+          );
+        },
+      ),
     );
   }
 

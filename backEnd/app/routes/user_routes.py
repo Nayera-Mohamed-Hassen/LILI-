@@ -2,7 +2,7 @@ import os
 from typing import List, Optional, Union
 from datetime import datetime, timedelta
 from difflib import get_close_matches
-from fastapi import APIRouter, HTTPException, Request, Body, Query
+from fastapi import APIRouter, HTTPException, Request, Body, Query, Depends
 from pydantic import BaseModel
 from pymongo import MongoClient
 from ..recipeAI import get_recipe_recommendations, update_preferences_on_cook, get_user_preferences
@@ -119,7 +119,8 @@ async def create_household(data: HouseHold):
     if not user_result:
         raise HTTPException(status_code=404, detail="User not found")
     user_id = user_result[0]["_id"]
-    updateUser(user_id, {"house_Id": house_id})
+    # Assign admin role to the creator
+    updateUser(user_id, {"house_Id": house_id, "user_role": "admin"})
 
     return {"message": "Household created", "house_id": house_id, "join_code": join_code}
 
@@ -656,6 +657,7 @@ class Task(BaseModel):
     is_completed: bool = False
     assignerId: str
     assigneeId: str
+    priority: str = 'Medium'
 
 @router.post("/tasks/create")
 async def create_task(task: Task):
@@ -1048,7 +1050,12 @@ async def update_user_house(data: dict):
     house_id = data.get("house_id")
     if not user_id or not house_id:
         raise HTTPException(status_code=400, detail="user_id and house_id required")
-    updated = updateUser(user_id, {"house_Id": house_id})
+    # Assign standard user role when joining a house (unless already admin)
+    user = selectUser(query={"_id": user_id})
+    if user and user[0].get("user_role") != "admin":
+        updated = updateUser(user_id, {"house_Id": house_id, "user_role": "user"})
+    else:
+        updated = updateUser(user_id, {"house_Id": house_id})
     if updated:
         return {"message": "User's household updated"}
     else:
@@ -1079,7 +1086,8 @@ def get_household_users(user_id: str):
             "name": u.get("user_Name", ""),
             "username": u.get("username", ""),
             "email": u.get("user_email", ""),
-            "profile_pic": u.get("user_profilePic", "")
+            "profile_pic": u.get("user_profilePic", ""),
+            "user_role": u.get("user_role", "user"),
         }
         for u in users
     ]
@@ -1627,4 +1635,70 @@ async def update_goal_progress(data: UpdateGoalProgressRequest):
     except Exception as e:
         print(f"Error updating goal progress: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+from fastapi import Depends
+class UpdateUserRoleRequest(BaseModel):
+    user_id: str
+    new_role: str  # 'admin' or 'user'
+    house_id: str
+
+@router.post("/update-user-role")
+def update_user_role(req: UpdateUserRoleRequest):
+    # Only allow admin to change roles
+    requesting_user_id = req.user_id
+    new_role = req.new_role
+    target_user_id = req.user_id
+    house_id = req.house_id
+    # Find all users in the household
+    users = selectUser(query={"house_Id": house_id})
+    # Count current admins
+    admin_count = sum(1 for u in users if u.get("user_role") == "admin")
+    # Prevent demoting the last admin
+    if new_role == "user":
+        if admin_count <= 1:
+            raise HTTPException(status_code=400, detail="Cannot demote the last admin in the household.")
+    # Update the user's role
+    updated = updateUser(target_user_id, {"user_role": new_role})
+    if updated:
+        return {"message": f"User role updated to {new_role}"}
+    else:
+        raise HTTPException(status_code=404, detail="User not found or not updated")
+
+# --- Category Management ---
+class CategoryModel(BaseModel):
+    user_id: str
+    name: str
+    description: str = ""
+
+@router.post("/category/add")
+def add_category(category: CategoryModel):
+    client = MongoClient(os.getenv("MONGO_URI"))
+    db = client["lili"]
+    categories_collection = db["categories"]
+    # Prevent duplicates for the same user
+    if categories_collection.find_one({"user_id": category.user_id, "name": category.name}):
+        raise HTTPException(status_code=400, detail="Category already exists for this user")
+    categories_collection.insert_one(category.dict())
+    return {"status": "success", "message": "Category added"}
+
+@router.get("/categories/{user_id}")
+def get_categories(user_id: str):
+    client = MongoClient(os.getenv("MONGO_URI"))
+    db = client["lili"]
+    categories_collection = db["categories"]
+    categories = list(categories_collection.find({"user_id": user_id}))
+    for c in categories:
+        c["id"] = str(c["_id"])
+        c.pop("_id", None)
+    return {"categories": categories}
+
+@router.delete("/category/delete")
+def delete_category(user_id: str = Query(...), name: str = Query(...)):
+    client = MongoClient(os.getenv("MONGO_URI"))
+    db = client["lili"]
+    categories_collection = db["categories"]
+    result = categories_collection.delete_one({"user_id": user_id, "name": name})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Category not found for this user")
+    return {"status": "success", "message": "Category deleted"}
 

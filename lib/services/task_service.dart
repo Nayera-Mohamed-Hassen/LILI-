@@ -47,6 +47,7 @@ class TaskService extends ChangeNotifier {
           isCompleted: json['is_completed'],
           assignerId: json['assignerId'] ?? json['user_id'] ?? '',
           assigneeId: json['assigneeId'] ?? json['assigned_to_id'] ?? '',
+          priority: json['priority'] ?? 'Medium',
         )).toList();
         _error = null;
       } else {
@@ -122,6 +123,7 @@ class TaskService extends ChangeNotifier {
           isCompleted: taskData['is_completed'] ?? false,
           assignerId: taskData['assignerId'] ?? '',
           assigneeId: taskData['assigneeId'] ?? '',
+          priority: taskData['priority'] ?? 'Medium',
         );
         _tasks.add(newTask);
         notifyListeners();
