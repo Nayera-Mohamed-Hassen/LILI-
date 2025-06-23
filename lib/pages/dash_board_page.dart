@@ -68,7 +68,6 @@ class _ReportDashboardState extends State<ReportDashboard> {
         _isLoading = false;
       });
     } catch (e) {
-      print('Error loading budget data: $e');
       setState(() {
         goals = [];
         categorySpending = {};
@@ -90,7 +89,8 @@ class _ReportDashboardState extends State<ReportDashboard> {
       );
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
-        final List<dynamic> lowItems = data.where((item) {
+        final List<dynamic> lowItems =
+            data.where((item) {
           // Use the same low stock logic as inventory_page.dart
           final String category = item['category'] ?? '';
           final int quantity = item['quantity'] ?? 0;
@@ -144,30 +144,52 @@ class _ReportDashboardState extends State<ReportDashboard> {
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(24),
       child: SizedBox(
         width: 340,
-        height: 190,
+        height: 300,
         child: Card(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(24),
           ),
-          elevation: 4,
+          elevation: 10,
+          shadowColor: color.withOpacity(0.18),
           child: Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              color: color.withOpacity(0.6),
+              borderRadius: BorderRadius.circular(24),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.white.withOpacity(0.95),
+                  color.withOpacity(0.08),
+                ],
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: color.withOpacity(0.10),
+                  blurRadius: 24,
+                  offset: const Offset(0, 8),
+                ),
+              ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Icon(icon, size: 30, color: color),
+                Container(
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.12),
+                    shape: BoxShape.circle,
+                  ),
+                  padding: const EdgeInsets.all(16),
+                  child: Icon(icon, size: 38, color: color),
+                ),
                 Text(
                   value,
                   style: TextStyle(
-                    fontSize: 22,
+                    fontSize: 26,
                     fontWeight: FontWeight.bold,
                     color: color,
                   ),
@@ -175,13 +197,14 @@ class _ReportDashboardState extends State<ReportDashboard> {
                 Text(
                   title,
                   style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF1F3354),
                   ),
                 ),
                 Text(
                   subtitle,
-                  style: const TextStyle(fontSize: 12, color: Colors.black),
+                  style: const TextStyle(fontSize: 13, color: Colors.black54),
                 ),
               ],
             ),
@@ -203,43 +226,92 @@ class _ReportDashboardState extends State<ReportDashboard> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
+      backgroundColor: Colors.white,
       builder: (context) {
         List<bool> checked = List.generate(details.length, (index) => false);
-
-        return StatefulBuilder(
-          builder:
-              (context, setState) => Padding(
-                padding: const EdgeInsets.all(16),
+        return Padding(
+          padding: const EdgeInsets.only(top: 0, left: 0, right: 0, bottom: 16),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text(
-                      title,
-                      style: const TextStyle(
+              Container(
+                decoration: const BoxDecoration(
+                  color: Color(0xFF3E5879),
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                ),
+                padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
+                child: Row(
+                  children: const [
+                    Icon(Icons.inventory_2, color: Colors.white, size: 28),
+                    SizedBox(width: 16),
+                    Expanded(
+                      child: Text(
+                        'Low Inventory',
+                        style: TextStyle(
+                          color: Colors.white,
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 10),
-                    ...List.generate(details.length, (index) {
-                      return showCheckboxes
-                          ? CheckboxListTile(
-                            value: checked[index],
-                            title: Text(details[index]),
-                            controlAffinity: ListTileControlAffinity.leading,
-                            onChanged: (val) {
-                              setState(() {
-                                checked[index] = val!;
-                              });
-                            },
-                          )
-                          : ListTile(
-                            leading: const Icon(Icons.arrow_right),
-                            title: Text(details[index]),
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(24),
+                child: details.isEmpty || (details.length == 1 && details[0].contains('No low inventory'))
+                    ? const Center(
+                        child: Text(
+                          'No low inventory items!',
+                          style: TextStyle(fontSize: 16, color: Color(0xFF1F3354)),
+                        ),
+                      )
+                    : Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          ...List.generate(details.length, (index) {
+                            return Container(
+                              margin: const EdgeInsets.only(bottom: 12),
+                              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF3E5879).withOpacity(0.07),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.arrow_right, color: Color(0xFF3E5879)),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Text(
+                                      details[index],
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        color: Color(0xFF1F3354),
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                           );
                     }),
                   ],
                 ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF3E5879),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Close', style: TextStyle(fontSize: 16, color: Colors.white)),
+                ),
+              ),
+            ],
               ),
         );
       },
@@ -947,11 +1019,11 @@ class _ReportDashboardState extends State<ReportDashboard> {
     if (_isLoading) {
       return Scaffold(
         body: Container(
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [const Color(0xFF1F3354), const Color(0xFF3E5879)],
+              colors: [Color(0xFF1F3354), Color(0xFF3E5879)],
             ),
           ),
           child: const Center(
@@ -962,15 +1034,18 @@ class _ReportDashboardState extends State<ReportDashboard> {
     }
 
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
+      body: Stack(
+        children: [
+          Container(
+            decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [const Color(0xFF1F3354), const Color(0xFF3E5879)],
+                colors: [Color(0xFF1F3354), Color(0xFF3E5879)],
           ),
         ),
-        child: SafeArea(
+          ),
+          SafeArea(
           child: SingleChildScrollView(
             child: Padding(
               padding: const EdgeInsets.all(35),
@@ -992,24 +1067,13 @@ class _ReportDashboardState extends State<ReportDashboard> {
                           context,
                           'Low Inventory',
                           lowInventoryItems.isNotEmpty
-                              ? lowInventoryItems.map<String>((item) => item['name']).toList()
+                                ? lowInventoryItems
+                                    .map<String>((item) => item['name'])
+                                    .toList()
                               : ['No low inventory items!'],
                         ),
                       ),
-                      const SizedBox(height: 16),
-                      buildCard(
-                        'Home Workout',
-                        Icons.fitness_center,
-                        Colors.white,
-                        '3 exercises',
-                        '15 min, Cardio, Stretch',
-                        onTap:
-                            () => showDetailSheet(context, 'Home Workout', [
-                              '15 min Full Body Workout',
-                              '10 min Cardio Blast',
-                              '5 min Guided Stretch',
-                            ]),
-                      ),
+                        const SizedBox(height: 30),
                     ],
                   ),
                   const SizedBox(height: 30),
@@ -1024,6 +1088,7 @@ class _ReportDashboardState extends State<ReportDashboard> {
             ),
           ),
         ),
+        ],
       ),
     );
   }

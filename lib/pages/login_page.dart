@@ -250,7 +250,6 @@ class _LoginPageState extends State<LoginPage> {
             }
             final houseId = profile['house_Id']?.toString() ?? '';
             UserSession().setHouseId(houseId);
-            print(houseId);
             if (houseId.isEmpty) {
               Navigator.pushNamed(context, '/hosting');
             } else {

@@ -41,8 +41,6 @@ class CalendarController extends GetxController {
       );
       events.assignAll(fetchedEvents);
     } catch (e, st) {
-      print('[DEBUG] Failed to fetch events: $e');
-      print(st);
     } finally {
       isSyncing.value = false;
     }

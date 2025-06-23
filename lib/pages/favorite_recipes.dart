@@ -20,8 +20,6 @@ class FavoritesPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final favoriteRecipeItems = favoriteRecipes.toList();
 
-    print(favoriteRecipes.toString());
-
     return Scaffold(
       appBar: AppBar(
         title: const Text(

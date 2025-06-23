@@ -13,12 +13,14 @@ class SosScreen extends StatefulWidget {
 }
 
 class _SosScreenState extends State<SosScreen> {
-  late EmergencyController controller;
+  final EmergencyController controller = Get.put(
+    EmergencyController(),
+    permanent: true,
+  );
 
   @override
   void initState() {
     super.initState();
-    controller = Get.put(EmergencyController());
     controller.updateCurrentLocation();
   }
 
@@ -26,11 +28,11 @@ class _SosScreenState extends State<SosScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Colors.red.shade900, Colors.red.shade700],
+            colors: [Color(0xFF1F3354), Color(0xFF3E5879)],
           ),
         ),
         child: SafeArea(
@@ -96,65 +98,72 @@ class _SosScreenState extends State<SosScreen> {
           ),
         ),
         const SizedBox(height: 16),
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.1),
+        Card(
+          elevation: 8,
+          shadowColor: Colors.black26,
+          shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
-          child: Column(
-            children: [
-              ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: Colors.purple.withOpacity(0.2),
-                  child: const Icon(Icons.sos, color: Colors.purple),
-                ),
-                title: const Text(
-                  'Family',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
+          color: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: Colors.purple.withOpacity(0.2),
+                    child: const Icon(Icons.sos, color: Colors.purple),
+                  ),
+                  title: const Text(
+                    'Family',
+                    style: TextStyle(
+                      color: Color(0xFF1F3354),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  subtitle: const Text(
+                    'Send SOS',
+                    style: TextStyle(color: Colors.black54),
+                  ),
+                  trailing: Obx(
+                    () =>
+                        controller.isSendingSos.value
+                            ? const CircularProgressIndicator(strokeWidth: 2)
+                            : IconButton(
+                              icon: const Icon(
+                                Icons.notifications_active,
+                                color: Color(0xFF1F3354),
+                              ),
+                              onPressed: _sendSosNotification,
+                            ),
                   ),
                 ),
-                subtitle: const Text(
-                  'Send SOS',
-                  style: TextStyle(color: Colors.white70),
+                const Divider(color: Colors.black12),
+                _buildContactItem(
+                  'Police',
+                  '122',
+                  Icons.local_police,
+                  Colors.blue,
+                  type: EmergencyType.security,
                 ),
-                trailing: Obx(() => controller.isSendingSos.value
-                    ? const CircularProgressIndicator(strokeWidth: 2)
-                    : IconButton(
-                        icon: const Icon(
-                          Icons.notifications_active,
-                          color: Colors.white,
-                        ),
-                        onPressed: _sendSosNotification,
-                      )),
-              ),
-              const Divider(color: Colors.white24),
-              _buildContactItem(
-                'Police',
-                '122',
-                Icons.local_police,
-                Colors.blue,
-                type: EmergencyType.security,
-              ),
-              const Divider(color: Colors.white24),
-              _buildContactItem(
-                'Ambulance',
-                '123',
-                Icons.medical_services,
-                Colors.red,
-                type: EmergencyType.medical,
-              ),
-              const Divider(color: Colors.white24),
-              _buildContactItem(
-                'Fire Department',
-                '180',
-                Icons.local_fire_department,
-                Colors.orange,
-                type: EmergencyType.fire,
-              ),
-            ],
+                const Divider(color: Colors.black12),
+                _buildContactItem(
+                  'Ambulance',
+                  '123',
+                  Icons.medical_services,
+                  Colors.red,
+                  type: EmergencyType.medical,
+                ),
+                const Divider(color: Colors.black12),
+                _buildContactItem(
+                  'Fire Department',
+                  '180',
+                  Icons.local_fire_department,
+                  Colors.orange,
+                  type: EmergencyType.fire,
+                ),
+              ],
+            ),
           ),
         ),
       ],
@@ -176,20 +185,23 @@ class _SosScreenState extends State<SosScreen> {
       title: Text(
         name,
         style: const TextStyle(
-          color: Colors.white,
+          color: Color(0xFF1F3354),
           fontWeight: FontWeight.bold,
         ),
       ),
-      subtitle: Text(number, style: const TextStyle(color: Colors.white70)),
+      subtitle: Text(number, style: const TextStyle(color: Colors.black54)),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           IconButton(
-            icon: const Icon(Icons.phone, color: Colors.white),
+            icon: const Icon(Icons.phone, color: Color(0xFF1F3354)),
             onPressed: () => _launchEmergencyCall(number),
           ),
           IconButton(
-            icon: const Icon(Icons.notification_important, color: Colors.white),
+            icon: const Icon(
+              Icons.notification_important,
+              color: Color(0xFF1F3354),
+            ),
             onPressed: () => _sendEmergencyContactAlert(type, name),
           ),
         ],
@@ -198,11 +210,18 @@ class _SosScreenState extends State<SosScreen> {
   }
 
   void _sendEmergencyContactAlert(EmergencyType type, String name) async {
-    await controller.updateCurrentLocation();
+    final locationString =
+        controller.currentLocation.value.isNotEmpty
+            ? controller.currentLocation.value
+            : 'Lat: ${controller.currentLatitude.value}, Lng: ${controller.currentLongitude.value}';
     await controller.sendEmergencyAlert(
       type: type,
-      message: "Urgent: Contacted $name (${type.name})",
+      message:
+          "Urgent: Contacted $name (${type.name}) Location: $locationString",
+      additionalInfo: {'location': locationString},
     );
+    await controller.fetchAllAlerts();
+    setState(() {});
   }
 
   Widget _buildLocationMap() {
@@ -232,7 +251,8 @@ class _SosScreenState extends State<SosScreen> {
                 child: FlutterMap(
                   mapController: controller.mapController,
                   options: MapOptions(
-                    center: controller.selectedAlertLocation.value ??
+                    center:
+                        controller.selectedAlertLocation.value ??
                         LatLng(
                           controller.currentLatitude.value,
                           controller.currentLongitude.value,
@@ -313,8 +333,8 @@ class _SosScreenState extends State<SosScreen> {
             ),
             IconButton(
               icon: const Icon(Icons.refresh, color: Colors.white),
-              onPressed: () {
-                setState(() {});
+              onPressed: () async {
+                await controller.fetchAllAlerts();
               },
               tooltip: 'Refresh Alerts',
             ),
@@ -322,8 +342,17 @@ class _SosScreenState extends State<SosScreen> {
         ),
         const SizedBox(height: 16),
         Obx(() {
+          if (controller.isLoadingAlerts.value) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (controller.error.value.isNotEmpty) {
+            return Text(
+              controller.error.value,
+              style: const TextStyle(color: Colors.white70),
+            );
+          }
           final alerts =
-              controller.familyAlerts.toList()
+              controller.getActiveAlerts()
                 ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
           if (alerts.isEmpty) {
             return const Text(
@@ -335,7 +364,11 @@ class _SosScreenState extends State<SosScreen> {
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: alerts.length,
-            itemBuilder: (_, index) => _buildAlertItem(alerts[index]),
+            itemBuilder:
+                (_, index) => GestureDetector(
+                  onTap: () => _showAlertDetails(alerts[index]),
+                  child: _buildAlertItem(alerts[index]),
+                ),
           );
         }),
       ],
@@ -345,43 +378,177 @@ class _SosScreenState extends State<SosScreen> {
   Widget _buildAlertItem(EmergencyAlert alert) {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: _getColorForEmergencyType(
-            alert.type,
-          ).withOpacity(0.2),
-          child: Icon(
-            _getIconForEmergencyType(alert.type),
-            color: _getColorForEmergencyType(alert.type),
+      child: Card(
+        elevation: 4,
+        shadowColor: Colors.black12,
+        color: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: ListTile(
+          leading: CircleAvatar(
+            backgroundColor: _getColorForEmergencyType(
+              alert.type,
+            ).withOpacity(0.2),
+            child: Icon(
+              _getIconForEmergencyType(alert.type),
+              color: _getColorForEmergencyType(alert.type),
+            ),
+          ),
+          title: Text(
+            alert.message,
+            style: const TextStyle(
+              color: Color(0xFF1F3354),
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          subtitle: Text(
+            _formatDateTime(alert.timestamp),
+            style: const TextStyle(color: Colors.black54),
+          ),
+          trailing: IconButton(
+            icon: const Icon(Icons.check_circle, color: Colors.green),
+            tooltip: 'Resolve Alert',
+            onPressed: () async {
+              await controller.resolveAlert(alert.id);
+              await controller.fetchAllAlerts();
+            },
           ),
         ),
-        title: Text(
-          alert.message,
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        subtitle: Text(
-          'Lat: ${alert.latitude}, Lng: ${alert.longitude}\n${_formatDateTime(alert.timestamp)}',
-          style: const TextStyle(color: Colors.white70),
-        ),
-        onTap: () {
-          controller.centerMapOnAlert(alert.latitude, alert.longitude);
-        },
-        trailing: IconButton(
-          icon: const Icon(Icons.check_circle, color: Colors.green),
-          tooltip: 'Resolve Alert',
-          onPressed: () async {
-            controller.resolveAlert(alert.id);
-            setState(() {});
-          },
-        ),
       ),
+    );
+  }
+
+  void _showAlertDetails(EmergencyAlert alert) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          backgroundColor: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.all(0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    color: _getColorForEmergencyType(alert.type),
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(20),
+                    ),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 20,
+                    horizontal: 24,
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        _getIconForEmergencyType(alert.type),
+                        color: Colors.white,
+                        size: 32,
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Text(
+                          _getEmergencyTypeName(alert.type),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Message:',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey[800],
+                          fontSize: 16,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        alert.message,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          color: Color(0xFF1F3354),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Time:',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey[800],
+                          fontSize: 16,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        _formatDateTime(alert.timestamp),
+                        style: const TextStyle(
+                          fontSize: 15,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      if (alert.additionalInfo['location'] != null) ...[
+                        const SizedBox(height: 16),
+                        Text(
+                          'Location:',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey[800],
+                            fontSize: 16,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          alert.additionalInfo['location'],
+                          style: const TextStyle(
+                            fontSize: 15,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _getColorForEmergencyType(alert.type),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text(
+                      'Close',
+                      style: TextStyle(fontSize: 16, color: Colors.white),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -423,12 +590,23 @@ class _SosScreenState extends State<SosScreen> {
   void _sendSosNotification() async {
     if (controller.isSendingSos.value) return;
     controller.isSendingSos.value = true;
-    await controller.updateCurrentLocation();
-    await controller.sendEmergencyAlert(
-      type: EmergencyType.other,
-      message: "SOS Emergency!",
-    );
-    controller.isSendingSos.value = false;
+    try {
+      final locationString =
+          controller.currentLocation.value.isNotEmpty
+              ? controller.currentLocation.value
+              : 'Lat: ${controller.currentLatitude.value}, Lng: ${controller.currentLongitude.value}';
+      await controller.sendEmergencyAlert(
+        type: EmergencyType.other,
+        message: "SOS Emergency! Location: $locationString",
+        additionalInfo: {'location': locationString},
+      );
+      await controller.fetchAllAlerts();
+    } catch (e) {
+      // Optionally show error
+    } finally {
+      controller.isSendingSos.value = false;
+      setState(() {});
+    }
   }
 
   Future<void> _launchEmergencyCall(String number) async {
@@ -451,13 +629,13 @@ class _SosScreenState extends State<SosScreen> {
   Color _getColorForEmergencyType(EmergencyType type) {
     switch (type) {
       case EmergencyType.medical:
-        return Colors.blue;
+        return Colors.red;
       case EmergencyType.fire:
         return Colors.orange;
       case EmergencyType.security:
-        return Colors.purple;
+        return Colors.blue;
       case EmergencyType.other:
-        return Colors.red;
+        return Colors.purple;
     }
   }
 

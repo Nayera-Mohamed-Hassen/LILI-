@@ -65,7 +65,6 @@ class _ExpenseGoalsPageState extends State<ExpenseGoalsPage> {
           );
         }
       } catch (e) {
-        print('Error adding goal: $e');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error adding spending limit: $e'),
@@ -105,7 +104,6 @@ class _ExpenseGoalsPageState extends State<ExpenseGoalsPage> {
           );
         }
       } catch (e) {
-        print('Error updating goal: $e');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error updating spending limit: $e'),
@@ -175,7 +173,6 @@ class _ExpenseGoalsPageState extends State<ExpenseGoalsPage> {
           );
         }
       } catch (e) {
-        print('Error deleting goal: $e');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error deleting spending limit: $e'),

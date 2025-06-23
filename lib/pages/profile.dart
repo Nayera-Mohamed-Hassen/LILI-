@@ -298,43 +298,94 @@ class _ProfilePageState extends State<ProfilePage> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text("Confirm Logout"),
-          content: Text("Are you sure you want to log out?"),
-          actions: [
-            TextButton(
-              child: Text("Cancel"),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: Text("Logout"),
-              onPressed: () async {
-                // Set isLoggedIn to false in the database
-                final userId = UserSession().getUserId();
-                if (userId != null && userId.isNotEmpty) {
-                  try {
-                    await logoutUser(userId);
-                  } catch (e) {
-                    // Optionally handle error
-                  }
-                }
-                // Clear the user session
-                UserSession().setUserId('');
-                UserSession().setRecipeCount(1);
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          backgroundColor: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.all(0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Container(
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF1F3354),
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
+                  child: Row(
+                    children: const [
+                      Icon(Icons.logout, color: Colors.white, size: 28),
+                      SizedBox(width: 16),
+                      Expanded(
+                        child: Text(
+                          'Confirm Logout',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Text(
+                    'Are you sure you want to log out?',
+                    style: const TextStyle(fontSize: 16, color: Color(0xFF1F3354)),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        child: const Text('Cancel'),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                      const SizedBox(width: 8),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF1F3354),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 24),
+                        ),
+                        child: const Text('Logout', style: TextStyle(color: Colors.white)),
+                        onPressed: () async {
+                          // Set isLoggedIn to false in the database
+                          final userId = UserSession().getUserId();
+                          if (userId != null && userId.isNotEmpty) {
+                            try {
+                              await logoutUser(userId);
+                            } catch (e) {
+                              // Optionally handle error
+                            }
+                          }
+                          // Clear the user session
+                          UserSession().setUserId('');
+                          UserSession().setRecipeCount(1);
 
-                // Close the dialog
-                Navigator.of(context).pop();
+                          // Close the dialog
+                          Navigator.of(context).pop();
 
-                // Navigate to the signing page and remove all previous routes
-                Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (context) => LoginPage()),
-                  (Route<dynamic> route) => false,
-                );
-              },
+                          // Navigate to the signing page and remove all previous routes
+                          Navigator.of(context).pushAndRemoveUntil(
+                            MaterialPageRoute(builder: (context) => LoginPage()),
+                            (Route<dynamic> route) => false,
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         );
       },
     );
@@ -355,67 +406,115 @@ class _ProfilePageState extends State<ProfilePage> {
     showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: const Text('Reset Password'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: _newPasswordController,
-                obscureText: true,
-                decoration: const InputDecoration(labelText: 'New Password'),
-              ),
-              TextField(
-                controller: _confirmPasswordController,
-                obscureText: true,
-                decoration: const InputDecoration(labelText: 'Confirm Password'),
-              ),
-            ],
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          backgroundColor: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.all(0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Container(
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF1F3354),
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
+                  child: Row(
+                    children: const [
+                      Icon(Icons.lock_reset, color: Colors.white, size: 28),
+                      SizedBox(width: 16),
+                      Expanded(
+                        child: Text(
+                          'Reset Password',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    children: [
+                      TextField(
+                        controller: _newPasswordController,
+                        obscureText: true,
+                        decoration: const InputDecoration(labelText: 'New Password'),
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: _confirmPasswordController,
+                        obscureText: true,
+                        decoration: const InputDecoration(labelText: 'Confirm Password'),
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: const Text('Cancel'),
+                      ),
+                      const SizedBox(width: 8),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF1F3354),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 24),
+                        ),
+                        onPressed: () async {
+                          final newPassword = _newPasswordController.text.trim();
+                          final confirmPassword = _confirmPasswordController.text.trim();
+                          if (newPassword.isEmpty || confirmPassword.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Please fill in both fields')),
+                            );
+                            return;
+                          }
+                          if (newPassword != confirmPassword) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Passwords do not match')),
+                            );
+                            return;
+                          }
+                          // Call backend to update password
+                          try {
+                            final userId = UserSession().getUserId();
+                            final response = await resetPassword(userId, newPassword);
+                            if (response) {
+                              Navigator.of(context).pop();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Password updated successfully')),
+                              );
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Failed to update password')),
+                              );
+                            }
+                          } catch (e) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Error: $e')),
+                            );
+                          }
+                        },
+                        child: const Text('Update', style: TextStyle(color: Colors.white)),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                final newPassword = _newPasswordController.text.trim();
-                final confirmPassword = _confirmPasswordController.text.trim();
-                if (newPassword.isEmpty || confirmPassword.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Please fill in both fields')),
-                  );
-                  return;
-                }
-                if (newPassword != confirmPassword) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Passwords do not match')),
-                  );
-                  return;
-                }
-                // Call backend to update password
-                try {
-                  final userId = UserSession().getUserId();
-                  final response = await resetPassword(userId, newPassword);
-                  if (response) {
-                    Navigator.of(context).pop();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Password updated successfully')),
-                    );
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Failed to update password')),
-                    );
-                  }
-                } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Error: $e')),
-                  );
-                }
-              },
-              child: const Text('Update'),
-            ),
-          ],
         );
       },
     );
@@ -952,40 +1051,75 @@ class _ProfilePageState extends State<ProfilePage> {
     showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: Row(
-            children: const [
-              Icon(Icons.help_outline, color: Color(0xFF1F3354)),
-              SizedBox(width: 8),
-              Text('Help & Support', style: TextStyle(fontWeight: FontWeight.bold)),
-            ],
-          ),
-          content: SingleChildScrollView(
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          backgroundColor: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.all(0),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
-                Text('Need help or have questions?'),
-                SizedBox(height: 12),
-                Text('• For technical support, app issues, or feedback, please contact us:'),
-                SizedBox(height: 8),
-                SelectableText('Email: support@liliapp.com', style: TextStyle(fontWeight: FontWeight.bold)),
-                SizedBox(height: 8),
-                Text('• You can also reach us through the in-app feedback section below.'),
-                SizedBox(height: 12),
-                Text('• For urgent issues, call us at:'),
-                SelectableText('+1-800-555-LILI', style: TextStyle(fontWeight: FontWeight.bold)),
-                SizedBox(height: 16),
-                Text('Thank you for using LILI!'),
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Container(
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF1F3354),
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
+                  child: Row(
+                    children: const [
+                      Icon(Icons.help_outline, color: Colors.white, size: 28),
+                      SizedBox(width: 16),
+                      Expanded(
+                        child: Text(
+                          'Help & Support',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        Text('Need help or have questions?'),
+                        SizedBox(height: 12),
+                        Text('• For technical support, app issues, or feedback, please contact us:'),
+                        SizedBox(height: 8),
+                        SelectableText('Email: support@liliapp.com', style: TextStyle(fontWeight: FontWeight.bold)),
+                        SizedBox(height: 8),
+                        Text('• You can also reach us through the in-app feedback section below.'),
+                        SizedBox(height: 12),
+                        Text('• For urgent issues, call us at:'),
+                        SelectableText('+1-800-555-LILI', style: TextStyle(fontWeight: FontWeight.bold)),
+                        SizedBox(height: 16),
+                        Text('Thank you for using LILI!'),
+                      ],
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF1F3354),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text('Close', style: TextStyle(fontSize: 16, color: Colors.white)),
+                  ),
+                ),
               ],
             ),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Close'),
-            ),
-          ],
         );
       },
     );

@@ -86,7 +86,6 @@ class _ExpensesPageState extends State<ExpensesPage> {
         _isLoading = false;
       });
     } catch (e) {
-      print('Error loading data: $e');
       setState(() => _isLoading = false);
       ScaffoldMessenger.of(
         context,

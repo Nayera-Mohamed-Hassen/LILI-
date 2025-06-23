@@ -64,7 +64,6 @@ class _InventoryPageState extends State<InventoryPage> {
   Future<void> getUserInventoryItems() async {
     final userId = UserSession().getUserId();
     if (userId == null || userId.isEmpty) {
-      print('User ID is missing. Please log in again.');
       return;
     }
     try {
@@ -277,14 +276,6 @@ class _InventoryPageState extends State<InventoryPage> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Text(
-              //   'Inventory',
-              //   style: TextStyle(
-              //     color: Colors.white,
-              //     fontSize: 32,
-              //     fontWeight: FontWeight.bold,
-              //   ),
-              // ),
               Text(
                 '${allItems.length} items',
                 style: TextStyle(color: Colors.white70, fontSize: 20),

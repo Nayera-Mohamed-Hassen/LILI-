@@ -10,8 +10,8 @@ class OCRService {
   static Future<Map<String, dynamic>> scanReceipt(File imageFile) async {
     try {
       // Debug: Print file path and existence
-      print('Uploading file: \\${imageFile.path}');
-      print('File exists: \\${await imageFile.exists()}');
+      // print('Uploading file: \\${imageFile.path}');
+      // print('File exists: \\${await imageFile.exists()}');
 
       // Determine content type based on file extension
       String ext = imageFile.path.split('.').last.toLowerCase();
@@ -44,11 +44,11 @@ class OCRService {
       if (response.statusCode == 200) {
         return json.decode(responseData);
       } else {
-        print('OCR failed: \\${response.statusCode} - \\${responseData}');
+        // print('OCR failed: \\${response.statusCode} - \\${responseData}');
         throw Exception('OCR failed: \\${response.statusCode} - \\${responseData}');
       }
     } catch (e) {
-      print('Error scanning receipt: \\${e.toString()}');
+      // print('Error scanning receipt: \\${e.toString()}');
       throw Exception('Error scanning receipt: \\${e.toString()}');
     }
   }

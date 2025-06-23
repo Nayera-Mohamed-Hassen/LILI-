@@ -15,11 +15,9 @@ class CalendarService {
       '$baseUrl?user_id=$userId${houseId != null ? '&house_id=$houseId' : ''}',
     );
     final response = await http.get(uri);
-    print('[DEBUG] Raw response: [36m${response.body}[0m');
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
       return data.map((e) {
-        print('[DEBUG] Parsing event: $e');
         return Event.fromApiJson(e);
       }).toList();
     } else {

@@ -10,7 +10,6 @@ Future<List<RecipeItem>> fetchRecipes(int page) async {
   if (userId == null || userId.isEmpty) {
     throw Exception('User ID is missing. Please log in again.');
   }
-  print('Fetching recipes for page: $page'); // Debug print
   final response = await http.post(
     Uri.parse('http://10.0.2.2:8000/user/recipes'),
     headers: {'Content-Type': 'application/json'},
@@ -22,9 +21,7 @@ Future<List<RecipeItem>> fetchRecipes(int page) async {
 
   if (response.statusCode == 200) {
     final List<dynamic> jsonList = jsonDecode(response.body);
-    print('Received ${jsonList.length} recipes'); // Debug print
     if (jsonList.isNotEmpty) {
-      print('First recipe: ${jsonList.first}'); // Debug print
     }
     return jsonList.map((json) => RecipeItem.fromJson(json)).toList();
   } else {
@@ -108,17 +105,12 @@ class _RecipeState extends State<Recipe> {
     setState(() => _isLoading = true);
     try {
       _currentPage++;
-      print('Loading more recipes, page: $_currentPage'); // Debug print
       final newRecipes = await fetchRecipes(_currentPage);
 
       // Remove duplicates based on recipe name
       final existingNames = _allRecipes.map((r) => r.name).toSet();
       final uniqueNewRecipes =
           newRecipes.where((r) => !existingNames.contains(r.name)).toList();
-
-      print(
-        'Received ${uniqueNewRecipes.length} new unique recipes',
-      ); // Debug print
 
       setState(() {
         _allRecipes.addAll(uniqueNewRecipes);
@@ -287,7 +279,6 @@ class _RecipeState extends State<Recipe> {
                 ),
               ),
               _buildSearch(),
-              //_buildFilterChips(),
               Expanded(
                 child: filteredRecipes.isEmpty && _isLoading
                     ? Center(child: CircularProgressIndicator(color: Colors.white))
@@ -368,47 +359,6 @@ class _RecipeState extends State<Recipe> {
       ),
     );
   }
-
-  // Widget _buildFilterChips() {
-  //   return Padding(
-  //     padding: const EdgeInsets.all(16.0),
-  //     child: Wrap(
-  //       spacing: 6,
-  //       runSpacing: 6,
-  //       children:
-  //           filterOptions.entries.map((category) {
-  //             return FilterChip(
-  //               label: Text(
-  //                 category.key,
-  //                 style: const TextStyle(color: Colors.white),
-  //               ),
-  //               selected: selectedSubFilters.contains(category.value.first),
-  //               onSelected: (selected) {
-  //                 setState(() {
-  //                   if (selected) {
-  //                     selectedSubFilters.add(category.value.first);
-  //                   } else {
-  //                     selectedSubFilters.remove(category.value.first);
-  //                   }
-  //                 });
-  //               },
-  //               selectedColor: const Color(0xFF1F3354),
-  //               backgroundColor: Colors.white.withOpacity(0.15),
-  //               shape: RoundedRectangleBorder(
-  //                 borderRadius: BorderRadius.circular(12),
-  //                 side: BorderSide(
-  //                   color:
-  //                       selectedSubFilters.contains(category.value.first)
-  //                           ? Colors.white38
-  //                           : Colors.white24,
-  //                 ),
-  //               ),
-  //               showCheckmark: false,
-  //             );
-  //           }).toList(),
-  //     ),
-  //   );
-  // }
 
   Widget _buildRecipeList() {
     final filteredRecipes = filterRecipes(_allRecipes);

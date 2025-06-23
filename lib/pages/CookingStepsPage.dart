@@ -50,7 +50,6 @@ class _CookingStepsPageState extends State<CookingStepsPage> {
     try {
       final userId = UserSession().getUserId();
       if (userId == null || userId.isEmpty) {
-        print("User ID not found");
         return;
       }
 
@@ -69,7 +68,6 @@ class _CookingStepsPageState extends State<CookingStepsPage> {
 
       if (response.statusCode == 200) {
         final result = jsonDecode(response.body);
-        print('Preferences updated successfully: ${result['message']}');
         
         // Show success message
         if (mounted) {
@@ -82,7 +80,6 @@ class _CookingStepsPageState extends State<CookingStepsPage> {
           );
         }
       } else {
-        print('Failed to update preferences: ${response.statusCode}');
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -94,7 +91,6 @@ class _CookingStepsPageState extends State<CookingStepsPage> {
         }
       }
     } catch (e) {
-      print('Error updating preferences: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

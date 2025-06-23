@@ -37,7 +37,6 @@ class _RecipeNavbarState extends State<RecipeNavbar> {
         _isLoadingFavorites = false;
       });
     } catch (e) {
-      print('Error loading favorite recipes: $e');
       setState(() {
         _isLoadingFavorites = false;
       });
@@ -65,7 +64,6 @@ class _RecipeNavbarState extends State<RecipeNavbar> {
         );
       }
     } catch (e) {
-      print('Error toggling favorite: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error updating favorite status'),

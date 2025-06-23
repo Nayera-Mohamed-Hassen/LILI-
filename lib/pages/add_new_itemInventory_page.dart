@@ -204,8 +204,6 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
       "user_id": userId,
     };
 
-    print("Sending item: ${jsonEncode(newItem)}");
-
     try {
       final response = await http.post(
         Uri.parse("http://10.0.2.2:8000/user/inventory/add"),

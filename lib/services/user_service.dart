@@ -12,7 +12,6 @@ class UserService {
 
     try {
       final url = Uri.parse('$baseUrl/profile/$userId');
-      print('Attempting to connect to: $url'); // Debug print
 
       final response = await http
           .get(
@@ -25,13 +24,9 @@ class UserService {
           .timeout(
             Duration(seconds: 10),
             onTimeout: () {
-              print('Connection timed out after 10 seconds');
               throw Exception('Connection timed out');
             },
           );
-
-      print('Response status code: ${response.statusCode}');
-      print('Response body: ${response.body}');
 
       if (response.statusCode == 200) {
         // Get allergies
@@ -40,13 +35,11 @@ class UserService {
         userData['allergies'] = allergies;
         return userData;
       } else {
-        print('Error response: ${response.statusCode} - ${response.body}');
         throw Exception('Failed to load user profile: ${response.statusCode}');
       }
     } catch (e) {
-      print('Connection error details: $e');
       if (e.toString().contains('Connection refused')) {
-        print(
+        throw Exception(
           'Make sure your backend server is running with: uvicorn app.main:app --host 0.0.0.0 --port 8000',
         );
       }
@@ -72,7 +65,6 @@ class UserService {
         throw Exception('Failed to load user allergies');
       }
     } catch (e) {
-      print('Error getting allergies: $e');
       return [];
     }
   }
@@ -114,7 +106,6 @@ class UserService {
         throw Exception('Failed to update profile: ${response.body}');
       }
     } catch (e) {
-      print('Error updating profile: $e');
       throw Exception('Failed to update profile: $e');
     }
   }

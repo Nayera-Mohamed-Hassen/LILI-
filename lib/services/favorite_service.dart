@@ -32,7 +32,6 @@ class FavoriteService {
         throw Exception('Failed to add to favorites: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error adding to favorites: $e');
       return false;
     }
   }
@@ -63,7 +62,6 @@ class FavoriteService {
         throw Exception('Failed to remove from favorites: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error removing from favorites: $e');
       return false;
     }
   }
@@ -87,7 +85,6 @@ class FavoriteService {
         throw Exception('Failed to load favorite recipes: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error loading favorite recipes: $e');
       return [];
     }
   }
@@ -111,7 +108,6 @@ class FavoriteService {
         return false;
       }
     } catch (e) {
-      print('Error checking favorite status: $e');
       return false;
     }
   }
@@ -127,7 +123,6 @@ class FavoriteService {
         return await addToFavorites(recipe);
       }
     } catch (e) {
-      print('Error toggling favorite: $e');
       return false;
     }
   }

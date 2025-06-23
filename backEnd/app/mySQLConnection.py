@@ -32,7 +32,6 @@ def insertHouseHold(name: str, pic: str, address: str, join_code: str = None) ->
         db["household_tbl"].insert_one(doc)
         return doc["_id"]
     except Exception as e:
-        print(f"Error inserting household: {e}")
         return None
 
 def selectHouseHold(query: dict = None) -> list:
@@ -42,7 +41,6 @@ def selectHouseHold(query: dict = None) -> list:
     try:
         return list(db["household_tbl"].find(query))
     except Exception as e:
-        print(f"Error selecting households: {e}")
         return []
 
 # User CRUD
@@ -58,7 +56,6 @@ def is_unique_user(username: str, email: str, phone: str) -> bool:
             return False
         return True
     except Exception as e:
-        print(f"Error checking uniqueness: {e}")
         return False
 
 def insertUser(user_Name: str, username: str, user_password: str, user_birthday: str, user_profilePic: str = None, user_email: str = "", user_phone: str = "", user_Height: float = None, user_weight: float = None, user_diet: str = "", user_gender: str = "", house_Id: str = None) -> str:
@@ -84,7 +81,6 @@ def insertUser(user_Name: str, username: str, user_password: str, user_birthday:
         db["user_tbl"].insert_one(doc)
         return doc["_id"]
     except Exception as e:
-        print(f"Error inserting user: {e}")
         return None
 
 def selectUser(query: dict = None, id: str = None) -> list:
@@ -97,7 +93,6 @@ def selectUser(query: dict = None, id: str = None) -> list:
         else:
             return list(db["user_tbl"].find())
     except Exception as e:
-        print(f"Error selecting users: {e}")
         return []
 
 def updateUser(user_id: str, update_fields: dict) -> bool:
@@ -106,7 +101,6 @@ def updateUser(user_id: str, update_fields: dict) -> bool:
         result = db["user_tbl"].update_one({"_id": user_id}, {"$set": update_fields})
         return result.modified_count > 0
     except Exception as e:
-        print(f"Error updating user: {e}")
         return False
 
 # Notification CRUD
@@ -125,7 +119,6 @@ def insert_notification(title: str, body: str, user_id: str, is_read: bool = Fal
         db["notification_tbl"].insert_one(doc)
         return True
     except Exception as e:
-        print(f"Error inserting notification: {e}")
         return False
 
 def selectNotifications(query: dict = None, id: str = None) -> list:
@@ -138,7 +131,6 @@ def selectNotifications(query: dict = None, id: str = None) -> list:
         else:
             return list(db["notification_tbl"].find())
     except Exception as e:
-        print(f"Error selecting notifications: {e}")
         return []
 
 # Task CRUD
@@ -158,7 +150,6 @@ def insert_task(title: str, description: str, status: str, deadline: str, assign
         db["task_tbl"].insert_one(doc)
         return doc["_id"]
     except Exception as e:
-        print(f"Error inserting task: {e}")
         return None
 
 def selectTasks(query: dict = None, id: str = None) -> list:
@@ -171,7 +162,6 @@ def selectTasks(query: dict = None, id: str = None) -> list:
         else:
             return list(db["task_tbl"].find())
     except Exception as e:
-        print(f"Error selecting tasks: {e}")
         return []
 
 # Allergy CRUD
@@ -187,7 +177,6 @@ def insertAllergy(allergy_name: str, user_Id: str) -> bool:
         db["allergy_tbl"].insert_one(doc)
         return True
     except Exception as e:
-        print(f"Error inserting allergy: {e}")
         return False
 
 def selectAllergy(query: dict = None, id: str = None) -> list:
@@ -200,7 +189,6 @@ def selectAllergy(query: dict = None, id: str = None) -> list:
         else:
             return list(db["allergy_tbl"].find())
     except Exception as e:
-        print(f"Error selecting allergies: {e}")
         return []
 
 def generate_unique_house_code() -> str:
@@ -212,7 +200,6 @@ def generate_unique_house_code() -> str:
             if not db["household_tbl"].find_one({"join_code": code}):
                 return code
         except Exception as e:
-            print(f"Error generating unique house code: {e}")
             return None
 
 def check_user_uniqueness(username: str, email: str, phone: str) -> str:
@@ -226,7 +213,6 @@ def check_user_uniqueness(username: str, email: str, phone: str) -> str:
             return "phone"
         return "ok"
     except Exception as e:
-        print(f"Error checking uniqueness: {e}")
         return "error"
 
 # For production, comment out or remove the test block below

@@ -9,8 +9,6 @@ class MenuItem extends StatelessWidget {
           SizedBox(height: 100),
           GestureDetector(
             onTap: () {
-              // Your action
-              print('Text tapped!');
               //Navigator.pushNamed(context, '/menu');
             },
             child: Container(

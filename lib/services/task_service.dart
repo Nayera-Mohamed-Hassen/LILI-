@@ -81,7 +81,6 @@ class TaskService extends ChangeNotifier {
       }
       return false;
     } catch (e) {
-      print('Error updating task status: $e');
       return false;
     }
   }
@@ -99,7 +98,6 @@ class TaskService extends ChangeNotifier {
       }
       return false;
     } catch (e) {
-      print('Error deleting task: $e');
       return false;
     }
   }
@@ -131,7 +129,6 @@ class TaskService extends ChangeNotifier {
       }
       return null;
     } catch (e) {
-      print('Error creating task: $e');
       return null;
     }
   }
@@ -184,7 +181,6 @@ class TaskService extends ChangeNotifier {
       );
       return response.statusCode == 200;
     } catch (e) {
-      print('Error updating task: $e');
       return false;
     }
   }

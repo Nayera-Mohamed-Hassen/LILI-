@@ -49,12 +49,10 @@ class _EventDialogState extends State<EventDialog> {
           widget.selectedDate.add(const Duration(hours: 2)),
     );
 
-    _eventType = widget.event?.type
-        .toString()
-        .split('.')
-        .last ?? 'general';
-    _isPublic = (widget.event != null &&
-        widget.event!.additionalDetails['privacy'] == 'public');
+    _eventType = widget.event?.type.toString().split('.').last ?? 'general';
+    _isPublic =
+        (widget.event != null &&
+            widget.event!.additionalDetails['privacy'] == 'public');
   }
 
   @override
@@ -110,10 +108,13 @@ class _EventDialogState extends State<EventDialog> {
                     ),
                   ),
                   InkWell(
-                    onTap: () =>
-                        Navigator.of(context, rootNavigator: true).pop(),
+                    onTap:
+                        () => Navigator.of(context, rootNavigator: true).pop(),
                     child: const Icon(
-                        Icons.close, color: Colors.white, size: 24),
+                      Icons.close,
+                      color: Colors.white,
+                      size: 24,
+                    ),
                   ),
                 ],
               ),
@@ -130,8 +131,10 @@ class _EventDialogState extends State<EventDialog> {
                         controller: _titleController,
                         decoration: InputDecoration(
                           labelText: 'Title',
-                          prefixIcon: const Icon(Icons.title,
-                              color: Color(0xFF1F3354)),
+                          prefixIcon: const Icon(
+                            Icons.title,
+                            color: Color(0xFF1F3354),
+                          ),
                           filled: true,
                           fillColor: Colors.grey[100],
                           border: OutlineInputBorder(
@@ -139,16 +142,21 @@ class _EventDialogState extends State<EventDialog> {
                             borderSide: BorderSide.none,
                           ),
                         ),
-                        validator: (value) =>
-                        value == null || value.isEmpty ? 'Enter a title' : null,
+                        validator:
+                            (value) =>
+                                value == null || value.isEmpty
+                                    ? 'Enter a title'
+                                    : null,
                       ),
                       const SizedBox(height: 12),
                       TextFormField(
                         controller: _descriptionController,
                         decoration: InputDecoration(
                           labelText: 'Description',
-                          prefixIcon: const Icon(Icons.description,
-                              color: Color(0xFF1F3354)),
+                          prefixIcon: const Icon(
+                            Icons.description,
+                            color: Color(0xFF1F3354),
+                          ),
                           filled: true,
                           fillColor: Colors.grey[100],
                           border: OutlineInputBorder(
@@ -163,8 +171,10 @@ class _EventDialogState extends State<EventDialog> {
                         controller: _locationController,
                         decoration: InputDecoration(
                           labelText: 'Location',
-                          prefixIcon: const Icon(Icons.location_on,
-                              color: Color(0xFF1F3354)),
+                          prefixIcon: const Icon(
+                            Icons.location_on,
+                            color: Color(0xFF1F3354),
+                          ),
                           filled: true,
                           fillColor: Colors.grey[100],
                           border: OutlineInputBorder(
@@ -178,13 +188,15 @@ class _EventDialogState extends State<EventDialog> {
                         children: [
                           Expanded(
                             child: InkWell(
-                              onTap: () =>
-                                  _selectDate(context, isStartDate: true),
+                              onTap:
+                                  () => _selectDate(context, isStartDate: true),
                               child: InputDecorator(
                                 decoration: InputDecoration(
                                   labelText: 'Start Date',
-                                  prefixIcon: const Icon(Icons.calendar_today,
-                                      color: Color(0xFF1F3354)),
+                                  prefixIcon: const Icon(
+                                    Icons.calendar_today,
+                                    color: Color(0xFF1F3354),
+                                  ),
                                   filled: true,
                                   fillColor: Colors.grey[100],
                                   border: OutlineInputBorder(
@@ -199,13 +211,15 @@ class _EventDialogState extends State<EventDialog> {
                           const SizedBox(width: 8),
                           Expanded(
                             child: InkWell(
-                              onTap: () =>
-                                  _selectTime(context, isStartTime: true),
+                              onTap:
+                                  () => _selectTime(context, isStartTime: true),
                               child: InputDecorator(
                                 decoration: InputDecoration(
                                   labelText: 'Start Time',
-                                  prefixIcon: const Icon(Icons.access_time,
-                                      color: Color(0xFF1F3354)),
+                                  prefixIcon: const Icon(
+                                    Icons.access_time,
+                                    color: Color(0xFF1F3354),
+                                  ),
                                   filled: true,
                                   fillColor: Colors.grey[100],
                                   border: OutlineInputBorder(
@@ -224,13 +238,16 @@ class _EventDialogState extends State<EventDialog> {
                         children: [
                           Expanded(
                             child: InkWell(
-                              onTap: () =>
-                                  _selectDate(context, isStartDate: false),
+                              onTap:
+                                  () =>
+                                      _selectDate(context, isStartDate: false),
                               child: InputDecorator(
                                 decoration: InputDecoration(
                                   labelText: 'End Date',
-                                  prefixIcon: const Icon(Icons.calendar_today,
-                                      color: Color(0xFF1F3354)),
+                                  prefixIcon: const Icon(
+                                    Icons.calendar_today,
+                                    color: Color(0xFF1F3354),
+                                  ),
                                   filled: true,
                                   fillColor: Colors.grey[100],
                                   border: OutlineInputBorder(
@@ -245,13 +262,16 @@ class _EventDialogState extends State<EventDialog> {
                           const SizedBox(width: 8),
                           Expanded(
                             child: InkWell(
-                              onTap: () =>
-                                  _selectTime(context, isStartTime: false),
+                              onTap:
+                                  () =>
+                                      _selectTime(context, isStartTime: false),
                               child: InputDecorator(
                                 decoration: InputDecoration(
                                   labelText: 'End Time',
-                                  prefixIcon: const Icon(Icons.access_time,
-                                      color: Color(0xFF1F3354)),
+                                  prefixIcon: const Icon(
+                                    Icons.access_time,
+                                    color: Color(0xFF1F3354),
+                                  ),
                                   filled: true,
                                   fillColor: Colors.grey[100],
                                   border: OutlineInputBorder(
@@ -268,8 +288,10 @@ class _EventDialogState extends State<EventDialog> {
                       const SizedBox(height: 12),
                       Row(
                         children: [
-                          Icon(_isPublic ? Icons.public : Icons.lock,
-                              color: _isPublic ? Colors.green : Colors.grey),
+                          Icon(
+                            _isPublic ? Icons.public : Icons.lock,
+                            color: _isPublic ? Colors.green : Colors.grey,
+                          ),
                           const SizedBox(width: 8),
                           const Text('Visibility:'),
                           Switch(
@@ -281,10 +303,12 @@ class _EventDialogState extends State<EventDialog> {
                             },
                           ),
                           const SizedBox(width: 8),
-                          Text(_isPublic ? 'Public' : 'Private',
-                              style: TextStyle(
-                                  color: _isPublic ? Colors.green : Colors
-                                      .grey)),
+                          Text(
+                            _isPublic ? 'Public' : 'Private',
+                            style: TextStyle(
+                              color: _isPublic ? Colors.green : Colors.grey,
+                            ),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 12),
@@ -292,8 +316,10 @@ class _EventDialogState extends State<EventDialog> {
                         value: _eventType,
                         decoration: InputDecoration(
                           labelText: 'Event Type',
-                          prefixIcon: const Icon(Icons.category,
-                              color: Color(0xFF1F3354)),
+                          prefixIcon: const Icon(
+                            Icons.category,
+                            color: Color(0xFF1F3354),
+                          ),
                           filled: true,
                           fillColor: Colors.grey[100],
                           border: OutlineInputBorder(
@@ -301,20 +327,22 @@ class _EventDialogState extends State<EventDialog> {
                             borderSide: BorderSide.none,
                           ),
                         ),
-                        items: [
-                          'general',
-                          'birthday',
-                          'appointment',
-                          'meeting',
-                          'reminder',
-                          'other',
-                        ].map((type) {
-                          return DropdownMenuItem(
-                            value: type,
-                            child: Text(
-                                type[0].toUpperCase() + type.substring(1)),
-                          );
-                        }).toList(),
+                        items:
+                            [
+                              'general',
+                              'birthday',
+                              'appointment',
+                              'meeting',
+                              'reminder',
+                              'other',
+                            ].map((type) {
+                              return DropdownMenuItem(
+                                value: type,
+                                child: Text(
+                                  type[0].toUpperCase() + type.substring(1),
+                                ),
+                              );
+                            }).toList(),
                         onChanged: (value) {
                           if (value != null) {
                             setState(() {
@@ -328,14 +356,17 @@ class _EventDialogState extends State<EventDialog> {
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
                           TextButton(
-                            onPressed: () =>
-                                Navigator
-                                    .of(context, rootNavigator: true)
-                                    .pop(),
+                            onPressed:
+                                () =>
+                                    Navigator.of(
+                                      context,
+                                      rootNavigator: true,
+                                    ).pop(),
                             style: TextButton.styleFrom(
                               foregroundColor: const Color(0xFFC30606),
                               textStyle: const TextStyle(
-                                  fontWeight: FontWeight.bold),
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                             child: const Text('Cancel'),
                           ),
@@ -347,37 +378,44 @@ class _EventDialogState extends State<EventDialog> {
                                   'title': _titleController.text,
                                   'description': _descriptionController.text,
                                   'location': _locationController.text,
-                                  'start_time': DateTime(
-                                    _startDate.year,
-                                    _startDate.month,
-                                    _startDate.day,
-                                    _startTime.hour,
-                                    _startTime.minute,
-                                  ).toIso8601String(),
-                                  'end_time': DateTime(
-                                    _endDate.year,
-                                    _endDate.month,
-                                    _endDate.day,
-                                    _endTime.hour,
-                                    _endTime.minute,
-                                  ).toIso8601String(),
+                                  'start_time':
+                                      DateTime(
+                                        _startDate.year,
+                                        _startDate.month,
+                                        _startDate.day,
+                                        _startTime.hour,
+                                        _startTime.minute,
+                                      ).toIso8601String(),
+                                  'end_time':
+                                      DateTime(
+                                        _endDate.year,
+                                        _endDate.month,
+                                        _endDate.day,
+                                        _endTime.hour,
+                                        _endTime.minute,
+                                      ).toIso8601String(),
                                   'type': _eventType,
                                   'privacy': _isPublic ? 'public' : 'private',
-                                  'participants': widget.event?.participants
-                                      .map((p) => p.userId).toList() ?? [],
+                                  'participants':
+                                      widget.event?.participants
+                                          .map((p) => p.userId)
+                                          .toList() ??
+                                      [],
                                 };
-                                print('[DEBUG] eventData to send: $eventData');
-                                final controller = Get.find<
-                                    CalendarController>();
+                                final controller =
+                                    Get.find<CalendarController>();
                                 if (widget.event == null) {
                                   await controller.addEventFromForm(eventData);
                                 } else {
                                   await controller.editEvent(
-                                      widget.event!.id, eventData);
+                                    widget.event!.id,
+                                    eventData,
+                                  );
                                 }
-                                Navigator
-                                    .of(context, rootNavigator: true)
-                                    .pop();
+                                Navigator.of(
+                                  context,
+                                  rootNavigator: true,
+                                ).pop();
                               }
                             },
                             style: ElevatedButton.styleFrom(
@@ -387,7 +425,9 @@ class _EventDialogState extends State<EventDialog> {
                                 borderRadius: BorderRadius.circular(10),
                               ),
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 32, vertical: 14),
+                                horizontal: 32,
+                                vertical: 14,
+                              ),
                               textStyle: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
@@ -408,8 +448,10 @@ class _EventDialogState extends State<EventDialog> {
     );
   }
 
-  Future<void> _selectDate(BuildContext context,
-      {required bool isStartDate}) async {
+  Future<void> _selectDate(
+    BuildContext context, {
+    required bool isStartDate,
+  }) async {
     final picked = await showDatePicker(
       context: context,
       initialDate: isStartDate ? _startDate : _endDate,
@@ -427,8 +469,10 @@ class _EventDialogState extends State<EventDialog> {
     }
   }
 
-  Future<void> _selectTime(BuildContext context,
-      {required bool isStartTime}) async {
+  Future<void> _selectTime(
+    BuildContext context, {
+    required bool isStartTime,
+  }) async {
     final picked = await showTimePicker(
       context: context,
       initialTime: isStartTime ? _startTime : _endTime,

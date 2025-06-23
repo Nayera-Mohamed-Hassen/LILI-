@@ -80,11 +80,7 @@ class CalendarScreen extends StatelessWidget {
                         );
                         openedDialog.value = true;
                       });
-                    } else {
-                      print(
-                        '[DEBUG] Event with id $focusEventId not found in loaded events',
-                      );
-                    }
+                    } else {}
                   }
                   return SingleChildScrollView(
                     child: Padding(

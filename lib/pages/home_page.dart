@@ -43,7 +43,9 @@ class _HomePageState extends State<HomePage> {
     _focusedDay = DateTime.now();
     _selectedDay = DateTime.now();
     _fetchEvents();
-    Provider.of<TaskService>(context, listen: false).fetchTasks();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<TaskService>(context, listen: false).fetchTasks();
+    });
     _fetchNotifications();
   }
 
