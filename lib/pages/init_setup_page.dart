@@ -146,7 +146,7 @@ class _InitSetupPageState extends State<InitSetupPage> {
                     ),
                   ),
                   const SizedBox(height: 32),
-                  _buildDateField(context),
+                  _buildDateField(context, semanticsLabel: 'initsetup_birthdate'),
                   const SizedBox(height: 24),
                   _buildDropdownField(
                     'Gender',
@@ -158,6 +158,7 @@ class _InitSetupPageState extends State<InitSetupPage> {
                         _selectedGender = value;
                       });
                     },
+                    semanticsLabel: 'initsetup_gender',
                   ),
                   const SizedBox(height: 24),
                   _buildDropdownField(
@@ -170,6 +171,7 @@ class _InitSetupPageState extends State<InitSetupPage> {
                         _selectedDiet = value;
                       });
                     },
+                    semanticsLabel: 'initsetup_diet',
                   ),
                   const SizedBox(height: 24),
                   _buildTextField(
@@ -177,6 +179,7 @@ class _InitSetupPageState extends State<InitSetupPage> {
                     label: 'Height (cm)',
                     icon: Icons.height,
                     keyboardType: TextInputType.number,
+                    semanticsLabel: 'initsetup_height',
                   ),
                   const SizedBox(height: 24),
                   _buildTextField(
@@ -184,6 +187,7 @@ class _InitSetupPageState extends State<InitSetupPage> {
                     label: 'Weight (kg)',
                     icon: Icons.monitor_weight,
                     keyboardType: TextInputType.number,
+                    semanticsLabel: 'initsetup_weight',
                   ),
                   const SizedBox(height: 24),
                   _buildTextField(
@@ -192,9 +196,13 @@ class _InitSetupPageState extends State<InitSetupPage> {
                     icon: Icons.warning_amber_rounded,
                     maxLines: 3,
                     hint: 'Enter any allergies, separated by commas',
+                    semanticsLabel: 'initsetup_allergies',
                   ),
                   const SizedBox(height: 32),
-                  _buildFinishButton(),
+                  Semantics(
+                    label: 'initsetup_finish',
+                    child: _buildFinishButton(),
+                  ),
                 ],
               ),
             ),
@@ -211,40 +219,42 @@ class _InitSetupPageState extends State<InitSetupPage> {
     String? hint,
     int maxLines = 1,
     TextInputType? keyboardType,
+    String? semanticsLabel,
   }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white12,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white24),
-      ),
-      child: TextField(
-        controller: controller,
-        maxLines: maxLines,
-        keyboardType: keyboardType,
-        style: const TextStyle(color: Colors.white),
-        decoration: InputDecoration(
-          labelText: label,
-          hintText: hint,
-          hintStyle: const TextStyle(color: Colors.white38, fontSize: 14),
-          labelStyle: const TextStyle(color: Colors.white70),
-          prefixIcon: Container(
-            margin: const EdgeInsets.only(left: 12, right: 8),
-            child: Icon(icon, color: Colors.white70),
-          ),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
-            borderSide: BorderSide.none,
-          ),
-          filled: true,
-          fillColor: Colors.transparent,
+    final textField = TextField(
+      controller: controller,
+      maxLines: maxLines,
+      keyboardType: keyboardType,
+      style: const TextStyle(color: Colors.white),
+      decoration: InputDecoration(
+        labelText: label,
+        hintText: hint,
+        hintStyle: const TextStyle(color: Colors.white38, fontSize: 14),
+        labelStyle: const TextStyle(color: Colors.white70),
+        prefixIcon: Container(
+          margin: const EdgeInsets.only(left: 12, right: 8),
+          child: Icon(icon, color: Colors.white70),
         ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide.none,
+        ),
+        filled: true,
+        fillColor: Colors.transparent,
       ),
     );
+    if (semanticsLabel != null) {
+      return Semantics(
+        label: semanticsLabel,
+        child: textField,
+      );
+    } else {
+      return textField;
+    }
   }
 
-  Widget _buildDateField(BuildContext context) {
-    return GestureDetector(
+  Widget _buildDateField(BuildContext context, {String? semanticsLabel}) {
+    final dateField = GestureDetector(
       onTap: () async {
         final DateTime? picked = await showDatePicker(
           context: context,
@@ -272,58 +282,16 @@ class _InitSetupPageState extends State<InitSetupPage> {
           });
         }
       },
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white12,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white24),
-        ),
-        child: TextField(
-          controller: _dateController,
-          enabled: false,
-          style: const TextStyle(color: Colors.white),
-          decoration: InputDecoration(
-            labelText: 'Date of Birth',
-            labelStyle: const TextStyle(color: Colors.white70),
-            prefixIcon: Container(
-              margin: const EdgeInsets.only(left: 12, right: 8),
-              child: const Icon(Icons.calendar_today, color: Colors.white70),
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide.none,
-            ),
-            filled: true,
-            fillColor: Colors.transparent,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDropdownField(
-    String label,
-    List<String> items,
-    String? selectedValue,
-    IconData icon,
-    void Function(String?) onChanged,
-  ) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white12,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white24),
-      ),
-      child: DropdownButtonFormField<String>(
-        value: selectedValue,
-        dropdownColor: const Color(0xFF1F3354),
+      child: TextField(
+        controller: _dateController,
+        enabled: false,
         style: const TextStyle(color: Colors.white),
         decoration: InputDecoration(
-          labelText: label,
+          labelText: 'Date of Birth',
           labelStyle: const TextStyle(color: Colors.white70),
           prefixIcon: Container(
             margin: const EdgeInsets.only(left: 12, right: 8),
-            child: Icon(icon, color: Colors.white70),
+            child: const Icon(Icons.calendar_today, color: Colors.white70),
           ),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
@@ -332,16 +300,61 @@ class _InitSetupPageState extends State<InitSetupPage> {
           filled: true,
           fillColor: Colors.transparent,
         ),
-        items:
-            items.map((item) {
-              return DropdownMenuItem(
-                value: item,
-                child: Text(item, style: const TextStyle(color: Colors.white)),
-              );
-            }).toList(),
-        onChanged: onChanged,
       ),
     );
+    if (semanticsLabel != null) {
+      return Semantics(
+        label: semanticsLabel,
+        child: dateField,
+      );
+    } else {
+      return dateField;
+    }
+  }
+
+  Widget _buildDropdownField(
+    String label,
+    List<String> items,
+    String? selectedValue,
+    IconData icon,
+    void Function(String?) onChanged,
+    {String? semanticsLabel}
+  ) {
+    final dropdown = DropdownButtonFormField<String>(
+      value: selectedValue,
+      dropdownColor: const Color(0xFF1F3354),
+      style: const TextStyle(color: Colors.white),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: const TextStyle(color: Colors.white70),
+        prefixIcon: Container(
+          margin: const EdgeInsets.only(left: 12, right: 8),
+          child: Icon(icon, color: Colors.white70),
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide.none,
+        ),
+        filled: true,
+        fillColor: Colors.transparent,
+      ),
+      items:
+          items.map((item) {
+            return DropdownMenuItem(
+              value: item,
+              child: Text(item, style: const TextStyle(color: Colors.white)),
+            );
+          }).toList(),
+      onChanged: onChanged,
+    );
+    if (semanticsLabel != null) {
+      return Semantics(
+        label: semanticsLabel,
+        child: dropdown,
+      );
+    } else {
+      return dropdown;
+    }
   }
 
   Widget _buildFinishButton() {

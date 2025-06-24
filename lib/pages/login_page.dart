@@ -62,6 +62,7 @@ class _LoginPageState extends State<LoginPage> {
                     controller: _usernameController,
                     label: 'Username',
                     icon: Icons.account_circle_outlined,
+                    key: const Key('username'),
                   ),
                   const SizedBox(height: 24),
                   _buildTextField(
@@ -75,6 +76,7 @@ class _LoginPageState extends State<LoginPage> {
                         _isPasswordVisible = !_isPasswordVisible;
                       });
                     },
+                    key: const Key('password'),
                   ),
                   const SizedBox(height: 16),
                   Row(
@@ -171,6 +173,7 @@ class _LoginPageState extends State<LoginPage> {
     bool isPassword = false,
     bool? isPasswordVisible,
     VoidCallback? onTogglePassword,
+    Key? key,
   }) {
     return Container(
       decoration: BoxDecoration(
@@ -179,6 +182,7 @@ class _LoginPageState extends State<LoginPage> {
         border: Border.all(color: Colors.white24),
       ),
       child: TextField(
+        key: key,
         controller: controller,
         style: const TextStyle(color: Colors.white),
         obscureText: isPassword && !(_isPasswordVisible),
@@ -216,20 +220,25 @@ class _LoginPageState extends State<LoginPage> {
     return SizedBox(
       width: double.infinity,
       height: 56,
-      child: ElevatedButton(
-        onPressed: _handleLogin,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.white24,
-          foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-            side: const BorderSide(color: Colors.white24),
+      child: Semantics(
+        label: 'login_button',
+        button: true,
+        child: ElevatedButton(
+          key: const Key('login_button'),
+          onPressed: _handleLogin,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.white24,
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+              side: const BorderSide(color: Colors.white24),
+            ),
+            elevation: 0,
           ),
-          elevation: 0,
-        ),
-        child: const Text(
-          'Log In',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          child: const Text(
+            'Log In',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
         ),
       ),
     );

@@ -133,6 +133,13 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       body: Stack(
         children: [
+          Semantics(
+            label: 'home_screen',
+            child: Container(
+              width: 0,
+              height: 0,
+            ),
+          ),
           Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -176,12 +183,19 @@ class _HomePageState extends State<HomePage> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(
-                                      _getGreeting(),
-                                      style: const TextStyle(
-                                        fontSize: 24,
-                                        fontWeight: FontWeight.w600,
-                                        color: Colors.white,
+                                    Semantics(
+                                      label: 'home_greeting',
+                                      readOnly: true,
+                                      header: true,
+                                      child: ExcludeSemantics(
+                                        child: Text(
+                                          _getGreeting(),
+                                          style: const TextStyle(
+                                            fontSize: 24,
+                                            fontWeight: FontWeight.w600,
+                                            color: Colors.white,
+                                          ),
+                                        ),
                                       ),
                                     ),
                                     Text(

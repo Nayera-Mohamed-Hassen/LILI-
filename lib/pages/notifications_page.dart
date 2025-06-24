@@ -184,6 +184,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: ListTile(
+                        key: Key('notification_item'),
                         leading: Icon(
                           _iconForType(notif.type),
                           color: notif.isRead ? Colors.grey : Colors.blue,

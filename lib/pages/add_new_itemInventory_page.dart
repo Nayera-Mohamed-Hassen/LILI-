@@ -292,6 +292,7 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
       width: fixedSize.width,
       height: fixedSize.height,
       child: ElevatedButton(
+        key: const Key('add_inventory_item_button'),
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
           backgroundColor: bgColor,
@@ -403,6 +404,7 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
             child: Text('Skip', style: TextStyle(color: Colors.white70)),
           ),
           ElevatedButton(
+            key: const Key('save_inventory_item_button'),
             onPressed: () => Navigator.of(context).pop({
               'add': true,
               'category': selectedCategory,
@@ -618,7 +620,7 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
                         ),
                       ),
                       SizedBox(height: 20),
-                      _buildTextField(_titleController, 'Item Name'),
+                      _buildTextField(_titleController, 'Item Name', isNumber: false),
                       SizedBox(height: 16),
                       _buildDropdown('Choose Category'),
                       SizedBox(height: 16),

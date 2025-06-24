@@ -392,6 +392,7 @@ class CalendarScreen extends StatelessWidget {
                                                           children: [
                                                             Expanded(
                                                               child: ElevatedButton(
+                                                                key: const Key('add_event_button'),
                                                                 onPressed: () {
                                                                   Navigator.pop(
                                                                     context,

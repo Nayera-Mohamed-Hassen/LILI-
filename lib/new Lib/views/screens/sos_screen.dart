@@ -568,6 +568,7 @@ class _SosScreenState extends State<SosScreen> {
         actions: [
           TextButton(onPressed: () => Get.back(), child: const Text('Cancel')),
           ElevatedButton(
+            key: const Key('emergency_button'),
             onPressed: () {
               if (messageController.text.isNotEmpty) {
                 controller.sendEmergencyAlert(

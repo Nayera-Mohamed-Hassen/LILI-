@@ -68,18 +68,23 @@ class _SignUpPageState extends State<SignUpPage> {
                     controller: _username,
                     label: 'Username',
                     icon: Icons.account_circle_outlined,
+                    key: const Key('register_username'),
+                    semanticsLabel: 'register_username',
                   ),
                   const SizedBox(height: 24),
                   _buildTextField(
                     controller: _email,
                     label: 'Email',
                     icon: Icons.email_outlined,
+                    key: const Key('register_email'),
+                    semanticsLabel: 'register_email',
                   ),
                   const SizedBox(height: 24),
                   _buildTextField(
                     controller: _phoneNumber,
                     label: 'Phone Number',
                     icon: Icons.phone_outlined,
+                    semanticsLabel: 'register_phone',
                   ),
                   const SizedBox(height: 24),
                   _buildTextField(
@@ -93,6 +98,8 @@ class _SignUpPageState extends State<SignUpPage> {
                         _isPasswordVisible = !_isPasswordVisible;
                       });
                     },
+                    key: const Key('register_password'),
+                    semanticsLabel: 'register_password',
                   ),
                   const SizedBox(height: 24),
                   _buildTextField(
@@ -106,9 +113,13 @@ class _SignUpPageState extends State<SignUpPage> {
                         _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
                       });
                     },
+                    semanticsLabel: 'register_confirm_password',
                   ),
                   const SizedBox(height: 32),
-                  _buildNextButton(),
+                  Semantics(
+                    label: 'register_button',
+                    child: _buildNextButton(),
+                  ),
                   const SizedBox(height: 24),
                   Center(
                     child: Row(
@@ -156,45 +167,49 @@ class _SignUpPageState extends State<SignUpPage> {
     bool isPassword = false,
     bool? isPasswordVisible,
     VoidCallback? onTogglePassword,
+    Key? key,
+    String? semanticsLabel,
   }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white12,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white24),
-      ),
-      child: TextField(
-        controller: controller,
-        style: const TextStyle(color: Colors.white),
-        obscureText: isPassword && !(isPasswordVisible ?? false),
-        decoration: InputDecoration(
-          labelText: label,
-          labelStyle: const TextStyle(color: Colors.white70),
-          prefixIcon: Container(
-            margin: const EdgeInsets.only(left: 12, right: 8),
-            child: Icon(icon, color: Colors.white70),
-          ),
-          suffixIcon:
-              isPassword
-                  ? IconButton(
-                    icon: Icon(
-                      (isPasswordVisible ?? false)
-                          ? Icons.visibility_outlined
-                          : Icons.visibility_off_outlined,
-                      color: Colors.white70,
-                    ),
-                    onPressed: onTogglePassword,
-                  )
-                  : null,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
-            borderSide: BorderSide.none,
-          ),
-          filled: true,
-          fillColor: Colors.transparent,
+    final textField = TextField(
+      key: key,
+      controller: controller,
+      style: const TextStyle(color: Colors.white),
+      obscureText: isPassword && !(isPasswordVisible ?? false),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: const TextStyle(color: Colors.white70),
+        prefixIcon: Container(
+          margin: const EdgeInsets.only(left: 12, right: 8),
+          child: Icon(icon, color: Colors.white70),
         ),
+        suffixIcon:
+            isPassword
+                ? IconButton(
+                  icon: Icon(
+                    (isPasswordVisible ?? false)
+                        ? Icons.visibility_outlined
+                        : Icons.visibility_off_outlined,
+                    color: Colors.white70,
+                  ),
+                  onPressed: onTogglePassword,
+                )
+                : null,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide.none,
+        ),
+        filled: true,
+        fillColor: Colors.transparent,
       ),
     );
+    if (semanticsLabel != null) {
+      return Semantics(
+        label: semanticsLabel,
+        child: textField,
+      );
+    } else {
+      return textField;
+    }
   }
 
   Widget _buildNextButton() {
