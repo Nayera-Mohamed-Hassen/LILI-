@@ -1136,8 +1136,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 ], showCheckboxes: false);
               },
             ),
-          if (myRole == 'admin')
-            const Divider(height: 1),
+          if (myRole == 'admin') const Divider(height: 1),
           _buildSettingsTile(
             'Reset Password',
             Icons.lock_reset,
@@ -1514,22 +1513,27 @@ class _ProfilePageState extends State<ProfilePage> {
                           ),
                         Container(
                           margin: const EdgeInsets.only(left: 8),
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                          decoration: role == 'admin'
-                              ? BoxDecoration(
-                                  color: Colors.orange,
-                                  borderRadius: BorderRadius.circular(8),
-                                )
-                              : null,
-                          child: role == 'admin'
-                              ? const Text(
-                                  'Admin',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 12,
-                                  ),
-                                )
-                              : null,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
+                          decoration:
+                              role == 'admin'
+                                  ? BoxDecoration(
+                                    color: Colors.orange,
+                                    borderRadius: BorderRadius.circular(8),
+                                  )
+                                  : null,
+                          child:
+                              role == 'admin'
+                                  ? const Text(
+                                    'Admin',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                    ),
+                                  )
+                                  : null,
                         ),
                       ],
                     ),
@@ -1569,11 +1573,23 @@ class _ProfilePageState extends State<ProfilePage> {
                         if (!isMe && myRole == 'admin')
                           IconButton(
                             icon: Icon(
-                              role == 'admin' ? Icons.arrow_downward : Icons.arrow_upward,
-                              color: role == 'admin' ? Colors.orange : Colors.green,
+                              role == 'admin'
+                                  ? Icons.arrow_downward
+                                  : Icons.arrow_upward,
+                              color:
+                                  role == 'admin'
+                                      ? Colors.orange
+                                      : Colors.green,
                             ),
-                            tooltip: role == 'admin' ? 'Demote to Standard' : 'Promote to Admin',
-                            onPressed: () => _confirmChangeRole(member, role == 'admin' ? 'user' : 'admin'),
+                            tooltip:
+                                role == 'admin'
+                                    ? 'Demote to Standard'
+                                    : 'Promote to Admin',
+                            onPressed:
+                                () => _confirmChangeRole(
+                                  member,
+                                  role == 'admin' ? 'user' : 'admin',
+                                ),
                           ),
                       ],
                     ),
@@ -1663,7 +1679,6 @@ class _ProfilePageState extends State<ProfilePage> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Username: @${data['username'] ?? ''}'),
                     Text('Email: ${data['email'] ?? ''}'),
                     Text('Phone: ${data['phone'] ?? ''}'),
                     Text('Birthday: ${data['user_birthday'] ?? ''}'),
@@ -1720,7 +1735,11 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                   child: Row(
                     children: const [
-                      Icon(Icons.remove_circle_outline, color: Colors.white, size: 28),
+                      Icon(
+                        Icons.remove_circle_outline,
+                        color: Colors.white,
+                        size: 28,
+                      ),
                       SizedBox(width: 16),
                       Expanded(
                         child: Text(
@@ -1797,7 +1816,10 @@ class _ProfilePageState extends State<ProfilePage> {
       final response = await http.post(
         url,
         headers: {"Content-Type": "application/json"},
-        body: jsonEncode({"user_id": userId}),
+        body: jsonEncode({
+          "user_id": userId,
+          "admin_id": UserSession().getUserId(),
+        }),
       );
       if (response.statusCode == 200) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -1817,23 +1839,27 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   void _confirmChangeRole(Map<String, dynamic> member, String newRole) async {
-    final action = newRole == 'admin' ? 'promote to Admin' : 'demote to Standard';
+    final action =
+        newRole == 'admin' ? 'promote to Admin' : 'demote to Standard';
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Change Role'),
-        content: Text('Are you sure you want to $action for ${member['name']}?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+      builder:
+          (context) => AlertDialog(
+            title: Text('Change Role'),
+            content: Text(
+              'Are you sure you want to $action for ${member['name']}?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text('Confirm'),
+              ),
+            ],
           ),
-          ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Confirm'),
-          ),
-        ],
-      ),
     );
     if (confirmed == true) {
       try {
@@ -1843,14 +1869,14 @@ class _ProfilePageState extends State<ProfilePage> {
           newRole: newRole,
           houseId: houseId,
         );
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Role updated successfully.')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Role updated successfully.')));
         _loadHouseholdUsers();
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to update role: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to update role: $e')));
       }
     }
   }
