@@ -62,28 +62,28 @@ class _SignUpPageState extends State<SignUpPage> {
                     controller: _name,
                     label: 'Full Name',
                     icon: Icons.person_outline,
-                    key: const Key('register_name'),
+                    key: const Key('Full Name'),
                   ),
                   const SizedBox(height: 24),
                   _buildTextField(
                     controller: _username,
                     label: 'Username',
                     icon: Icons.account_circle_outlined,
-                    key: const Key('register_username'),
+                    key: const Key('Username'),
                   ),
                   const SizedBox(height: 24),
                   _buildTextField(
                     controller: _email,
                     label: 'Email',
                     icon: Icons.email_outlined,
-                    key: const Key('register_email'),
+                    key: const Key('Email'),
                   ),
                   const SizedBox(height: 24),
                   _buildTextField(
                     controller: _phoneNumber,
                     label: 'Phone Number',
                     icon: Icons.phone_outlined,
-                    key: const Key('register_phone'),
+                    key: const Key('Phone Number'),
                   ),
                   const SizedBox(height: 24),
                   _buildTextField(
@@ -97,7 +97,7 @@ class _SignUpPageState extends State<SignUpPage> {
                         _isPasswordVisible = !_isPasswordVisible;
                       });
                     },
-                    key: const Key('register_password'),
+                    key: const Key('Password'),
                   ),
                   const SizedBox(height: 24),
                   _buildTextField(
@@ -111,7 +111,7 @@ class _SignUpPageState extends State<SignUpPage> {
                         _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
                       });
                     },
-                    key: const Key('register_confirm_password'),
+                    key: const Key('Confirm Password'),
                   ),
                   const SizedBox(height: 32),
                   Semantics(

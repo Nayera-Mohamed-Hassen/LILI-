@@ -2,6 +2,7 @@ import unittest
 from appium import webdriver
 from appium.options.android import UiAutomator2Options
 import time
+import re
 
 class LogoutTest(unittest.TestCase):
     def setUp(self):
@@ -33,19 +34,16 @@ class LogoutTest(unittest.TestCase):
         username_field.click()
         time.sleep(0.5)
         username_field.send_keys('ganna')
-        time.sleep(0.5)
         if not username_field.text:
             username_field.set_value('ganna')
-            time.sleep(0.5)
         password_field.click()
-        time.sleep(0.5)
         password_field.send_keys('1234')
-        time.sleep(0.5)
+
         if not password_field.text:
             password_field.set_value('1234')
-            time.sleep(0.5)
+
         self.driver.save_screenshot('logout_fields_after_input.png')
-        time.sleep(1)
+    
         login_button.click()
         time.sleep(3)
         # --- Wait for home screen ---
@@ -55,50 +53,59 @@ class LogoutTest(unittest.TestCase):
             self.driver.save_screenshot('logout_home_not_found.png')
             raise Exception('Home screen not loaded after login')
         # --- NAVIGATE TO PROFILE VIA NAVBAR ---
-        time.sleep(1)
-        # Debug: print all clickable elements and all ImageView/Button elements
-        clickable = self.driver.find_elements('class name', 'android.view.View')
-        print(f"Found {len(clickable)} android.view.View elements")
-        for i, el in enumerate(clickable):
+        views = self.driver.find_elements('class name', 'android.view.View')
+        # Find clickable views at the bottom of the screen (y >= 2000)
+        navbar_buttons = []
+        for v in views:
             try:
-                print(f"View {i}: content-desc={el.get_attribute('content-desc')}, text={el.text}, clickable={el.get_attribute('clickable')}")
+                bounds = v.get_attribute('bounds')
+                clickable = v.get_attribute('clickable') == 'true'
+                if clickable and bounds:
+                    m = re.match(r'\[(\d+),(\d+)\]\[(\d+),(\d+)\]', bounds)
+                    if m:
+                        left, top, right, bottom = map(int, m.groups())
+                        # Heuristic: bottom of screen is >= 2200 (adjust if needed)
+                        if top >= 2000 or bottom >= 2000:
+                            navbar_buttons.append((left, v))
             except Exception:
                 pass
-        imageviews = self.driver.find_elements('class name', 'android.widget.ImageView')
-        print(f"Found {len(imageviews)} ImageView elements")
-        for i, el in enumerate(imageviews):
-            try:
-                print(f"ImageView {i}: content-desc={el.get_attribute('content-desc')}, text={el.text}, clickable={el.get_attribute('clickable')}")
-            except Exception:
-                pass
-        buttons = self.driver.find_elements('class name', 'android.widget.Button')
-        print(f"Found {len(buttons)} Button elements")
-        for i, el in enumerate(buttons):
-            try:
-                print(f"Button {i}: content-desc={el.get_attribute('content-desc')}, text={el.text}, clickable={el.get_attribute('clickable')}")
-            except Exception:
-                pass
-        self.driver.save_screenshot('logout_navbar_debug.png')
-        # The profile button is the last icon in the navbar (index 4)
-        if len(imageviews) < 5:
-            raise Exception('Not enough navbar icons found')
-        profile_button = imageviews[4]
+        if not navbar_buttons:
+            self.driver.save_screenshot('logout_navbar_buttons_not_found.png')
+            raise Exception('No navbar buttons found at bottom of screen')
+        # Tap the rightmost one (largest left)
+        navbar_buttons.sort()
+        profile_button = navbar_buttons[-1][1]
         profile_button.click()
         time.sleep(2)
         self.driver.save_screenshot('logout_profile_screen.png')
         # --- SCROLL TO LOGOUT AND TAP ---
-        # Try to find the Logout ListTile by text
-        try:
-            logout_tile = self.driver.find_element('xpath', "//android.widget.TextView[@text='Logout']")
-        except Exception:
-            # Try scrolling and searching again
-            self.driver.swipe(500, 1500, 500, 500, 800)
-            time.sleep(1)
-            try:
-                logout_tile = self.driver.find_element('xpath', "//android.widget.TextView[@text='Logout']")
-            except Exception:
-                self.driver.save_screenshot('logout_tile_not_found.png')
-                raise Exception('Logout ListTile not found')
+        found = False
+        logout_tile = None
+        for attempt in range(3):  # Try up to 3 times (initial + 2 scrolls)
+            views = self.driver.find_elements('class name', 'android.view.View')
+            candidates = []
+            for v in views:
+                try:
+                    desc = v.get_attribute('content-desc') or ''
+                    if 'Logout' in desc:
+                        bounds = v.get_attribute('bounds')
+                        m = re.match(r'\[(\d+),(\d+)\]\[(\d+),(\d+)\]', bounds) if bounds else None
+                        top = int(m.group(2)) if m else 0
+                        candidates.append((top, v))
+                except Exception:
+                    pass
+            if candidates:
+                candidates.sort()
+                logout_tile = candidates[0][1]
+                found = True
+                break
+            if attempt < 2:
+                self.driver.swipe(500, 1500, 500, 500, 800)
+                time.sleep(1)
+        if not found or logout_tile is None:
+            print('No clickable view with Logout in content-desc found after three attempts.')
+            self.driver.save_screenshot('logout_tile_not_found.png')
+            raise Exception('Logout ListTile not found after three attempts and debug printed')
         logout_tile.click()
         time.sleep(1)
         self.driver.save_screenshot('logout_dialog.png')

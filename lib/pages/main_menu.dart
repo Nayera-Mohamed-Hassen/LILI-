@@ -225,6 +225,7 @@ class _MainMenuPageState extends State<MainMenuPage> {
                       child: Column(
                         children: [
                           Menuitem(
+                            key: const Key('tasks_menuitem'),
                             onPressed: () {
                               Navigator.pushNamed(context, '/task home');
                             },
@@ -232,6 +233,7 @@ class _MainMenuPageState extends State<MainMenuPage> {
                             image: "assets/images/tasks.gif",
                           ),
                           Menuitem(
+                            key: const Key('recipe_menuitem'),
                             onPressed: () {
                               Navigator.pushNamed(context, '/Recipe');
                             },
@@ -239,6 +241,7 @@ class _MainMenuPageState extends State<MainMenuPage> {
                             image: "assets/images/food.gif",
                           ),
                           Menuitem(
+                            key: const Key('inventory_menuitem'),
                             onPressed: () {
                               Navigator.pushNamed(context, '/inventory');
                             },
@@ -246,6 +249,7 @@ class _MainMenuPageState extends State<MainMenuPage> {
                             image: "assets/images/inventory.gif",
                           ),
                           Menuitem(
+                            key: const Key('expenses_menuitem'),
                             onPressed: () {
                               Navigator.pushNamed(context, '/Expenses ');
                             },
@@ -260,6 +264,7 @@ class _MainMenuPageState extends State<MainMenuPage> {
                           //   image: "assets/images/food.gif",
                           // ),
                           Menuitem(
+                            key: const Key('family_calendar_menuitem'),
                             onPressed: () {
                               Navigator.pushNamed(context, '/family_calendar');
                             },
