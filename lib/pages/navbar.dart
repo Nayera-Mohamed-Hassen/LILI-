@@ -41,27 +41,36 @@ class _NavbarState extends State<Navbar> {
         index: _pageIndex,
         height: 60.0,
         items: <Widget>[
-          IconButton(
-            key: Key('home_button'),
-            onPressed: () {/* TODO: implement navigation to home */},
-            icon: Icon(Icons.home, size: 30, color: Color(0xFFF2F2F2)),
+          Icon(
+            Icons.home,
+            size: 30,
+            color: Color(0xFFF2F2F2),
+            key: const Key('home_button'),
           ),
-          IconButton(
-            key: Key('calendar_button'),
-            onPressed: () {/* TODO: implement navigation to calendar */},
-            icon: Icon(Icons.calendar_today, size: 30, color: Color(0xFFF2F2F2)),
+          Icon(
+            Icons.menu,
+            size: 30,
+            color: Color(0xFFF2F2F2),
+            key: const Key('menu_button'),
           ),
-          IconButton(
-            key: Key('inventory_button'),
-            onPressed: () {/* TODO: implement navigation to inventory */},
-            icon: Icon(Icons.inventory, size: 30, color: Color(0xFFF2F2F2)),
+          Icon(
+            Icons.dashboard_outlined,
+            size: 30,
+            color: Color(0xFFF2F2F2),
+            key: const Key('dashboard_button'),
           ),
-          IconButton(
-            key: Key('emergency_button'),
-            onPressed: () {/* TODO: implement navigation to emergency */},
-            icon: Icon(Icons.warning, size: 30, color: Color(0xFFF2F2F2)),
+          Icon(
+            Icons.warning_amber_rounded,
+            size: 30,
+            color: Color(0xFFF2F2F2),
+            key: const Key('sos_button'),
           ),
-          Icon(Icons.settings, size: 30, color: Color(0xFFF2F2F2)),
+          Icon(
+            Icons.settings,
+            size: 30,
+            color: Color(0xFFF2F2F2),
+            key: const Key('settings_button'),
+          ),
         ],
         color: Color(0xFF1F3354),
         buttonBackgroundColor: Color(0xFF1F3354),

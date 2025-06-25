@@ -146,10 +146,10 @@ class _InitSetupPageState extends State<InitSetupPage> {
                     ),
                   ),
                   const SizedBox(height: 32),
-                  _buildDateField(context, semanticsLabel: 'initsetup_birthdate'),
+                  _buildDateField(context, label: 'initsetup_birthdate', hint: 'Date of Birth'),
                   const SizedBox(height: 24),
                   _buildDropdownField(
-                    'Gender',
+                    'initsetup_gender',
                     genderOptions,
                     _selectedGender,
                     Icons.person_outline,
@@ -158,11 +158,11 @@ class _InitSetupPageState extends State<InitSetupPage> {
                         _selectedGender = value;
                       });
                     },
-                    semanticsLabel: 'initsetup_gender',
+                    hint: 'Gender',
                   ),
                   const SizedBox(height: 24),
                   _buildDropdownField(
-                    'Diet Preference',
+                    'initsetup_diet',
                     diets,
                     _selectedDiet,
                     Icons.restaurant_menu,
@@ -171,32 +171,43 @@ class _InitSetupPageState extends State<InitSetupPage> {
                         _selectedDiet = value;
                       });
                     },
-                    semanticsLabel: 'initsetup_diet',
+                    hint: 'Diet Preference',
                   ),
                   const SizedBox(height: 24),
-                  _buildTextField(
-                    controller: _height,
-                    label: 'Height (cm)',
-                    icon: Icons.height,
-                    keyboardType: TextInputType.number,
-                    semanticsLabel: 'initsetup_height',
+                  Semantics(
+                    label: 'initsetup_height',
+                    textField: true,
+                    child: _buildTextField(
+                      controller: _height,
+                      label: 'Height (cm)',
+                      icon: Icons.height,
+                      keyboardType: TextInputType.number,
+                      hint: 'Height (cm)',
+                    ),
                   ),
                   const SizedBox(height: 24),
-                  _buildTextField(
-                    controller: _weight,
-                    label: 'Weight (kg)',
-                    icon: Icons.monitor_weight,
-                    keyboardType: TextInputType.number,
-                    semanticsLabel: 'initsetup_weight',
+                  Semantics(
+                    label: 'initsetup_weight',
+                    textField: true,
+                    child: _buildTextField(
+                      controller: _weight,
+                      label: 'Weight (kg)',
+                      icon: Icons.monitor_weight,
+                      keyboardType: TextInputType.number,
+                      hint: 'Weight (kg)',
+                    ),
                   ),
                   const SizedBox(height: 24),
-                  _buildTextField(
-                    controller: _alergiesController,
-                    label: 'Allergies',
-                    icon: Icons.warning_amber_rounded,
-                    maxLines: 3,
-                    hint: 'Enter any allergies, separated by commas',
-                    semanticsLabel: 'initsetup_allergies',
+                  Semantics(
+                    label: 'initsetup_allergies',
+                    textField: true,
+                    child: _buildTextField(
+                      controller: _alergiesController,
+                      label: 'Allergies',
+                      icon: Icons.warning_amber_rounded,
+                      maxLines: 3,
+                      hint: 'Allergies (comma separated)',
+                    ),
                   ),
                   const SizedBox(height: 32),
                   Semantics(
@@ -219,9 +230,8 @@ class _InitSetupPageState extends State<InitSetupPage> {
     String? hint,
     int maxLines = 1,
     TextInputType? keyboardType,
-    String? semanticsLabel,
   }) {
-    final textField = TextField(
+    return TextField(
       controller: controller,
       maxLines: maxLines,
       keyboardType: keyboardType,
@@ -243,18 +253,10 @@ class _InitSetupPageState extends State<InitSetupPage> {
         fillColor: Colors.transparent,
       ),
     );
-    if (semanticsLabel != null) {
-      return Semantics(
-        label: semanticsLabel,
-        child: textField,
-      );
-    } else {
-      return textField;
-    }
   }
 
-  Widget _buildDateField(BuildContext context, {String? semanticsLabel}) {
-    final dateField = GestureDetector(
+  Widget _buildDateField(BuildContext context, {required String label, String? hint}) {
+    return GestureDetector(
       onTap: () async {
         final DateTime? picked = await showDatePicker(
           context: context,
@@ -287,7 +289,8 @@ class _InitSetupPageState extends State<InitSetupPage> {
         enabled: false,
         style: const TextStyle(color: Colors.white),
         decoration: InputDecoration(
-          labelText: 'Date of Birth',
+          labelText: label,
+          hintText: hint ?? 'Date of Birth',
           labelStyle: const TextStyle(color: Colors.white70),
           prefixIcon: Container(
             margin: const EdgeInsets.only(left: 12, right: 8),
@@ -302,14 +305,6 @@ class _InitSetupPageState extends State<InitSetupPage> {
         ),
       ),
     );
-    if (semanticsLabel != null) {
-      return Semantics(
-        label: semanticsLabel,
-        child: dateField,
-      );
-    } else {
-      return dateField;
-    }
   }
 
   Widget _buildDropdownField(
@@ -318,14 +313,15 @@ class _InitSetupPageState extends State<InitSetupPage> {
     String? selectedValue,
     IconData icon,
     void Function(String?) onChanged,
-    {String? semanticsLabel}
+    {String? hint}
   ) {
-    final dropdown = DropdownButtonFormField<String>(
+    return DropdownButtonFormField<String>(
       value: selectedValue,
       dropdownColor: const Color(0xFF1F3354),
       style: const TextStyle(color: Colors.white),
       decoration: InputDecoration(
         labelText: label,
+        hintText: hint,
         labelStyle: const TextStyle(color: Colors.white70),
         prefixIcon: Container(
           margin: const EdgeInsets.only(left: 12, right: 8),
@@ -347,14 +343,6 @@ class _InitSetupPageState extends State<InitSetupPage> {
           }).toList(),
       onChanged: onChanged,
     );
-    if (semanticsLabel != null) {
-      return Semantics(
-        label: semanticsLabel,
-        child: dropdown,
-      );
-    } else {
-      return dropdown;
-    }
   }
 
   Widget _buildFinishButton() {
