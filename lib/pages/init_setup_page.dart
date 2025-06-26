@@ -146,10 +146,14 @@ class _InitSetupPageState extends State<InitSetupPage> {
                     ),
                   ),
                   const SizedBox(height: 32),
-                  _buildDateField(context, label: 'initsetup_birthdate', hint: 'Date of Birth'),
+                  _buildDateField(
+                    context,
+                    label: 'Birthdate',
+                    hint: 'Date of Birth',
+                  ),
                   const SizedBox(height: 24),
                   _buildDropdownField(
-                    'initsetup_gender',
+                    '',
                     genderOptions,
                     _selectedGender,
                     Icons.person_outline,
@@ -162,7 +166,7 @@ class _InitSetupPageState extends State<InitSetupPage> {
                   ),
                   const SizedBox(height: 24),
                   _buildDropdownField(
-                    'initsetup_diet',
+                    '',
                     diets,
                     _selectedDiet,
                     Icons.restaurant_menu,
@@ -199,7 +203,6 @@ class _InitSetupPageState extends State<InitSetupPage> {
                   ),
                   const SizedBox(height: 24),
                   Semantics(
-                    label: 'initsetup_allergies',
                     textField: true,
                     child: _buildTextField(
                       controller: _alergiesController,
@@ -231,70 +234,25 @@ class _InitSetupPageState extends State<InitSetupPage> {
     int maxLines = 1,
     TextInputType? keyboardType,
   }) {
-    return TextField(
-      controller: controller,
-      maxLines: maxLines,
-      keyboardType: keyboardType,
-      style: const TextStyle(color: Colors.white),
-      decoration: InputDecoration(
-        labelText: label,
-        hintText: hint,
-        hintStyle: const TextStyle(color: Colors.white38, fontSize: 14),
-        labelStyle: const TextStyle(color: Colors.white70),
-        prefixIcon: Container(
-          margin: const EdgeInsets.only(left: 12, right: 8),
-          child: Icon(icon, color: Colors.white70),
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide.none,
-        ),
-        filled: true,
-        fillColor: Colors.transparent,
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white12,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white24),
       ),
-    );
-  }
-
-  Widget _buildDateField(BuildContext context, {required String label, String? hint}) {
-    return GestureDetector(
-      onTap: () async {
-        final DateTime? picked = await showDatePicker(
-          context: context,
-          initialDate: _selectedDate ?? DateTime.now(),
-          firstDate: DateTime(1900),
-          lastDate: DateTime.now(),
-          builder: (context, child) {
-            return Theme(
-              data: Theme.of(context).copyWith(
-                colorScheme: const ColorScheme.dark(
-                  primary: Colors.white,
-                  onPrimary: Color(0xFF1F3354),
-                  surface: Color(0xFF1F3354),
-                  onSurface: Colors.white,
-                ),
-              ),
-              child: child!,
-            );
-          },
-        );
-        if (picked != null) {
-          setState(() {
-            _selectedDate = picked;
-            _dateController.text = DateFormat('yyyy-MM-dd').format(picked);
-          });
-        }
-      },
       child: TextField(
-        controller: _dateController,
-        enabled: false,
+        controller: controller,
+        maxLines: maxLines,
+        keyboardType: keyboardType,
         style: const TextStyle(color: Colors.white),
         decoration: InputDecoration(
           labelText: label,
-          hintText: hint ?? 'Date of Birth',
+          hintText: hint,
           labelStyle: const TextStyle(color: Colors.white70),
+          hintStyle: const TextStyle(color: Colors.white70),
           prefixIcon: Container(
             margin: const EdgeInsets.only(left: 12, right: 8),
-            child: const Icon(Icons.calendar_today, color: Colors.white70),
+            child: Icon(icon, color: Colors.white70),
           ),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
@@ -307,41 +265,114 @@ class _InitSetupPageState extends State<InitSetupPage> {
     );
   }
 
+  Widget _buildDateField(
+    BuildContext context, {
+    required String label,
+    String? hint,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white12,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white24),
+      ),
+      child: GestureDetector(
+        onTap: () async {
+          final DateTime? picked = await showDatePicker(
+            context: context,
+            initialDate: _selectedDate ?? DateTime.now(),
+            firstDate: DateTime(1900),
+            lastDate: DateTime.now(),
+            builder: (context, child) {
+              return Theme(
+                data: Theme.of(context).copyWith(
+                  colorScheme: const ColorScheme.dark(
+                    primary: Colors.white,
+                    onPrimary: Color(0xFF1F3354),
+                    surface: Color(0xFF1F3354),
+                    onSurface: Colors.white,
+                  ),
+                ),
+                child: child!,
+              );
+            },
+          );
+          if (picked != null) {
+            setState(() {
+              _selectedDate = picked;
+              _dateController.text = DateFormat('yyyy-MM-dd').format(picked);
+            });
+          }
+        },
+        child: AbsorbPointer(
+          child: TextField(
+            controller: _dateController,
+            style: const TextStyle(color: Colors.white),
+            decoration: InputDecoration(
+              labelText: label,
+              hintText: hint ?? 'Date of Birth',
+              labelStyle: const TextStyle(color: Colors.white70),
+              hintStyle: const TextStyle(color: Colors.white70),
+              prefixIcon: Container(
+                margin: const EdgeInsets.only(left: 12, right: 8),
+                child: const Icon(Icons.calendar_today, color: Colors.white70),
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide.none,
+              ),
+              filled: true,
+              fillColor: Colors.transparent,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildDropdownField(
     String label,
     List<String> items,
     String? selectedValue,
     IconData icon,
-    void Function(String?) onChanged,
-    {String? hint}
-  ) {
-    return DropdownButtonFormField<String>(
-      value: selectedValue,
-      dropdownColor: const Color(0xFF1F3354),
-      style: const TextStyle(color: Colors.white),
-      decoration: InputDecoration(
-        labelText: label,
-        hintText: hint,
-        labelStyle: const TextStyle(color: Colors.white70),
-        prefixIcon: Container(
-          margin: const EdgeInsets.only(left: 12, right: 8),
-          child: Icon(icon, color: Colors.white70),
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide.none,
-        ),
-        filled: true,
-        fillColor: Colors.transparent,
+    void Function(String?) onChanged, {
+    String? hint,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white12,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white24),
       ),
-      items:
-          items.map((item) {
-            return DropdownMenuItem(
-              value: item,
-              child: Text(item, style: const TextStyle(color: Colors.white)),
-            );
-          }).toList(),
-      onChanged: onChanged,
+      child: DropdownButtonFormField<String>(
+        value: selectedValue,
+        dropdownColor: const Color(0xFF1F3354),
+        style: const TextStyle(color: Colors.white),
+        decoration: InputDecoration(
+          labelText: label,
+          labelStyle: const TextStyle(color: Colors.white70),
+          prefixIcon: Container(
+            margin: const EdgeInsets.only(left: 12, right: 8),
+            child: Icon(icon, color: Colors.white70),
+          ),
+          hintStyle: const TextStyle(color: Colors.white70),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide.none,
+          ),
+          filled: true,
+          fillColor: Colors.transparent,
+        ),
+        hint: Text(hint!, style: const TextStyle(color: Colors.white70)),
+        items:
+            items.map((item) {
+              return DropdownMenuItem(
+                value: item,
+                child: Text(item, style: const TextStyle(color: Colors.white)),
+              );
+            }).toList(),
+        onChanged: onChanged,
+      ),
     );
   }
 
@@ -385,7 +416,14 @@ class _InitSetupPageState extends State<InitSetupPage> {
       return;
     }
     final now = DateTime.now();
-    final age = now.year - _selectedDate!.year - ((now.month < _selectedDate!.month || (now.month == _selectedDate!.month && now.day < _selectedDate!.day)) ? 1 : 0);
+    final age =
+        now.year -
+        _selectedDate!.year -
+        ((now.month < _selectedDate!.month ||
+                (now.month == _selectedDate!.month &&
+                    now.day < _selectedDate!.day))
+            ? 1
+            : 0);
     if (age < 10) {
       _showError('You must be at least 10 years old to sign up');
       return;

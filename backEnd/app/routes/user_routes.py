@@ -1148,6 +1148,7 @@ class UpdateTaskRequest(BaseModel):
     is_completed: bool
     assignerId: str
     assigneeId: str
+    priority: str
 
 @router.put("/tasks/update-full")
 async def update_task_full(data: UpdateTaskRequest):
@@ -1165,6 +1166,7 @@ async def update_task_full(data: UpdateTaskRequest):
             "is_completed": data.is_completed,
             "assignerId": data.assignerId,
             "assigneeId": data.assigneeId,
+            "priority": data.priority,
         }
         result = tasks_collection.update_one(
             {"_id": object_id},

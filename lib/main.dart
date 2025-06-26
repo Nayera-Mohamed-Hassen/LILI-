@@ -85,7 +85,7 @@ class LiliApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         scaffoldBackgroundColor: Color(0xFFF2F2F2),
       ),
-      initialRoute: isLoggedIn ? '/homepage' : '/login',
+      initialRoute: isLoggedIn ? '/homepage' : '/',
       routes: {
         '/': (context) => OnBoarding(),
         '/menu': (context) => MenuItem(),

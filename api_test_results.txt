@@ -1,0 +1,26 @@
+Testing LILI API Endpoints 
+ 
+Testing / 
+Time: 0.209069s
+ 
+Testing /profile/{user_id} 
+Time: 0.218690s
+ 
+Testing /allergies/{user_id} 
+Time: 0.215159s
+ 
+Testing /household/{house_id} 
+Time: 0.209028s
+ 
+Testing /favorites/{user_id} 
+Time: 0.207874s
+ 
+Testing /calendar/events?user_id={user_id} 
+Time: 0.611479s
+ 
+Testing /transactions/{user_id} 
+Time: 0.918194s
+ 
+Testing /ocr/test 
+Time: 0.215699s
+ 
