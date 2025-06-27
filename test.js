@@ -1,7 +1,7 @@
 import http from 'k6/http';
 
 export let options = {
-  vus: 100, // Number of concurrent users (virtual users)
+  vus: 200, // Number of concurrent users (virtual users)
   duration: '10s', // Total test duration
 };
 

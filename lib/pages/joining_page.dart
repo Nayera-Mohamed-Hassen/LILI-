@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../user_session.dart';
+import '../config.dart';
 
 class JoiningPage extends StatefulWidget {
   const JoiningPage({super.key});
@@ -153,14 +154,14 @@ class _JoiningPageState extends State<JoiningPage> {
     setState(() => _isJoining = true);
     try {
       // 1. Check if household with this code exists
-      final url = Uri.parse('http://10.0.2.2:8000/user/household-by-code/$code');
+      final url = Uri.parse('${AppConfig.apiBaseUrl}/user/household-by-code/$code');
       final response = await http.get(url);
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final houseId = data['house_id'];
         // 2. Update user's house_Id
         final userId = UserSession().getUserId();
-        final updateUrl = Uri.parse('http://10.0.2.2:8000/user/update-house');
+        final updateUrl = Uri.parse('${AppConfig.apiBaseUrl}/user/update-house');
         final updateResponse = await http.post(
           updateUrl,
           headers: {"Content-Type": "application/json"},

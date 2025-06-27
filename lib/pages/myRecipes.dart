@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../user_session.dart';
 import 'wave2.dart';
+import '../config.dart';
 
 class MyRecipesPage extends StatefulWidget {
   const MyRecipesPage({Key? key}) : super(key: key);
@@ -35,7 +36,7 @@ class _MyRecipesPageState extends State<MyRecipesPage> {
       });
       return;
     }
-    final url = Uri.parse('http://10.0.2.2:8000/user/recipes/$userId');
+    final url = Uri.parse('${AppConfig.apiBaseUrl}/user/recipes/$userId');
     final response = await http.get(url);
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
@@ -60,7 +61,7 @@ class _MyRecipesPageState extends State<MyRecipesPage> {
       return;
     }
     final url = Uri.parse(
-      'http://10.0.2.2:8000/user/recipes/$userId?shared=true',
+      '${AppConfig.apiBaseUrl}/user/recipes/$userId?shared=true',
     );
     final response = await http.get(url);
     if (response.statusCode == 200) {
@@ -98,7 +99,7 @@ class _MyRecipesPageState extends State<MyRecipesPage> {
   Future<void> _saveRecipe(RecipeItem recipe, bool shared) async {
     final userId = UserSession().getUserId();
     if (userId == null || userId.isEmpty) return;
-    final url = Uri.parse('http://10.0.2.2:8000/user/recipes/save');
+    final url = Uri.parse('${AppConfig.apiBaseUrl}/user/recipes/save');
     final response = await http.post(
       url,
       headers: {'Content-Type': 'application/json'},
@@ -113,7 +114,7 @@ class _MyRecipesPageState extends State<MyRecipesPage> {
 
   Future<void> _updateRecipeShared(String? recipeId, bool shared) async {
     if (recipeId == null) return;
-    final url = Uri.parse('http://10.0.2.2:8000/user/recipes/update-shared');
+    final url = Uri.parse('${AppConfig.apiBaseUrl}/user/recipes/update-shared');
     await http.put(
       url,
       headers: {'Content-Type': 'application/json'},
@@ -652,9 +653,7 @@ class _MyRecipesPageState extends State<MyRecipesPage> {
                                                         boxShadow: [
                                                           BoxShadow(
                                                             color: Colors.black
-                                                                .withOpacity(
-                                                                  0.1,
-                                                                ),
+                                                                .withOpacity(0.1),
                                                             blurRadius: 4,
                                                             offset:
                                                                 const Offset(

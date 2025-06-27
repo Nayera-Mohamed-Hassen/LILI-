@@ -1,10 +1,11 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../new Lib/models/event.dart';
+import '../config.dart';
 
 class CalendarService {
   static const String baseUrl =
-      'http://10.0.2.2:8000/calendar/events'; // Change to your backend URL
+      '${AppConfig.apiBaseUrl}/calendar/events'; // Change to your backend URL
 
   // Fetch events for a user (and optionally a household)
   static Future<List<Event>> fetchEvents({

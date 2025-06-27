@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import '../config.dart';
 
 class VerifyCodePage extends StatefulWidget {
   final String email;
@@ -177,7 +178,7 @@ class _VerifyCodePageState extends State<VerifyCodePage> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://10.0.2.2:8000/user/verify-reset-code'),
+        Uri.parse('${AppConfig.apiBaseUrl}/user/verify-reset-code'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'email': widget.email,
@@ -206,7 +207,7 @@ class _VerifyCodePageState extends State<VerifyCodePage> {
   Future<void> _resendCode() async {
     try {
       final response = await http.post(
-        Uri.parse('http://10.0.2.2:8000/user/forgot-password'),
+        Uri.parse('${AppConfig.apiBaseUrl}/user/forgot-password'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'email': widget.email,

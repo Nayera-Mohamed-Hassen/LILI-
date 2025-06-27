@@ -1,9 +1,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/notification.dart';
+import '../config.dart';
 
 class NotificationService {
-  static const String baseUrl = 'http://10.0.2.2:8000';
+  static const String baseUrl = AppConfig.apiBaseUrl;
 
   Future<List<NotificationModel>> fetchNotifications(String userId, {bool unreadOnly = false}) async {
     final response = await http.get(Uri.parse('$baseUrl/notifications/$userId?unread_only=$unreadOnly'));

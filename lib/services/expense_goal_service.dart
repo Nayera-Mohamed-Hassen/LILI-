@@ -1,9 +1,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/expense_goal.dart';
+import '../config.dart';
 
 class ExpenseGoalService {
-  static const String baseUrl = 'http://10.0.2.2:8000'; // Update with your backend URL
+  static const String baseUrl = AppConfig.apiBaseUrl; // Update with your backend URL
 
   /// Get all expense goals for a user
   static Future<List<ExpenseGoal>> getExpenseGoals(String userId) async {

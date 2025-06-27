@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import '../config.dart';
 
 // class ForgetPasswordEmailPage extends StatelessWidget {
 //   const ForgetPasswordEmailPage({super.key});
@@ -189,7 +190,7 @@ class _ForgetPasswordEmailPageState extends State<ForgetPasswordEmailPage> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://10.0.2.2:8000/user/forgot-password'),
+        Uri.parse('${AppConfig.apiBaseUrl}/user/forgot-password'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'email': email,

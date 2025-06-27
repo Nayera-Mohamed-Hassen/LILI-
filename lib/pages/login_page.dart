@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../user_session.dart';
 import 'package:LILI/services/user_service.dart';
+import '../config.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -254,7 +255,7 @@ class _LoginPageState extends State<LoginPage> {
     }
     try {
       final response = await http.post(
-        Uri.parse('http://10.0.2.2:8000/user/login'),
+        Uri.parse('${AppConfig.apiBaseUrl}/user/login'),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({
           "username": _usernameController.text,

@@ -6,6 +6,7 @@ import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import '../user_session.dart';
+import '../config.dart';
 
 class HostHousePage extends StatefulWidget {
   const HostHousePage({super.key});
@@ -124,7 +125,7 @@ class _HostHousePageState extends State<HostHousePage> {
                         }
 
                         final url = Uri.parse(
-                          'http://10.0.2.2:8000/user/household/create',
+                          '${AppConfig.apiBaseUrl}/user/household/create',
                         );
 
                         final response = await http.post(

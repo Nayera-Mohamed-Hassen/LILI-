@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'init_setup_page.dart';
+import '../config.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -269,7 +270,7 @@ class _SignUpPageState extends State<SignUpPage> {
     }
     // Uniqueness check before proceeding
     final response = await http.post(
-      Uri.parse('http://10.0.2.2:8000/user/check-uniqueness'),
+      Uri.parse('${AppConfig.apiBaseUrl}/user/check-uniqueness'),
       headers: {"Content-Type": "application/json"},
       body: jsonEncode({
         "username": _username.text,

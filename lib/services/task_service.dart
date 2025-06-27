@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:LILI/models/task.dart';
 import 'package:LILI/user_session.dart';
+import 'package:LILI/config.dart';
 
 class TaskService extends ChangeNotifier {
   static final TaskService _instance = TaskService._internal();
@@ -32,7 +33,7 @@ class TaskService extends ChangeNotifier {
       }
 
       final response = await http.get(
-        Uri.parse('http://10.0.2.2:8000/user/tasks/' + userId),
+        Uri.parse('${AppConfig.apiBaseUrl}/user/tasks/' + userId),
       );
 
       if (response.statusCode == 200) {
@@ -64,7 +65,7 @@ class TaskService extends ChangeNotifier {
   Future<bool> updateTaskStatus(TaskModel task, bool isCompleted) async {
     try {
       final response = await http.post(
-        Uri.parse('http://10.0.2.2:8000/user/tasks/update'),
+        Uri.parse('${AppConfig.apiBaseUrl}/user/tasks/update'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'task_id': task.id,
@@ -89,7 +90,7 @@ class TaskService extends ChangeNotifier {
   Future<bool> deleteTask(TaskModel task) async {
     try {
       final response = await http.delete(
-        Uri.parse('http://10.0.2.2:8000/user/tasks/${task.id}'),
+        Uri.parse('${AppConfig.apiBaseUrl}/user/tasks/${task.id}'),
       );
 
       if (response.statusCode == 200) {
@@ -106,7 +107,7 @@ class TaskService extends ChangeNotifier {
   Future<TaskModel?> createTask(Map<String, dynamic> taskData) async {
     try {
       final response = await http.post(
-        Uri.parse('http://10.0.2.2:8000/user/tasks/create'),
+        Uri.parse('${AppConfig.apiBaseUrl}/user/tasks/create'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(taskData),
       );
@@ -177,7 +178,7 @@ class TaskService extends ChangeNotifier {
   Future<bool> updateTask(Map<String, dynamic> taskData) async {
     try {
       final response = await http.put(
-        Uri.parse('http://10.0.2.2:8000/user/tasks/update-full'),
+        Uri.parse('${AppConfig.apiBaseUrl}/user/tasks/update-full'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(taskData),
       );

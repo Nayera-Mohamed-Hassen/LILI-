@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../user_session.dart';
+import '../config.dart';
 
 class InitSetupPage extends StatefulWidget {
   final String name;
@@ -430,7 +431,7 @@ class _InitSetupPageState extends State<InitSetupPage> {
     }
     try {
       final response = await http.post(
-        Uri.parse('http://10.0.2.2:8000/user/signup'),
+        Uri.parse('${AppConfig.apiBaseUrl}/user/signup'),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({
           "name": widget.name,

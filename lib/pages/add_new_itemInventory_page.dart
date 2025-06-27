@@ -11,6 +11,7 @@ import 'package:LILI/models/category_manager.dart';
 import 'receipt_scan_dialog.dart';
 import 'extracted_items_dialog.dart';
 import '../services/ocr_service.dart';
+import '../config.dart';
 
 class CreateNewItemPage extends StatefulWidget {
   @override
@@ -206,7 +207,7 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
 
     try {
       final response = await http.post(
-        Uri.parse("http://10.0.2.2:8000/user/inventory/add"),
+        Uri.parse("${AppConfig.apiBaseUrl}/user/inventory/add"),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode(newItem),
       );
@@ -460,7 +461,7 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
 
     try {
       final response = await http.post(
-        Uri.parse("http://10.0.2.2:8000/user/inventory/add"),
+        Uri.parse("${AppConfig.apiBaseUrl}/user/inventory/add"),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode(newItem),
       );

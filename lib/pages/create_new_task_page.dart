@@ -7,6 +7,7 @@ import 'package:LILI/services/task_service.dart';
 import 'package:LILI/services/user_service.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import '../config.dart';
 
 class CreateNewTaskPage extends StatefulWidget {
   final List<CategoryModel> categories;
@@ -77,7 +78,7 @@ class _CreateNewTaskPageState extends State<CreateNewTaskPage> {
     }
     try {
       final url = Uri.parse(
-        'http://10.0.2.2:8000/user/household-users/$userId',
+        '${AppConfig.apiBaseUrl}/user/household-users/$userId',
       );
       final response = await http.get(url);
       if (response.statusCode == 200) {

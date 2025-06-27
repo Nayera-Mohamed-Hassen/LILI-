@@ -1,9 +1,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../config.dart';
 
 class EmergencyService {
   // For Android Emulator, use 10.0.2.2 instead of localhost
-  static const String baseUrl = 'http://10.0.2.2:8000/emergency';
+  static const String baseUrl = '${AppConfig.apiBaseUrl}/emergency';
 
   Future<Map<String, dynamic>> sendEmergencyAlert(Map<String, dynamic> alert) async {
     final url = Uri.parse('$baseUrl/send');

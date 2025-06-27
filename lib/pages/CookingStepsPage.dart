@@ -4,6 +4,7 @@ import 'package:LILI/user_session.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'wave2.dart';
+import '../config.dart';
 
 class CookingStepsPage extends StatefulWidget {
   final String image;
@@ -53,7 +54,7 @@ class _CookingStepsPageState extends State<CookingStepsPage> {
         return;
       }
 
-      final url = Uri.parse('http://10.0.2.2:8000/user/preferences/update-on-cook');
+      final url = Uri.parse('${AppConfig.apiBaseUrl}/user/preferences/update-on-cook');
       final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},

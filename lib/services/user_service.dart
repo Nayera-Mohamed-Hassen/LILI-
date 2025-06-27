@@ -1,9 +1,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../config.dart';
 
 class UserService {
   // For Android Emulator, use 10.0.2.2 instead of localhost
-  static const String baseUrl = 'http://10.0.2.2:8000/user';
+  static const String baseUrl = '${AppConfig.apiBaseUrl}/user';
 
   Future<Map<String, dynamic>> getUserProfile(String? userId) async {
     if (userId == null || userId.isEmpty) {

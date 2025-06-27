@@ -8,6 +8,7 @@ import '../../services/notification_service.dart';
 import '../../services/user_service.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import '../../config.dart';
 
 class CalendarController extends GetxController {
   final RxList<myevent.Event> events = <myevent.Event>[].obs;
@@ -77,7 +78,7 @@ class CalendarController extends GetxController {
         // Fetch all household users
         try {
           final url = Uri.parse(
-            'http://10.0.2.2:8000/user/household-users/$userId',
+            '${AppConfig.apiBaseUrl}/user/household-users/$userId',
           );
           final response = await http.get(url);
           if (response.statusCode == 200) {

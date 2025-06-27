@@ -9,6 +9,7 @@ import 'package:percent_indicator/percent_indicator.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import '../config.dart';
 
 class ReportDashboard extends StatefulWidget {
   final String userId;
@@ -83,7 +84,7 @@ class _ReportDashboardState extends State<ReportDashboard> {
     if (userId == null || userId.isEmpty) return;
     try {
       final response = await http.post(
-        Uri.parse('http://10.0.2.2:8000/user/inventory/get-items'),
+        Uri.parse('${AppConfig.apiBaseUrl}/user/inventory/get-items'),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({"user_id": userId}),
       );

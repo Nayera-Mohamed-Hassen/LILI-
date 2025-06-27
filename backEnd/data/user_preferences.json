@@ -10,13 +10,18 @@
       "unsweetened almond milk": 3.0,
       "vanilla bean": 3.0,
       "short-grain brown rice": 3.0,
-      "blanched hazelnuts": 3.0
+      "blanched hazelnuts": 3.0,
+      "salsa": 1.9,
+      "kosa": 1.9,
+      "gazar": 1.9
     },
     "meal_type_preferences": {
-      "breakfast": 2
+      "breakfast": 2,
+      "lunch": 2
     },
     "cooking_time_preferences": {
-      "medium": 2
+      "medium": 2,
+      "long": 2
     },
     "ingredient_combinations": {
       "apricot+sugar": 1,
@@ -35,9 +40,12 @@
       "unsweetened almond milk+short-grain brown rice": 1,
       "vanilla bean+short-grain brown rice": 1,
       "vanilla bean+blanched hazelnuts": 1,
-      "short-grain brown rice+blanched hazelnuts": 1
+      "short-grain brown rice+blanched hazelnuts": 1,
+      "salsa+kosa": 1,
+      "salsa+gazar": 1,
+      "kosa+gazar": 1
     },
-    "updated_at": "2025-06-23T20:08:43.483482",
+    "updated_at": "2025-06-26T20:09:51.127477",
     "cooking_history": [
       {
         "recipe_name": "Brown Rice Porridge with Hazelnuts and Jam",
@@ -67,6 +75,22 @@
           "vanilla bean": 3.0,
           "short-grain brown rice": 3.0,
           "blanched hazelnuts": 3.0
+        }
+      },
+      {
+        "recipe_name": "5altabeta bel salsa",
+        "ingredients": [
+          "salsa",
+          "kosa",
+          "gazar"
+        ],
+        "meal_type": "Lunch",
+        "cooking_time": "30-60 mins",
+        "cooked_at": "2025-06-26T20:09:51.127477",
+        "preference_boosts": {
+          "salsa": 1.9,
+          "kosa": 1.9,
+          "gazar": 1.9
         }
       }
     ]

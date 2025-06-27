@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import '../user_session.dart';
 import 'add_new_itemInventory_page.dart'; // Page to create new item
 import 'package:LILI/pages/create_new_categoryInventory_page.dart'; // Page to create new category
+import '../config.dart';
 
 class InventoryItem {
   final String name;
@@ -68,7 +69,7 @@ class _InventoryPageState extends State<InventoryPage> {
     }
     try {
       final response = await http.post(
-        Uri.parse('http://10.0.2.2:8000/user/inventory/get-items'),
+        Uri.parse('${AppConfig.apiBaseUrl}/user/inventory/get-items'),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({"user_id": userId}),
       );
@@ -122,7 +123,7 @@ class _InventoryPageState extends State<InventoryPage> {
     double amount = 1.0,
   }) async {
     final response = await http.put(
-      Uri.parse('http://10.0.2.2:8000/user/inventory/update-quantity'),
+      Uri.parse('${AppConfig.apiBaseUrl}/user/inventory/update-quantity'),
       headers: {"Content-Type": "application/json"},
       body: jsonEncode({
         "user_id": userId,
@@ -153,7 +154,7 @@ class _InventoryPageState extends State<InventoryPage> {
     String? expiry,
   ) async {
     final response = await http.delete(
-      Uri.parse('http://10.0.2.2:8000/user/inventory/delete'),
+      Uri.parse('${AppConfig.apiBaseUrl}/user/inventory/delete'),
       headers: {"Content-Type": "application/json"},
       body: jsonEncode({"user_id": userId, "name": name, "expiry": expiry}),
     );

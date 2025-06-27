@@ -4,6 +4,7 @@ import 'package:LILI/models/recipeItem.dart';
 import 'package:http/http.dart' as http;
 import 'package:LILI/user_session.dart';
 import 'wave2.dart';
+import '../config.dart';
 
 Future<List<RecipeItem>> fetchRecipes(int page) async {
   final userId = UserSession().getUserId();
@@ -11,7 +12,7 @@ Future<List<RecipeItem>> fetchRecipes(int page) async {
     throw Exception('User ID is missing. Please log in again.');
   }
   final response = await http.post(
-    Uri.parse('http://10.0.2.2:8000/user/recipes'),
+    Uri.parse('${AppConfig.apiBaseUrl}/user/recipes'),
     headers: {'Content-Type': 'application/json'},
     body: jsonEncode({
       'user_id': userId,

@@ -2,9 +2,10 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/recipeItem.dart';
 import '../user_session.dart';
+import '../config.dart';
 
 class FavoriteService {
-  static const String baseUrl = 'http://10.0.2.2:8000/user';
+  static const String baseUrl = '${AppConfig.apiBaseUrl}/user';
 
   // Add a recipe to favorites
   static Future<bool> addToFavorites(RecipeItem recipe) async {

@@ -17,6 +17,7 @@ import '../services/notification_service.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../models/notification.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../config.dart';
 
 class ProfilePage extends StatefulWidget {
   @override
@@ -106,7 +107,7 @@ class _ProfilePageState extends State<ProfilePage> {
     final userId = UserSession().getUserId();
     if (userId == null || userId.isEmpty) return;
     try {
-      final url = Uri.parse('http://10.0.2.2:8000/user/feedback/$userId');
+      final url = Uri.parse('${AppConfig.apiBaseUrl}/user/feedback/$userId');
       final response = await http.get(url);
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -126,7 +127,7 @@ class _ProfilePageState extends State<ProfilePage> {
     final userId = UserSession().getUserId();
     if (userId == null || userId.isEmpty) return;
     try {
-      final url = Uri.parse('http://10.0.2.2:8000/user/feedback');
+      final url = Uri.parse('${AppConfig.apiBaseUrl}/user/feedback');
       final response = await http.post(
         url,
         headers: {"Content-Type": "application/json"},
@@ -170,7 +171,7 @@ class _ProfilePageState extends State<ProfilePage> {
     if (userId == null || userId.isEmpty) return;
     try {
       // Get user's house_Id
-      final urlProfile = Uri.parse('http://10.0.2.2:8000/user/profile/$userId');
+      final urlProfile = Uri.parse('${AppConfig.apiBaseUrl}/user/profile/$userId');
       final responseProfile = await http.get(urlProfile);
       if (responseProfile.statusCode == 200) {
         final data = jsonDecode(responseProfile.body);
@@ -178,7 +179,7 @@ class _ProfilePageState extends State<ProfilePage> {
         if (houseId != null && houseId != "") {
           // Fetch household by houseId to get join_code
           final urlHouse = Uri.parse(
-            'http://10.0.2.2:8000/user/household/$houseId',
+            '${AppConfig.apiBaseUrl}/user/household/$houseId',
           );
           final responseHouse = await http.get(urlHouse);
           if (responseHouse.statusCode == 200) {
@@ -199,7 +200,7 @@ class _ProfilePageState extends State<ProfilePage> {
     if (userId == null || userId.isEmpty) return;
     try {
       final url = Uri.parse(
-        'http://10.0.2.2:8000/user/household-users/$userId',
+        '${AppConfig.apiBaseUrl}/user/household-users/$userId',
       );
       final response = await http.get(url);
       if (response.statusCode == 200) {
@@ -433,7 +434,7 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> logoutUser(String userId) async {
-    final url = Uri.parse('http://10.0.2.2:8000/user/logout');
+    final url = Uri.parse('${AppConfig.apiBaseUrl}/user/logout');
     await http.post(
       url,
       headers: {"Content-Type": "application/json"},
@@ -600,7 +601,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Future<bool> resetPassword(String? userId, String newPassword) async {
     if (userId == null || userId.isEmpty) return false;
-    final url = Uri.parse('http://10.0.2.2:8000/user/reset-password');
+    final url = Uri.parse('${AppConfig.apiBaseUrl}/user/reset-password');
     final response = await http.post(
       url,
       headers: {"Content-Type": "application/json"},
@@ -1617,7 +1618,7 @@ class _ProfilePageState extends State<ProfilePage> {
       builder: (context) {
         return FutureBuilder<http.Response>(
           future: http.get(
-            Uri.parse('http://10.0.2.2:8000/user/profile/${member['user_id']}'),
+            Uri.parse('${AppConfig.apiBaseUrl}/user/profile/${member['user_id']}'),
           ),
           builder: (context, snapshot) {
             if (!snapshot.hasData) {
@@ -1812,7 +1813,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Future<void> _removeMember(String userId) async {
     try {
-      final url = Uri.parse('http://10.0.2.2:8000/user/remove-from-household');
+      final url = Uri.parse('${AppConfig.apiBaseUrl}/user/remove-from-household');
       final response = await http.post(
         url,
         headers: {"Content-Type": "application/json"},
