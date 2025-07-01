@@ -91,6 +91,7 @@ class _ProfilePageState extends State<ProfilePage> {
               userData['weight'] != null
                   ? double.parse(userData['weight'].toString())
                   : null,
+          profilePic: userData['profile_pic'] as String?,
         );
         _isLoading = false;
       });
@@ -171,7 +172,9 @@ class _ProfilePageState extends State<ProfilePage> {
     if (userId == null || userId.isEmpty) return;
     try {
       // Get user's house_Id
-      final urlProfile = Uri.parse('${AppConfig.apiBaseUrl}/user/profile/$userId');
+      final urlProfile = Uri.parse(
+        '${AppConfig.apiBaseUrl}/user/profile/$userId',
+      );
       final responseProfile = await http.get(urlProfile);
       if (responseProfile.statusCode == 200) {
         final data = jsonDecode(responseProfile.body);
@@ -875,36 +878,49 @@ class _ProfilePageState extends State<ProfilePage> {
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Container(
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        border: Border.all(
-                                          color: Colors.white,
-                                          width: 4,
-                                        ),
+                                    Padding(
+                                      padding: const EdgeInsets.only(
+                                        top: 16.0,
+                                        bottom: 16.0,
                                       ),
                                       child: CircleAvatar(
-                                        radius: 50,
+                                        radius: 60,
                                         backgroundColor: Colors.white24,
-                                        child: Text(
-                                          user.name.isNotEmpty
-                                              ? user.name[0].toUpperCase()
-                                              : '?',
-                                          style: const TextStyle(
-                                            fontSize: 40,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.white,
-                                          ),
-                                        ),
+                                        backgroundImage:
+                                            (user.profilePic != null &&
+                                                    user.profilePic!.isNotEmpty)
+                                                ? MemoryImage(
+                                                  base64Decode(
+                                                    user.profilePic!,
+                                                  ),
+                                                )
+                                                : null,
+                                        child:
+                                            (user.profilePic == null ||
+                                                    user.profilePic!.isEmpty)
+                                                ? Icon(
+                                                  Icons.person,
+                                                  size: 60,
+                                                  color: Colors.white,
+                                                )
+                                                : null,
                                       ),
                                     ),
-                                    const SizedBox(height: 16),
-                                    Text(
-                                      user.name,
-                                      style: const TextStyle(
-                                        fontSize: 24,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
+                                    const SizedBox(height: 10),
+                                    ConstrainedBox(
+                                      constraints: BoxConstraints(
+                                        maxWidth: 300,
+                                      ),
+                                      child: Text(
+                                        user.name,
+                                        style: const TextStyle(
+                                          fontSize: 24,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                        maxLines: 1,
+                                        textAlign: TextAlign.center,
                                       ),
                                     ),
                                   ],
@@ -1618,7 +1634,9 @@ class _ProfilePageState extends State<ProfilePage> {
       builder: (context) {
         return FutureBuilder<http.Response>(
           future: http.get(
-            Uri.parse('${AppConfig.apiBaseUrl}/user/profile/${member['user_id']}'),
+            Uri.parse(
+              '${AppConfig.apiBaseUrl}/user/profile/${member['user_id']}',
+            ),
           ),
           builder: (context, snapshot) {
             if (!snapshot.hasData) {
@@ -1813,7 +1831,9 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Future<void> _removeMember(String userId) async {
     try {
-      final url = Uri.parse('${AppConfig.apiBaseUrl}/user/remove-from-household');
+      final url = Uri.parse(
+        '${AppConfig.apiBaseUrl}/user/remove-from-household',
+      );
       final response = await http.post(
         url,
         headers: {"Content-Type": "application/json"},

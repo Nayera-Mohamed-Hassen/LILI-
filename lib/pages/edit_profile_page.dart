@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../models/user.dart';
@@ -103,6 +104,13 @@ class _EditProfilePageState extends State<EditProfilePage> {
         throw Exception('Invalid user ID');
       }
 
+      // If a new image is picked, upload it as base64
+      if (_image != null) {
+        final bytes = await File(_image!.path).readAsBytes();
+        final base64Image = base64Encode(bytes);
+        await _userService.updateProfilePicture(userId: userId, base64Image: base64Image);
+      }
+
       await _userService.updateProfile(
         userId: userId,
         name: nameController.text,
@@ -138,6 +146,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         diet: selectedDiet,
         gender: selectedGender,
         allergies: allergies,
+        profilePic: _image != null ? base64Encode(await File(_image!.path).readAsBytes()) : widget.user.profilePic,
       );
 
       Navigator.pop(context, updatedUser);
@@ -196,7 +205,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                   backgroundImage:
                                       _image != null
                                           ? FileImage(File(_image!.path))
-                                          : null,
+                                          : (widget.user.profilePic != null && widget.user.profilePic!.isNotEmpty
+                                              ? MemoryImage(base64Decode(widget.user.profilePic!))
+                                              : null),
                                   child:
                                       _image == null
                                           ? Column(

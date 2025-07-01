@@ -12,6 +12,7 @@ import 'receipt_scan_dialog.dart';
 import 'extracted_items_dialog.dart';
 import '../services/ocr_service.dart';
 import '../config.dart';
+import '../services/transaction_service.dart';
 
 class CreateNewItemPage extends StatefulWidget {
   @override
@@ -319,104 +320,145 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => ReceiptScanDialog(
-        onItemsExtracted: (items) async {
-          // Show extracted items dialog
-          final selectedItems = await showDialog<List<OCRItem>>(
-            context: context,
-            builder: (context) => ExtractedItemsDialog(items: items),
-          );
+      builder:
+          (context) => ReceiptScanDialog(
+            onReceiptExtracted: (receipt) async {
+              // Show extracted items dialog
+              final selectedItems = await showDialog<List<OCRItem>>(
+                context: context,
+                builder:
+                    (context) => ExtractedItemsDialog(items: receipt.items),
+              );
 
-          if (selectedItems != null && selectedItems.isNotEmpty) {
-            // Process selected items
-            await _processSelectedItems(selectedItems);
-          }
-        },
-      ),
+              if (selectedItems != null && selectedItems.isNotEmpty) {
+                await _processSelectedItems(selectedItems);
+                // Add a single expense for the total
+                final String? userId = UserSession().getUserId();
+                if (userId != null && userId.isNotEmpty) {
+                  double total;
+                  if (receipt.totalAmount != null && receipt.totalAmount > 0) {
+                    total = receipt.totalAmount;
+                  } else if (receipt.totalAmount == 0) {
+                    total = selectedItems.fold(
+                      0.0,
+                      (sum, item) =>
+                          sum +
+                          ((item.unitPrice > 0 ? item.unitPrice : item.amount) *
+                              item.quantity),
+                    );
+                  } else {
+                    // If totalAmount is null or negative, do not add an expense
+                    return;
+                  }
+                  try {
+                    await TransactionService.addTransaction(
+                      userId: userId,
+                      amount: total,
+                      category: 'Grocery',
+                      transactionType: 'expense',
+                      description: 'Added from receipt scan (total)',
+                    );
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'Failed to add total expense: \\${e.toString()}',
+                        ),
+                        backgroundColor: Colors.red.withOpacity(0.8),
+                      ),
+                    );
+                  }
+                }
+              }
+            },
+          ),
     );
   }
 
   // Function to show confirmation dialog for each item with category selection
-  Future<Map<String, dynamic>?> _showItemConfirmationDialogWithCategory(OCRItem item) async {
+  Future<Map<String, dynamic>?> _showItemConfirmationDialogWithCategory(
+    OCRItem item,
+  ) async {
     String selectedCategory = 'Food';
     return await showDialog<Map<String, dynamic>>(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: Color(0xFF1F3354),
-        title: Text(
-          'Add Item',
-          style: TextStyle(color: Colors.white),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Name: ${item.name.isNotEmpty ? item.name : 'Unknown Item'}',
-              style: TextStyle(color: Colors.white70),
-            ),
-            Text(
-              'Quantity: ${item.quantity}',
-              style: TextStyle(color: Colors.white70),
-            ),
-            Text(
-              'Price: \$${item.amount.toStringAsFixed(2)}',
-              style: TextStyle(color: Colors.white70),
-            ),
-            SizedBox(height: 16),
-            Text(
-              'Category:',
-              style: TextStyle(color: Colors.white),
-            ),
-            SizedBox(height: 8),
-            StatefulBuilder(
-              builder: (context, setState) {
-                return DropdownButton<String>(
-                  value: selectedCategory,
-                  dropdownColor: Color(0xFF1F3354),
-                  style: TextStyle(color: Colors.white),
-                  icon: Icon(Icons.arrow_drop_down, color: Colors.white70),
-                  items: CategoryManager().categories
-                      .map((cat) => DropdownMenuItem(
-                            value: cat,
-                            child: Text(cat, style: TextStyle(color: Colors.white)),
-                          ))
-                      .toList(),
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() {
-                        selectedCategory = value;
-                      });
-                    }
+      builder:
+          (context) => AlertDialog(
+            backgroundColor: Color(0xFF1F3354),
+            title: Text('Add Item', style: TextStyle(color: Colors.white)),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Name: ${item.name.isNotEmpty ? item.name : 'Unknown Item'}',
+                  style: TextStyle(color: Colors.white70),
+                ),
+                Text(
+                  'Quantity: ${item.quantity}',
+                  style: TextStyle(color: Colors.white70),
+                ),
+                Text(
+                  'Price: \$${item.amount.toStringAsFixed(2)}',
+                  style: TextStyle(color: Colors.white70),
+                ),
+                SizedBox(height: 16),
+                Text('Category:', style: TextStyle(color: Colors.white)),
+                SizedBox(height: 8),
+                StatefulBuilder(
+                  builder: (context, setState) {
+                    return DropdownButton<String>(
+                      value: selectedCategory,
+                      dropdownColor: Color(0xFF1F3354),
+                      style: TextStyle(color: Colors.white),
+                      icon: Icon(Icons.arrow_drop_down, color: Colors.white70),
+                      items:
+                          CategoryManager().categories
+                              .map(
+                                (cat) => DropdownMenuItem(
+                                  value: cat,
+                                  child: Text(
+                                    cat,
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                ),
+                              )
+                              .toList(),
+                      onChanged: (value) {
+                        if (value != null) {
+                          setState(() {
+                            selectedCategory = value;
+                          });
+                        }
+                      },
+                    );
                   },
-                );
-              },
+                ),
+                SizedBox(height: 16),
+                Text(
+                  'Would you like to add this item to your inventory?',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ],
             ),
-            SizedBox(height: 16),
-            Text(
-              'Would you like to add this item to your inventory?',
-              style: TextStyle(color: Colors.white),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(null),
-            child: Text('Skip', style: TextStyle(color: Colors.white70)),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(null),
+                child: Text('Skip', style: TextStyle(color: Colors.white70)),
+              ),
+              ElevatedButton(
+                key: const Key('save_inventory_item_button'),
+                onPressed:
+                    () => Navigator.of(
+                      context,
+                    ).pop({'add': true, 'category': selectedCategory}),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white24,
+                ),
+                child: Text('Add', style: TextStyle(color: Colors.white)),
+              ),
+            ],
           ),
-          ElevatedButton(
-            key: const Key('save_inventory_item_button'),
-            onPressed: () => Navigator.of(context).pop({
-              'add': true,
-              'category': selectedCategory,
-            }),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.white24,
-            ),
-            child: Text('Add', style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
     );
   }
 
@@ -426,9 +468,13 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
       // Pre-fill the form with the first item
       if (item == selectedItems.first) {
         setState(() {
-          _titleController.text = item.name.isNotEmpty ? item.name : 'Unknown Item';
+          _titleController.text =
+              item.name.isNotEmpty ? item.name : 'Unknown Item';
           _quantityController.text = item.quantity.toString();
-          _amountController.text = item.unitPrice > 0 ? item.unitPrice.toString() : item.amount.toString();
+          _amountController.text =
+              item.unitPrice > 0
+                  ? item.unitPrice.toString()
+                  : item.amount.toString();
         });
       }
 
@@ -444,9 +490,9 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
   Future<void> _addItemFromOCR(OCRItem item, String category) async {
     final String? userId = UserSession().getUserId();
     if (userId == null || userId.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('User not logged in')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('User not logged in')));
       return;
     }
 
@@ -621,7 +667,11 @@ class _CreateNewItemPageState extends State<CreateNewItemPage> {
                         ),
                       ),
                       SizedBox(height: 20),
-                      _buildTextField(_titleController, 'Item Name', isNumber: false),
+                      _buildTextField(
+                        _titleController,
+                        'Item Name',
+                        isNumber: false,
+                      ),
                       SizedBox(height: 16),
                       _buildDropdown('Choose Category'),
                       SizedBox(height: 16),

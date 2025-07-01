@@ -16,6 +16,18 @@ class ExtractedItemsDialog extends StatefulWidget {
 class _ExtractedItemsDialogState extends State<ExtractedItemsDialog> {
   Set<int> _selectedIndices = {};
 
+  bool get _allSelected => _selectedIndices.length == widget.items.length;
+
+  void _toggleSelectAll() {
+    setState(() {
+      if (_allSelected) {
+        _selectedIndices.clear();
+      } else {
+        _selectedIndices = Set<int>.from(List.generate(widget.items.length, (i) => i));
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Dialog(
@@ -25,7 +37,14 @@ class _ExtractedItemsDialogState extends State<ExtractedItemsDialog> {
         height: MediaQuery.of(context).size.height * 0.7,
         padding: EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Color(0xFF1F3354),
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFF3E5879), // Light blue from app gradient
+              Color(0xFF1F3354), // Dark blue from app gradient
+            ],
+          ),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: Colors.white24),
         ),
@@ -48,9 +67,7 @@ class _ExtractedItemsDialogState extends State<ExtractedItemsDialog> {
                 ),
               ],
             ),
-            
             SizedBox(height: 16),
-            
             Text(
               'Select items to add to your inventory:',
               style: TextStyle(
@@ -58,20 +75,30 @@ class _ExtractedItemsDialogState extends State<ExtractedItemsDialog> {
                 fontSize: 16,
               ),
             ),
-            
-            SizedBox(height: 16),
-            
+            SizedBox(height: 12),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton.icon(
+                onPressed: _toggleSelectAll,
+                icon: Icon(_allSelected ? Icons.check_box : Icons.check_box_outline_blank, color: Colors.white),
+                label: Text(_allSelected ? 'Deselect All' : 'Select All', style: TextStyle(color: Colors.white)),
+                style: TextButton.styleFrom(
+                  backgroundColor: Colors.white24,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+              ),
+            ),
+            SizedBox(height: 8),
             Expanded(
               child: ListView.builder(
                 itemCount: widget.items.length,
                 itemBuilder: (context, index) {
                   final item = widget.items[index];
                   final isSelected = _selectedIndices.contains(index);
-                  
                   return Container(
                     margin: EdgeInsets.only(bottom: 8),
                     decoration: BoxDecoration(
-                      color: isSelected ? Colors.white12 : Colors.white,
+                      color: isSelected ? Color(0xFF3E5879) : Colors.white12,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color: isSelected ? Colors.white : Colors.white24,
@@ -134,9 +161,7 @@ class _ExtractedItemsDialogState extends State<ExtractedItemsDialog> {
                 },
               ),
             ),
-            
             SizedBox(height: 16),
-            
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [

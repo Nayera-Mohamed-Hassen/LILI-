@@ -259,7 +259,16 @@ class _InventoryPageState extends State<InventoryPage> {
               _buildHeader(),
               _buildSearch(),
               _buildFilterChips(),
-              Expanded(child: _buildInventoryList(groupedItems)),
+              Expanded(
+                child: RefreshIndicator(
+                  onRefresh: () async {
+                    await getUserInventoryItems();
+                  },
+                  color: Colors.white,
+                  backgroundColor: Color(0xFF1F3354),
+                  child: _buildInventoryList(groupedItems),
+                ),
+              ),
             ],
           ),
         ),

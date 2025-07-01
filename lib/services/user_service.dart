@@ -130,4 +130,28 @@ class UserService {
       throw Exception('Failed to update user role: \\n${response.body}');
     }
   }
+
+  Future<bool> updateProfilePicture({
+    required String userId,
+    required String base64Image,
+  }) async {
+    try {
+      final url = Uri.parse('$baseUrl/update-profile-picture');
+      final response = await http.put(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'user_id': userId,
+          'profile_pic': base64Image,
+        }),
+      );
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        throw Exception('Failed to update profile picture: \\${response.body}');
+      }
+    } catch (e) {
+      throw Exception('Failed to update profile picture: \\${e.toString()}');
+    }
+  }
 }

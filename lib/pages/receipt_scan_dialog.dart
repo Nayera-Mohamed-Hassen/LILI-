@@ -4,11 +4,11 @@ import 'dart:io';
 import '../services/ocr_service.dart';
 
 class ReceiptScanDialog extends StatefulWidget {
-  final Function(List<OCRItem>) onItemsExtracted;
+  final Function(OCRReceipt) onReceiptExtracted;
 
   const ReceiptScanDialog({
     Key? key,
-    required this.onItemsExtracted,
+    required this.onReceiptExtracted,
   }) : super(key: key);
 
   @override
@@ -159,9 +159,9 @@ class _ReceiptScanDialogState extends State<ReceiptScanDialog> {
           throw Exception('No items found in the receipt. Please try with a clearer image.');
         }
 
-        // Close dialog and return extracted items
+        // Close dialog and return the full receipt
         Navigator.of(context).pop();
-        widget.onItemsExtracted(receipt.items);
+        widget.onReceiptExtracted(receipt);
 
       } else {
         setState(() {

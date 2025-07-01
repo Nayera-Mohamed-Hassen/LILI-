@@ -13,6 +13,9 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../models/notification.dart';
 import 'package:LILI/new Lib/models/event.dart';
 import 'package:LILI/services/calendar_service.dart';
+import 'dart:convert';
+import '../services/user_service.dart';
+import '../models/user.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -36,6 +39,8 @@ class _HomePageState extends State<HomePage> {
   List<NotificationModel> _latestNotifications = [];
   bool _dropdownOpen = false;
   bool _loadingNotifications = false;
+  User? _user;
+  final UserService _userService = UserService();
 
   @override
   void initState() {
@@ -47,6 +52,7 @@ class _HomePageState extends State<HomePage> {
       Provider.of<TaskService>(context, listen: false).fetchTasks();
     });
     _fetchNotifications();
+    _fetchUserProfile();
   }
 
   Future<void> _fetchEvents() async {
@@ -93,6 +99,28 @@ class _HomePageState extends State<HomePage> {
       });
     } catch (e) {
       setState(() => _loadingNotifications = false);
+    }
+  }
+
+  Future<void> _fetchUserProfile() async {
+    final userId = UserSession().getUserId();
+    if (userId == null || userId.isEmpty) return;
+    try {
+      final userData = await _userService.getUserProfile(userId);
+      setState(() {
+        _user = User(
+          name: userData['name'] ?? '',
+          email: userData['email'] ?? '',
+          dob: userData['user_birthday'] ?? '',
+          phone: userData['phone'] ?? '',
+          allergies: userData['allergies'] ?? [],
+          height: userData['height'] != null ? double.tryParse(userData['height'].toString()) : null,
+          weight: userData['weight'] != null ? double.tryParse(userData['weight'].toString()) : null,
+          profilePic: userData['profile_pic'] as String?,
+        );
+      });
+    } catch (e) {
+      // Optionally handle error
     }
   }
 
@@ -168,14 +196,15 @@ class _HomePageState extends State<HomePage> {
                                     width: 2,
                                   ),
                                 ),
-                                child: const CircleAvatar(
+                                child: CircleAvatar(
                                   radius: 30,
                                   backgroundColor: Colors.white24,
-                                  child: Icon(
-                                    Icons.person,
-                                    size: 35,
-                                    color: Colors.white,
-                                  ),
+                                  backgroundImage: (_user != null && _user!.profilePic != null && _user!.profilePic!.isNotEmpty)
+                                      ? MemoryImage(base64Decode(_user!.profilePic!))
+                                      : null,
+                                  child: (_user == null || _user!.profilePic == null || _user!.profilePic!.isEmpty)
+                                      ? Icon(Icons.person, size: 35, color: Colors.white)
+                                      : null,
                                 ),
                               ),
                               const SizedBox(width: 16),
