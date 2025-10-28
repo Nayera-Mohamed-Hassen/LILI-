@@ -1,12 +1,12 @@
 import 'dart:convert';
 
+import 'package:LILI/services/user_service.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../user_session.dart';
-import 'package:LILI/services/user_service.dart';
 import '../config.dart';
+import '../user_session.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -58,7 +58,7 @@ class _LoginPageState extends State<LoginPage> {
                     'Sign in to continue',
                     style: TextStyle(color: Colors.white70, fontSize: 16),
                   ),
-                  const SizedBox(height: 48),
+                  const SizedBox(height: 64),
                   _buildTextField(
                     controller: _usernameController,
                     label: 'Username',
@@ -81,50 +81,62 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   const SizedBox(height: 16),
                   Row(
-                    children: [
-                      Checkbox(
-                        value: _rememberMe,
-                        onChanged: (value) {
-                          setState(() {
-                            _rememberMe = value ?? false;
-                          });
-                        },
-                        activeColor: Colors.white,
-                        checkColor: Color(0xFF1F3354),
-                      ),
-                      const Text(
-                        'Remember Me',
-                        style: TextStyle(color: Colors.white70, fontSize: 14),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      TextButton.icon(
-                        onPressed: () {
-                          Navigator.pushNamed(
-                            context,
-                            '/forget password email',
-                          );
-                        },
-                        icon: const Icon(
-                          Icons.lock_reset_outlined,
-                          color: Colors.white70,
-                          size: 20,
-                        ),
-                        label: const Text(
-                          'Forgot password?',
-                          style: TextStyle(fontSize: 14, color: Colors.white70),
-                        ),
-                        style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                        ),
+                      Row(
+                        children: [
+                          Checkbox(
+                            value: _rememberMe,
+                            onChanged: (value) {
+                              setState(() {
+                                _rememberMe = value ?? false;
+                              });
+                            },
+                            activeColor: Colors.white,
+                            checkColor: Color(0xFF1F3354),
+                          ),
+                          const Text(
+                            'Remember Me',
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          TextButton.icon(
+                            onPressed: () {
+                              Navigator.pushNamed(
+                                context,
+                                '/forget password email',
+                              );
+                            },
+                            icon: const Icon(
+                              Icons.lock_reset_outlined,
+                              color: Colors.white70,
+                              size: 20,
+                            ),
+                            label: const Text(
+                              'Forgot password?',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.white70,
+                              ),
+                            ),
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 48),
                   _buildLoginButton(),
                   const SizedBox(height: 24),
                   Center(
@@ -160,7 +172,9 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
 
-                  SizedBox(height: 220),
+                  SizedBox(
+                    height: MediaQuery.of(context).size.height * 27 / 100,
+                  ),
                 ],
               ),
             ),

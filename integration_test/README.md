@@ -4,9 +4,6 @@
 - **test_login.dart**: Test login with valid and invalid credentials
 - **test_logout.dart**: Test logout functionality
 
-### 2. Navigation & UI
-- **test_navigation.dart**: Test navigation between all main screens
-- **test_back_button.dart**: Test back button behavior
 
 ### 3. Calendar & Events
 - **test_add_event.dart**: Add calendar events

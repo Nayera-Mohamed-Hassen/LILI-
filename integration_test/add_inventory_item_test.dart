@@ -8,18 +8,19 @@ void main() {
 
   testWidgets('User can add a new inventory item', (WidgetTester tester) async {
     // Launch the app
-    app.main();
+     app.main();
     await tester.pumpAndSettle();
 
     // Enter login credentials
     await tester.enterText(find.byKey(const Key('username')), 'ganna');
     await tester.enterText(find.byKey(const Key('password')), '1234');
 
-    await tester.pump(const Duration(seconds: 3));
+     await tester.pump(const Duration(seconds: 3));
     await tester.tap(find.byKey(const Key('login_button')));
     await tester.pumpAndSettle();
 
-    await tester.pump(const Duration(seconds: 3));
+
+     await tester.pump(const Duration(seconds: 3));
 
     // Open the menu (or navigate to calendar)
     await tester.tap(find.byIcon(Icons.menu));
@@ -36,28 +37,18 @@ void main() {
     await tester.pumpAndSettle();
 
     // Tap the 'Add New Item' popup menu entry
-    await tester.tap(
-      find.widgetWithText(PopupMenuItem<String>, 'Add New Item'),
-    );
+    await tester.tap(find.widgetWithText(PopupMenuItem<String>, 'Add New Item'));
     await tester.pumpAndSettle();
 
-    await tester.pump(const Duration(seconds: 3));
+     await tester.pump(const Duration(seconds: 3));
 
     // Fill in the form fields
-    await tester.enterText(
-      find.widgetWithText(TextField, 'Item Name'),
-      'Integration Test Item',
-    );
+    await tester.enterText(find.widgetWithText(TextField, 'Item Name'), 'Integration Test Item');
     await tester.enterText(find.widgetWithText(TextField, 'Quantity'), '5');
-    await tester.enterText(
-      find.widgetWithText(TextField, 'Amount (optional)'),
-      '2',
-    );
+    await tester.enterText(find.widgetWithText(TextField, 'Amount (optional)'), '2');
 
     // Select a category (dropdown)
-    await tester.tap(
-      find.widgetWithText(DropdownButtonFormField<String>, 'Category'),
-    );
+    await tester.tap(find.widgetWithText(DropdownButtonFormField<String>, 'Category'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Food').last);
     await tester.pumpAndSettle();

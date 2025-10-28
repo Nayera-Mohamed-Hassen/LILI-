@@ -2,8 +2,8 @@
   "d99f7950-2254-44ad-8ec9-1fdb9ed661c5": {
     "preferences": {
       "apricot": 4.0,
-      "sugar": 4.0,
-      "of kosher salt": 4.0,
+      "sugar": 5.8,
+      "of kosher salt": 5.8,
       "split lengthwise": 3.0,
       "peach": 3.0,
       "jam plum": 3.0,
@@ -13,20 +13,24 @@
       "blanched hazelnuts": 3.0,
       "salsa": 1.9,
       "kosa": 1.9,
-      "gazar": 1.9
+      "gazar": 1.9,
+      "cream of tartar": 2.8,
+      "light corn syrup": 2.2,
+      "egg whites": 2.2,
+      "pure vanilla extract": 2.2
     },
     "meal_type_preferences": {
-      "breakfast": 2,
+      "breakfast": 3,
       "lunch": 2
     },
     "cooking_time_preferences": {
-      "medium": 2,
+      "medium": 3,
       "long": 2
     },
     "ingredient_combinations": {
       "apricot+sugar": 1,
       "apricot+of kosher salt": 1,
-      "sugar+of kosher salt": 1,
+      "sugar+of kosher salt": 2,
       "sugar+split lengthwise": 1,
       "of kosher salt+split lengthwise": 1,
       "of kosher salt+peach": 1,
@@ -43,9 +47,17 @@
       "short-grain brown rice+blanched hazelnuts": 1,
       "salsa+kosa": 1,
       "salsa+gazar": 1,
-      "kosa+gazar": 1
+      "kosa+gazar": 1,
+      "sugar+cream of tartar": 1,
+      "cream of tartar+of kosher salt": 1,
+      "cream of tartar+light corn syrup": 1,
+      "of kosher salt+light corn syrup": 1,
+      "of kosher salt+egg whites": 1,
+      "light corn syrup+egg whites": 1,
+      "light corn syrup+pure vanilla extract": 1,
+      "egg whites+pure vanilla extract": 1
     },
-    "updated_at": "2025-06-26T20:09:51.127477",
+    "updated_at": "2025-10-28T22:51:59.380544",
     "cooking_history": [
       {
         "recipe_name": "Brown Rice Porridge with Hazelnuts and Jam",
@@ -91,6 +103,28 @@
           "salsa": 1.9,
           "kosa": 1.9,
           "gazar": 1.9
+        }
+      },
+      {
+        "recipe_name": "Marshmallow Sauce",
+        "ingredients": [
+          "sugar",
+          "cream of tartar",
+          "of kosher salt",
+          "light corn syrup",
+          "egg whites",
+          "pure vanilla extract"
+        ],
+        "meal_type": "Breakfast",
+        "cooking_time": "Under 30 mins",
+        "cooked_at": "2025-10-28T22:51:59.380544",
+        "preference_boosts": {
+          "sugar": 5.8,
+          "cream of tartar": 2.8,
+          "of kosher salt": 5.8,
+          "light corn syrup": 2.2,
+          "egg whites": 2.2,
+          "pure vanilla extract": 2.2
         }
       }
     ]
